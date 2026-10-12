@@ -120,7 +120,7 @@ pub async fn process_job(
 
     match job.job_type {
         JobType::Analytics => {
-            cms_biz::analytics::process_analytics_job(&state.db, &job.payload).await
+            cms_analytics::process_analytics_job(&state.db, &job.payload).await
         }
         JobType::Email => {
             cms_biz::email::process_email_job_with_renderer(

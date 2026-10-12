@@ -27,8 +27,8 @@ pub async fn get_project_analytics_handler(
     auth: AuthExtractor,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<ProjectAnalyticsResponse>>, AppError> {
-    let dashboard = cms_biz::analytics::AnalyticsService::get_dashboard(
-        &state.biz_context,
+    let dashboard = cms_analytics::AnalyticsService::get_dashboard(
+        state.db(),
         &auth.user.id,
         &project_id,
     )

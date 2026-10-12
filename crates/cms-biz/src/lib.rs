@@ -9,7 +9,6 @@
 //! calling several database functions in sequence. This is not a behavior change
 //! from the TypeScript actions, only a crate-boundary change.
 
-pub mod analytics;
 pub mod asset;
 pub mod auth;
 pub mod branch;

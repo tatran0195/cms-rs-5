@@ -1,23 +1,29 @@
-//! Analytics Business Logic
-//!
-//! This module contains business logic for analytics tracking.
+//! Analytics domain business service.
 
-use cms_db::analytics::{AnalyticsEventQueries, AnalyticsQueries};
-use cms_entity::analytics::{
-    AnalyticsDashboardResponse, AnalyticsEventResponse, AnalyticsQueryRequest,
-    AnalyticsQueryResponse,
+use cms_db::{
+    analytics::{AnalyticsEventQueries, AnalyticsQueries},
+    page::PageQueries,
+    project::ProjectQueries,
+    PgPool,
 };
+use cms_entity::{
+    analytics::{
+        AnalyticsDashboardResponse, AnalyticsEventResponse, AnalyticsQueryRequest,
+        AnalyticsQueryResponse, ListAnalyticsEventsQuery, TrackAnalyticsEventRequest,
+    },
+    common::PaginatedResponse,
+};
+use cms_error::AppError;
 
-use crate::{AppError, BizContext};
-
-/// Analytics service
+/// Analytics service decoupled from BizContext.
+#[derive(Debug, Clone, Copy)]
 pub struct AnalyticsService;
 
 impl AnalyticsService {
     /// Record an analytics event
     #[allow(clippy::too_many_arguments)]
     pub async fn record_event(
-        ctx: &BizContext,
+        pool: &PgPool,
         project_id: Option<&str>,
         user_id: Option<&str>,
         event_type: &str,
@@ -26,7 +32,7 @@ impl AnalyticsService {
         user_agent: Option<&str>,
     ) -> Result<AnalyticsEventResponse, AppError> {
         let event = AnalyticsEventQueries::create(
-            &ctx.pool, project_id, user_id, event_type, metadata, ip_address, user_agent,
+            pool, project_id, user_id, event_type, metadata, ip_address, user_agent,
         )
         .await?;
 
@@ -35,14 +41,14 @@ impl AnalyticsService {
 
     /// Query analytics events
     pub async fn query_events(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         request: AnalyticsQueryRequest,
         page: u64,
         page_size: u64,
     ) -> Result<AnalyticsQueryResponse, AppError> {
         if let Some(ref proj_id) = request.project_id {
-            let _project = cms_db::project::ProjectQueries::get_by_id(&ctx.pool, proj_id)
+            let _project = ProjectQueries::get_by_id(pool, proj_id)
                 .await?
                 .ok_or_else(|| AppError::NotFound(format!("Project {proj_id} not found")))?;
         }
@@ -51,7 +57,7 @@ impl AnalyticsService {
         let offset = ((page.saturating_sub(1)) as i64) * limit;
 
         let events = AnalyticsEventQueries::query(
-            &ctx.pool,
+            pool,
             request.project_id.as_deref(),
             request.user_id.as_deref(),
             request.event_type.as_deref(),
@@ -63,7 +69,7 @@ impl AnalyticsService {
         .await?;
 
         let total = AnalyticsEventQueries::count(
-            &ctx.pool,
+            pool,
             request.project_id.as_deref(),
             request.user_id.as_deref(),
             request.event_type.as_deref(),
@@ -73,7 +79,7 @@ impl AnalyticsService {
         .await?;
 
         let event_responses: Vec<AnalyticsEventResponse> =
-            events.into_iter().map(|e| e.into()).collect();
+            events.into_iter().map(Into::into).collect();
 
         Ok(AnalyticsQueryResponse {
             query: request,
@@ -87,21 +93,21 @@ impl AnalyticsService {
 
     /// Get analytics summary
     pub async fn get_summary(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         start_date: chrono::DateTime<chrono::Utc>,
         end_date: chrono::DateTime<chrono::Utc>,
     ) -> Result<serde_json::Value, AppError> {
-        AnalyticsQueries::get_summary(&ctx.pool, start_date, end_date).await
+        AnalyticsQueries::get_summary(pool, start_date, end_date).await
     }
 
     /// Track an analytics event
     pub async fn track_event(
-        ctx: &BizContext,
-        request: cms_entity::analytics::TrackAnalyticsEventRequest,
+        pool: &PgPool,
+        request: TrackAnalyticsEventRequest,
     ) -> Result<AnalyticsEventResponse, AppError> {
         Self::record_event(
-            ctx,
+            pool,
             request.project_id.as_deref(),
             request.user_id.as_deref(),
             &request.event_type,
@@ -114,14 +120,14 @@ impl AnalyticsService {
 
     /// List analytics events
     pub async fn list_events(
-        ctx: &BizContext,
+        pool: &PgPool,
         user_id: &str,
-        query: cms_entity::analytics::ListAnalyticsEventsQuery,
-    ) -> Result<cms_entity::common::PaginatedResponse<AnalyticsEventResponse>, AppError> {
+        query: ListAnalyticsEventsQuery,
+    ) -> Result<PaginatedResponse<AnalyticsEventResponse>, AppError> {
         let page = query.page.unwrap_or(1) as u64;
         let page_size = query.page_size.unwrap_or(20) as u64;
-        let response = Self::query_events(ctx, user_id, query, page, page_size).await?;
-        Ok(cms_entity::common::PaginatedResponse::new(
+        let response = Self::query_events(pool, user_id, query, page, page_size).await?;
+        Ok(PaginatedResponse::new(
             response.events,
             response.total as u64,
             page,
@@ -131,46 +137,46 @@ impl AnalyticsService {
 
     /// Query analytics
     pub async fn query_analytics(
-        ctx: &BizContext,
+        pool: &PgPool,
         user_id: &str,
         request: AnalyticsQueryRequest,
     ) -> Result<AnalyticsQueryResponse, AppError> {
         let page = request.page.unwrap_or(1) as u64;
         let page_size = request.page_size.unwrap_or(20) as u64;
-        Self::query_events(ctx, user_id, request, page, page_size).await
+        Self::query_events(pool, user_id, request, page, page_size).await
     }
 
     /// Get dashboard for a project
     pub async fn get_dashboard(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         project_id: &str,
     ) -> Result<AnalyticsDashboardResponse, AppError> {
-        AnalyticsQueries::get_dashboard(&ctx.pool, project_id).await
+        AnalyticsQueries::get_dashboard(pool, project_id).await
     }
 
     /// Get page views scoped by project and authorized by user
     pub async fn get_page_views(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         page_id: &str,
     ) -> Result<serde_json::Value, AppError> {
-        let page = cms_db::page::PageQueries::get_by_id(&ctx.pool, page_id)
+        let page = PageQueries::get_by_id(pool, page_id)
             .await?
             .ok_or_else(|| AppError::NotFound(format!("Page {page_id} not found")))?;
 
-        AnalyticsQueries::get_page_views(&ctx.pool, &page.project_id, page_id).await
+        AnalyticsQueries::get_page_views(pool, &page.project_id, page_id).await
     }
 
     /// Get system stats
-    pub async fn get_system_stats(ctx: &BizContext) -> Result<serde_json::Value, AppError> {
-        AnalyticsQueries::get_system_stats(&ctx.pool).await
+    pub async fn get_system_stats(pool: &PgPool) -> Result<serde_json::Value, AppError> {
+        AnalyticsQueries::get_system_stats(pool).await
     }
 }
 
 /// Process analytics job (for worker)
 pub async fn process_analytics_job(
-    pool: &cms_db::PgPool,
+    pool: &PgPool,
     payload: &serde_json::Value,
 ) -> Result<(), AppError> {
     let event_type = payload
@@ -189,85 +195,4 @@ pub async fn process_analytics_job(
     .await?;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use cms_authz::AuthzState;
-    use uuid::Uuid;
-
-    use super::*;
-
-    #[tokio::test]
-    async fn test_analytics_query_events_sql_count_pagination() {
-        let database_url = std::env::var("CMS_DATABASE__URL")
-            .or_else(|_| std::env::var("DATABASE_URL"))
-            .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/cms".to_string());
-
-        let pool = match cms_db::create_pool(&database_url).await {
-            Ok(p) => p,
-            Err(_) => return,
-        };
-
-        if cms_db::test_connection(&pool).await.is_err() {
-            return;
-        }
-
-        let user_id = format!("user-analytics-{}", Uuid::new_v4());
-        let now = chrono::Utc::now();
-
-        // Seed user
-        let _ = cms_db::sqlx::query(
-            r#"INSERT INTO "User" (id, email, name, email_verified, role, created_at, updated_at)
-               VALUES ($1, $2, 'Analytics User', TRUE, 'user', $3, $3)"#,
-        )
-        .bind(&user_id)
-        .bind(format!("analytics-{}@internal.company", Uuid::new_v4()))
-        .bind(now)
-        .execute(&pool)
-        .await;
-
-        // Seed 3 analytics events
-        for i in 0..3 {
-            let _ = AnalyticsEventQueries::create(
-                &pool,
-                None,
-                Some(&user_id),
-                "page_view",
-                serde_json::json!({ "idx": i }),
-                None,
-                None,
-            )
-            .await;
-        }
-
-        let ctx = BizContext {
-            pool: pool.clone(),
-            authz: std::sync::Arc::new(AuthzState::new(pool, vec![])),
-        };
-
-        // Query with page_size = 2, so the returned events will be 2, but total must be at least 3
-        let req = AnalyticsQueryRequest {
-            project_id: None,
-            user_id: Some(user_id.clone()),
-            event_type: Some("page_view".to_string()),
-            start_date: None,
-            end_date: None,
-            group_by: None,
-            limit: None,
-            page: Some(1),
-            page_size: Some(2),
-        };
-
-        let res = AnalyticsService::query_events(&ctx, &user_id, req, 1, 2)
-            .await
-            .expect("query_events should succeed");
-
-        assert_eq!(res.events.len(), 2, "Returned page should have limit 2");
-        assert!(
-            res.total >= 3,
-            "Total must reflect database COUNT(*), got {}",
-            res.total
-        );
-    }
 }

@@ -30,6 +30,7 @@ cms-content = { path = "../cms-content" }
 cms-assets = { path = "../cms-assets" }
 cms-projects = { path = "../cms-projects" }
 cms-server-services = { path = "../cms-server-services" }
+cms-analytics = { path = "../cms-analytics" }
 
 # External dependencies
 axum = { workspace = true, features = ["json", "multipart"] }

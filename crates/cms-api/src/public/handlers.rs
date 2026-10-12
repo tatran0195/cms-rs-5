@@ -939,9 +939,9 @@ pub async fn post_public_site_events_handler(
     headers: HeaderMap,
     Json(event): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    use cms_biz::analytics::AnalyticsService;
+    use cms_analytics::AnalyticsService;
 
-    let project = cms_db::project::ProjectQueries::get_by_id(&state.biz_context.pool, &id)
+    let project = cms_db::project::ProjectQueries::get_by_id(state.db(), &id)
         .await?
         .ok_or_else(|| AppError::NotFound("Site not found".to_string()))?;
     if !project.is_public {
@@ -977,7 +977,7 @@ pub async fn post_public_site_events_handler(
         .and_then(|value| value.to_str().ok());
 
     AnalyticsService::record_event(
-        &state.biz_context,
+        state.db(),
         Some(&id),
         None,
         event_type,
@@ -1228,8 +1228,8 @@ pub async fn post_public_marketing_events_handler(
         .or_else(|| body.get("projectId"))
         .and_then(|v| v.as_str());
 
-    let _ = cms_biz::analytics::AnalyticsService::record_event(
-        &state.biz_context,
+    let _ = cms_analytics::AnalyticsService::record_event(
+        state.db(),
         project_id,
         None,
         event_type,
