@@ -10,8 +10,11 @@ pub mod queries;
 pub mod services;
 
 pub use handlers::ContentUser;
+pub use models::branch::*;
 pub use models::page::*;
+pub use queries::branch::*;
 pub use queries::page::*;
+pub use services::BranchService;
 pub use services::PageService;
 
 /// Exposes the Axum router for pages.
@@ -30,7 +33,26 @@ pub fn page_router(state: Arc<AppState>) -> Router {
         .with_state(state)
 }
 
+/// Exposes the Axum router for branches.
+pub fn branch_router(state: Arc<AppState>) -> Router {
+    Router::new()
+        .route(
+            "/",
+            get(handlers::branch::list_branches_handler)
+                .post(handlers::branch::create_branch_handler),
+        )
+        .route(
+            "/{id}",
+            get(handlers::branch::get_branch_handler)
+                .put(handlers::branch::update_branch_handler)
+                .delete(handlers::branch::delete_branch_handler),
+        )
+        .with_state(state)
+}
+
 /// Composite router for all content vertical slices.
 pub fn router(state: Arc<AppState>) -> Router {
-    Router::new().nest("/pages", page_router(state))
+    Router::new()
+        .nest("/pages", page_router(Arc::clone(&state)))
+        .nest("/branches", branch_router(state))
 }
