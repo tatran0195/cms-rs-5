@@ -18,6 +18,7 @@ pub mod export;
 pub mod extractors;
 pub mod git;
 pub mod integration;
+pub mod invitation;
 pub mod language;
 pub mod mcp;
 pub mod middleware;
@@ -72,6 +73,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/mcp", mcp::router(state.clone()));
     router = router.nest("/members", workspace::members_router(state.clone()));
     router = router.nest("/workspace", workspace::workspace_router(state.clone()));
+    router = router.nest("/invitations", invitation::router(state.clone()));
 
     // App and canonical v1 subrouters
     let app_router = Router::new()
@@ -96,7 +98,8 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
         .nest("/platform-events", platform_event::router(state.clone()))
         .nest("/mcp", mcp::router(state.clone()))
         .nest("/members", workspace::members_router(state.clone()))
-        .nest("/workspace", workspace::workspace_router(state.clone()));
+        .nest("/workspace", workspace::workspace_router(state.clone()))
+        .nest("/invitations", invitation::router(state.clone()));
     router = router.nest("/app", app_router.clone());
     router = router.nest("/v1", app_router);
 
