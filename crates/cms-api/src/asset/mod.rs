@@ -1,30 +1,14 @@
 //! Asset API module
 //!
-//! This module contains handlers for asset routes.
+//! Delegated directly to the `cms-assets` vertical slice.
 
 use std::sync::Arc;
-
-use axum::{
-    routing::{delete, get, post, put},
-    Router,
-};
+use axum::Router;
 use cms_middleware::app_state::AppState;
 
 pub mod handlers;
 
-use handlers::*;
-
 /// Create the asset router
 pub fn router(state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/", get(list_assets_handler))
-        .route("/upload", post(upload_asset_handler))
-        .route(
-            "/upload-multipart/{project_id}",
-            post(upload_asset_multipart_handler),
-        )
-        .route("/{id}", get(get_asset_handler))
-        .route("/{id}", put(update_asset_handler))
-        .route("/{id}", delete(delete_asset_handler))
-        .with_state(state)
+    cms_assets::asset_router(state)
 }
