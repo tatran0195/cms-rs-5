@@ -258,10 +258,10 @@ pub async fn get_project_search_diagnostics_handler(
     Path(project_id): Path<String>,
     Query(_query): Query<serde_json::Value>,
 ) -> Result<Json<ApiResponse<SearchDiagnosticsResponse>>, AppError> {
-    use cms_biz::search::SearchService;
+    use cms_search::SearchService;
 
     // Permission / availability check
-    SearchService::get_search_status(&state.biz_context, &auth.user.id, &project_id).await?;
+    SearchService::get_search_status(state.db(), &auth.user.id, &project_id).await?;
 
     // --- Live Tantivy stats ---------------------------------------------------
     let stats = state.search_engine.index_stats(&project_id).await?;
@@ -359,11 +359,11 @@ pub async fn reindex_project_search_handler(
     auth: AuthExtractor,
     Path(project_id): Path<String>,
 ) -> Result<(StatusCode, Json<ApiResponse<SearchReindexResponse>>), AppError> {
-    use cms_biz::search::SearchService;
+    use cms_search::SearchService;
     use cms_entity::search::ReindexRequest;
 
     let run = SearchService::reindex(
-        &state.biz_context,
+        state.db(),
         state.search_engine.clone(),
         &auth.user.id,
         ReindexRequest {

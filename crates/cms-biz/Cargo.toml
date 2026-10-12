@@ -11,7 +11,6 @@ cms-error = { path = "../cms-error" }
 cms-config = { path = "../cms-config" }
 cms-auth = { path = "../cms-auth" }
 cms-storage = { path = "../cms-storage" }
-cms-search = { path = "../cms-search" }
 cms-queue = { path = "../cms-queue" }
 cms-authz = { path = "../cms-authz" }
 cms-mailer = { workspace = true }

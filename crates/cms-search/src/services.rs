@@ -1,11 +1,10 @@
-//! Search Business Logic
-//!
-//! This module contains business logic for search operations,
-//! including hybrid FTS+vector search with Japanese tokenization.
+//! Search domain business service.
 
 use std::sync::Arc;
 
-use cms_db::{page::PageQueries, project::ProjectQueries, search_index::SearchIndexRunQueries};
+use cms_db::{
+    page::PageQueries, project::ProjectQueries, search_index::SearchIndexRunQueries, PgPool,
+};
 use cms_entity::{
     common::PaginatedResponse,
     search::{
@@ -14,23 +13,23 @@ use cms_entity::{
         SearchResultItem,
     },
 };
+use cms_error::AppError;
 
-use crate::{AppError, BizContext};
+use crate::SearchEngine;
 
-/// Search service
+/// Search service decoupled from BizContext.
+#[derive(Debug, Clone, Copy)]
 pub struct SearchService;
 
 impl SearchService {
     /// Search for pages in a project
     pub async fn search(
-        ctx: &BizContext,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
+        pool: &PgPool,
+        search_engine: Arc<dyn SearchEngine>,
         project_id: &str,
         request: SearchRequest,
     ) -> Result<SearchResponse, AppError> {
-        // Verify project exists and the request cannot accidentally target a
-        // different project than the authenticated handler scope.
-        let _project = ProjectQueries::get_by_id(&ctx.pool, project_id)
+        let _project = ProjectQueries::get_by_id(pool, project_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
         if request.project_id != project_id {
@@ -52,9 +51,7 @@ impl SearchService {
         }
         let limit = request.limit.clamp(1, 100);
         let offset = request.offset.unwrap_or(0).clamp(0, 400);
-        // The search engine interface does not yet support native branch or
-        // language filters. Overfetch a bounded window, then authorize every
-        // hit against the relational source before returning it.
+
         let fetch_limit = (limit + offset).clamp(limit, 500) as usize;
         let opts = SearchOptions {
             limit: fetch_limit,
@@ -68,7 +65,7 @@ impl SearchService {
             .map(|hit| hit.page_id.as_str())
             .collect::<Vec<_>>();
         let scoped_pages = PageQueries::get_searchable_by_ids_in_scope(
-            &ctx.pool,
+            pool,
             &hit_ids,
             project_id,
             request.branch_id.as_deref(),
@@ -110,16 +107,14 @@ impl SearchService {
 
     /// Index a page for search
     pub async fn index_page(
-        ctx: &BizContext,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
+        pool: &PgPool,
+        search_engine: Arc<dyn SearchEngine>,
         request: IndexPageRequest,
     ) -> Result<(), AppError> {
-        // Verify page exists
-        let page = PageQueries::get_by_id(&ctx.pool, &request.page_id)
+        let page = PageQueries::get_by_id(pool, &request.page_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Page not found".to_string()))?;
 
-        // Index the page
         search_engine.index_page(&page).await?;
 
         Ok(())
@@ -127,16 +122,14 @@ impl SearchService {
 
     /// Remove a page from the search index
     pub async fn remove_page_from_index(
-        ctx: &BizContext,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
+        pool: &PgPool,
+        search_engine: Arc<dyn SearchEngine>,
         page_id: &str,
     ) -> Result<(), AppError> {
-        // Verify page exists
-        let page = PageQueries::get_by_id(&ctx.pool, page_id)
+        let page = PageQueries::get_by_id(pool, page_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Page not found".to_string()))?;
 
-        // Remove from index
         search_engine
             .remove_page_from_project(&page.project_id, page_id)
             .await?;
@@ -146,23 +139,21 @@ impl SearchService {
 
     /// Get RAG answer for a question
     pub async fn get_rag_answer(
-        ctx: &BizContext,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
+        pool: &PgPool,
+        search_engine: Arc<dyn SearchEngine>,
         project_id: &str,
         question: &str,
     ) -> Result<RagAnswer, AppError> {
-        // Verify project exists
-        let _project = ProjectQueries::get_by_id(&ctx.pool, project_id)
+        let _project = ProjectQueries::get_by_id(pool, project_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
-        // Get RAG answer
         search_engine.rag_answer(project_id, question).await
     }
 
     /// List search index runs
     pub async fn list_index_runs(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         query: ListSearchIndexRunsQuery,
     ) -> Result<PaginatedResponse<SearchIndexRunResponse>, AppError> {
@@ -171,17 +162,17 @@ impl SearchService {
         })?;
 
         let runs =
-            SearchIndexRunQueries::get_by_project(&ctx.pool, project_id, query.limit, query.offset)
+            SearchIndexRunQueries::get_by_project(pool, project_id, query.limit, query.offset)
                 .await?;
 
-        let total = SearchIndexRunQueries::count_by_project(&ctx.pool, project_id).await?;
+        let total = SearchIndexRunQueries::count_by_project(pool, project_id).await?;
 
         let limit = query.limit.unwrap_or(20) as u64;
         let offset = query.offset.unwrap_or(0) as u64;
         let page = offset.checked_div(limit).map_or(1, |d| d + 1);
 
         Ok(PaginatedResponse::new(
-            runs.into_iter().map(|r| r.into()).collect(),
+            runs.into_iter().map(Into::into).collect(),
             total as u64,
             page,
             limit,
@@ -190,26 +181,26 @@ impl SearchService {
 
     /// Get a specific search index run
     pub async fn get_index_run(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         run_id: &str,
     ) -> Result<SearchIndexRunResponse, AppError> {
-        let run = SearchIndexRunQueries::get_by_id(&ctx.pool, run_id)
+        let run = SearchIndexRunQueries::get_by_id(pool, run_id)
             .await?
-            .ok_or_else(|| AppError::NotFound(format!("Search index run not found: {}", run_id)))?;
+            .ok_or_else(|| AppError::NotFound(format!("Search index run not found: {run_id}")))?;
 
         Ok(run.into())
     }
 
     /// Get search status for a project
     pub async fn get_search_status(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         project_id: &str,
     ) -> Result<serde_json::Value, AppError> {
         let latest_run =
-            SearchIndexRunQueries::get_latest_by_project(&ctx.pool, project_id).await?;
-        let total_runs = SearchIndexRunQueries::count_by_project(&ctx.pool, project_id).await?;
+            SearchIndexRunQueries::get_latest_by_project(pool, project_id).await?;
+        let total_runs = SearchIndexRunQueries::count_by_project(pool, project_id).await?;
 
         Ok(serde_json::json!({
             "status": "ready",
@@ -226,14 +217,13 @@ impl SearchService {
 
     /// Reindex all pages for a project into the search engine
     pub async fn reindex(
-        ctx: &BizContext,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
+        pool: &PgPool,
+        search_engine: Arc<dyn SearchEngine>,
         _user_id: &str,
         request: ReindexRequest,
     ) -> Result<SearchIndexRunResponse, AppError> {
-
         let branch = if let Some(branch_id) = request.branch_id.as_deref() {
-            let branch = cms_db::branch::BranchQueries::get_by_id(&ctx.pool, branch_id)
+            let branch = cms_db::branch::BranchQueries::get_by_id(pool, branch_id)
                 .await?
                 .ok_or_else(|| AppError::NotFound("Branch not found".to_string()))?;
             if branch.project_id != request.project_id {
@@ -243,12 +233,12 @@ impl SearchService {
             }
             branch
         } else {
-            cms_db::branch::BranchQueries::get_default(&ctx.pool, &request.project_id)
+            cms_db::branch::BranchQueries::get_default(pool, &request.project_id)
                 .await?
                 .ok_or_else(|| AppError::Conflict("Project has no default branch".to_string()))?
         };
         let language_id = if let Some(language_id) = request.language_id.as_deref() {
-            let language = cms_db::language::LanguageQueries::get_by_id(&ctx.pool, language_id)
+            let language = cms_db::language::LanguageQueries::get_by_id(pool, language_id)
                 .await?
                 .ok_or_else(|| AppError::NotFound("Language not found".to_string()))?;
             if language.project_id != request.project_id || !language.enabled {
@@ -261,9 +251,8 @@ impl SearchService {
             None
         };
 
-        // Create a run using the fully resolved branch and language scope.
         let run = SearchIndexRunQueries::create(
-            &ctx.pool,
+            pool,
             &request.project_id,
             Some(&branch.id),
             language_id,
@@ -272,7 +261,7 @@ impl SearchService {
         .await?;
 
         let pages = PageQueries::get_by_project_branch_and_language(
-            &ctx.pool,
+            pool,
             &request.project_id,
             &branch.id,
             language_id,
@@ -295,23 +284,23 @@ impl SearchService {
             {
                 continue;
             }
-            match PageQueries::get_by_id(&ctx.pool, &page_item.id).await {
+            match PageQueries::get_by_id(pool, &page_item.id).await {
                 Ok(Some(page)) if page.is_published && page.is_indexed => {
                     match search_engine.index_page(&page).await {
                         Ok(()) => indexed_count += 1,
-                        Err(error) => failures.push(format!("{}: {}", page.id, error)),
+                        Err(error) => failures.push(format!("{}: {error}", page.id)),
                     }
                 }
                 Ok(Some(_)) => {}
                 Ok(None) => {
                     failures.push(format!("{}: page disappeared during reindex", page_item.id))
                 }
-                Err(error) => failures.push(format!("{}: {}", page_item.id, error)),
+                Err(error) => failures.push(format!("{}: {error}", page_item.id)),
             }
         }
 
         let completed = if failures.is_empty() {
-            SearchIndexRunQueries::mark_completed(&ctx.pool, &run.id, indexed_count).await?
+            SearchIndexRunQueries::mark_completed(pool, &run.id, indexed_count).await?
         } else {
             let error_message = failures
                 .iter()
@@ -320,7 +309,7 @@ impl SearchService {
                 .collect::<Vec<_>>()
                 .join("; ");
             let error_message = error_message.chars().take(4_000).collect::<String>();
-            SearchIndexRunQueries::mark_failed(&ctx.pool, &run.id, indexed_count, &error_message)
+            SearchIndexRunQueries::mark_failed(pool, &run.id, indexed_count, &error_message)
                 .await?
         };
 
@@ -338,8 +327,8 @@ impl SearchService {
 
 /// Process search job (for worker)
 pub async fn process_search_job(
-    pool: &cms_db::PgPool,
-    search_engine: Arc<dyn cms_search::SearchEngine>,
+    pool: &PgPool,
+    search_engine: Arc<dyn SearchEngine>,
     payload: &serde_json::Value,
 ) -> Result<(), AppError> {
     let job_type = payload.get("type").and_then(|v| v.as_str());

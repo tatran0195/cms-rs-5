@@ -8,7 +8,6 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use cms_biz::search::SearchService;
 use cms_entity::{
     common::{ApiResponse, Id, PaginatedResponse, SuccessResponse},
     search::{
@@ -18,6 +17,7 @@ use cms_entity::{
 };
 use cms_error::AppError;
 use cms_middleware::app_state::AppState;
+use cms_search::SearchService;
 
 use crate::auth::AuthExtractor;
 
@@ -53,7 +53,7 @@ pub async fn search_handler(
 ) -> Result<Json<SearchResponse>, AppError> {
     let project_id = request.project_id.clone();
     let result = SearchService::search(
-        &state.biz_context,
+        state.db(),
         state.search_engine.clone(),
         &project_id,
         request,
@@ -89,7 +89,7 @@ pub async fn reindex_handler(
     Json(request): Json<ReindexRequest>,
 ) -> Result<Json<ApiResponse<SuccessResponse>>, AppError> {
     SearchService::reindex(
-        &state.biz_context,
+        state.db(),
         state.search_engine.clone(),
         &auth.user.id,
         request,
@@ -131,7 +131,7 @@ pub async fn list_search_index_runs_handler(
     auth: AuthExtractor,
     Query(query): Query<ListSearchIndexRunsQuery>,
 ) -> Result<Json<PaginatedResponse<SearchIndexRunResponse>>, AppError> {
-    let result = SearchService::list_index_runs(&state.biz_context, &auth.user.id, query).await?;
+    let result = SearchService::list_index_runs(state.db(), &auth.user.id, query).await?;
 
     Ok(Json(result))
 }
@@ -162,7 +162,7 @@ pub async fn get_search_index_run_handler(
     auth: AuthExtractor,
     Path(run_id): Path<Id>,
 ) -> Result<Json<SearchIndexRunResponse>, AppError> {
-    let run = SearchService::get_index_run(&state.biz_context, &auth.user.id, &run_id).await?;
+    let run = SearchService::get_index_run(state.db(), &auth.user.id, &run_id).await?;
 
     Ok(Json(run))
 }
@@ -194,7 +194,7 @@ pub async fn get_search_status_handler(
     Path(project_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let status =
-        SearchService::get_search_status(&state.biz_context, &auth.user.id, &project_id).await?;
+        SearchService::get_search_status(state.db(), &auth.user.id, &project_id).await?;
 
     Ok(Json(status))
 }

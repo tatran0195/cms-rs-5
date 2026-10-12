@@ -35,7 +35,6 @@ pub mod platform_event;
 pub mod project;
 pub mod queue;
 pub mod reader_access;
-pub mod search;
 pub mod setup;
 pub mod theme;
 

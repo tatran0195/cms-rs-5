@@ -1,0 +1,51 @@
+[package]
+name = "cms-search"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = { workspace = true }
+cms-config = { path = "../cms-config" }
+cms-error = { path = "../cms-error" }
+cms-entity = { path = "../cms-entity" }
+cms-db = { path = "../cms-db" }
+sqlx = { workspace = true }
+
+# Japanese morphological analysis (SudachiDict embedded via workspace features)
+lindera = { workspace = true }
+unicode-normalization = { workspace = true }
+
+# Full-text index
+tantivy = { workspace = true }
+
+# Markdown → plain text for indexing
+pulldown-cmark = { workspace = true }
+
+# In-process embeddings (ONNX) for per-project vector search
+fastembed = { workspace = true, optional = true }
+
+# HTTP client (for RAG LLM calls)
+reqwest = { workspace = true, optional = true }
+
+# Async
+tokio = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+parking_lot = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+[features]
+default = ["vector"]
+vector = ["dep:fastembed", "dep:reqwest"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true
