@@ -113,6 +113,8 @@ cms-rs-4/
 │   ├── cms-sites/                # Static documentation site generator & SPA server
 │   │
 │   ├── cms-content/              # Vertical Slice: Page hierarchy, branches, BCP-47 languages, comments
+│   ├── cms-assets/               # Vertical Slice: Project asset storage, upload presigning, metadata
+│   ├── cms-projects/             # Vertical Slice: Project workspaces, members, settings, domains, reader access, addons
 │   ├── cms-notifications/        # Vertical Slice: Notification models, queries, service, WebSocket live hub, router
 │   ├── cms-invitations/          # Vertical Slice: Workspace invitations models, queries, service, email outbox events, router
 │   ├── cms-onboarding/           # Vertical Slice: Setup status, initial admin creation, cryptographic email verification, router
@@ -199,6 +201,18 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
   - `ip_restrict`: Pure IPv4 & IPv6 CIDR subnet matching (`ip_in_cidr`, `ip_allowed`) with DENY precedence.
   - `observability`, `security_headers`, `admin_origin`, and `locale`: Hardened production headers and tracing.
 - **Backwards Compatibility**: `crates/cms-middleware` operates as a zero-overhead facade re-exporting all components from `cms-server-core`.
+
+### 11. Vertical Slice: `cms-assets`
+- **Asset Lifecycle Management**: Models, direct uploads, metadata querying, and deletion for project assets.
+- **Storage-Agnostic Presigning**: Seamless presigning with `StorageUrlService` supporting local file endpoints and S3 objects.
+- **Self-Contained Router**: Exposes subrouters `project_assets_router`, `assets_router`, and composite `router` mounted at `/assets`.
+
+### 12. Vertical Slice: `cms-projects`
+- **Project Workspace Core**: Project creation, listing with Zanzibar ReBAC viewer checks, slug sanitization, and settings management.
+- **Project Member & Invitation Lifecycle**: Role-based project membership (owner, admin, editor, viewer), ownership transfers, and invite workflows.
+- **Custom Domains & TXT Verification**: Multi-deployment custom domain association, DNS normalization, and DNS TXT verification checks.
+- **Reader Access & Audiences**: Protected reader access configurations, audiences, audience grants, and reader JWT provider configuration.
+- **Self-Contained Router**: Exposes `core_router`, `members_router`, `domains_router`, `reader_access_router`, `addons_router`, and composite `project_router` mounted at `/projects`.
 
 ---
 

@@ -15,6 +15,7 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_middleware::app_state::AppState;
 
+use super::common::to_project_user;
 use crate::auth::AuthExtractor;
 
 pub async fn get_project_theme_template_handler(
@@ -168,59 +169,44 @@ pub async fn import_project_theme_template_handler(
 
 /// Project addon update
 pub async fn update_project_addon_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
-    Path((project_id, addon_id)): Path<(String, String)>,
-    Json(body): Json<serde_json::Value>,
+    path: Path<(String, String)>,
+    body: Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<ProjectAddonResponse>>, AppError> {
-    use cms_biz::project::ProjectService;
-
-    let addon = ProjectService::update_project_addon(
-        &state.biz_context,
-        &auth.user.id,
-        &project_id,
-        &addon_id,
-        body.get("config").cloned(),
-        None,
+    cms_projects::handlers::addons::update_project_addon_handler(
+        state,
+        to_project_user(&auth),
+        path,
+        body,
     )
-    .await?;
-    Ok(Json(ApiResponse::new(addon)))
+    .await
 }
 
 /// Project addon activate
 pub async fn activate_project_addon_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
-    Path((project_id, addon_id)): Path<(String, String)>,
+    path: Path<(String, String)>,
 ) -> Result<Json<ApiResponse<ProjectAddonResponse>>, AppError> {
-    use cms_biz::project::ProjectService;
-    let addon = ProjectService::update_project_addon(
-        &state.biz_context,
-        &auth.user.id,
-        &project_id,
-        &addon_id,
-        None,
-        Some(true),
+    cms_projects::handlers::addons::activate_project_addon_handler(
+        state,
+        to_project_user(&auth),
+        path,
     )
-    .await?;
-    Ok(Json(ApiResponse::new(addon)))
+    .await
 }
 
 /// Project addon deactivate
 pub async fn deactivate_project_addon_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
-    Path((project_id, addon_id)): Path<(String, String)>,
+    path: Path<(String, String)>,
 ) -> Result<Json<ApiResponse<ProjectAddonResponse>>, AppError> {
-    use cms_biz::project::ProjectService;
-    let addon = ProjectService::update_project_addon(
-        &state.biz_context,
-        &auth.user.id,
-        &project_id,
-        &addon_id,
-        None,
-        Some(false),
+    cms_projects::handlers::addons::deactivate_project_addon_handler(
+        state,
+        to_project_user(&auth),
+        path,
     )
-    .await?;
-    Ok(Json(ApiResponse::new(addon)))
+    .await
 }

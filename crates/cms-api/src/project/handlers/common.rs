@@ -69,3 +69,15 @@ pub async fn authorize_project(
     Ok(project)
 }
 
+/// Convert `AuthExtractor` to `cms_projects::ProjectUser`.
+pub fn to_project_user(auth: &AuthExtractor) -> cms_projects::ProjectUser {
+    let is_bypass = auth.claims.role == "super_admin"
+        || auth.claims.role == "owner"
+        || auth.claims.role == "admin";
+    cms_projects::ProjectUser {
+        user_id: auth.user.id.clone(),
+        user_uuid: auth.claims.sub,
+        role: auth.claims.role.clone(),
+        is_bypass,
+    }
+}

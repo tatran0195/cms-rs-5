@@ -5,7 +5,6 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use cms_biz::project::ProjectService;
 use cms_entity::{
     common::ApiResponse,
     id::ProjectId,
@@ -18,6 +17,7 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_middleware::app_state::AppState;
 
+use super::common::to_project_user;
 use crate::{auth::AuthExtractor, validation::ValidatedJson};
 
 /// List all projects for the authenticated user
@@ -42,46 +42,11 @@ use crate::{auth::AuthExtractor, validation::ValidatedJson};
     )
 )]
 pub async fn list_projects_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
-    Query(query): Query<ListProjectsQuery>,
+    query: Query<ListProjectsQuery>,
 ) -> Result<Json<ApiResponse<Vec<ProjectResponse>>>, AppError> {
-    let candidates = ProjectService::list_all_projects_for_user(
-        &state.biz_context,
-        &auth.user.id,
-        query.page.unwrap_or(1),
-        query.limit.unwrap_or(100),
-    )
-    .await?;
-
-    let ctx = auth.authz_context();
-    let mut filtered = Vec::new();
-    for p in candidates.data {
-        if p.is_public {
-            filtered.push(p);
-            continue;
-        }
-        if let Ok(pid) = uuid::Uuid::parse_str(&p.id) {
-            if state
-                .authz_backend()
-                .check(&ctx, cms_authz::Relation::Viewer, "project", pid)
-                .await
-                .unwrap_or(false)
-            {
-                filtered.push(p);
-            }
-        }
-    }
-
-    let total = filtered.len() as u64;
-    let paginated = cms_entity::common::PaginatedResponse::new(
-        filtered,
-        total,
-        candidates.page,
-        candidates.page_size,
-    );
-
-    Ok(Json(ApiResponse::from(paginated)))
+    cms_projects::handlers::core::list_projects_handler(state, to_project_user(&auth), query).await
 }
 
 /// Create a new project
@@ -103,14 +68,16 @@ pub async fn list_projects_handler(
     )
 )]
 pub async fn create_project_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
     ValidatedJson(request): ValidatedJson<CreateProjectRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<ProjectResponse>>), AppError> {
-    let project =
-        ProjectService::create_project(&state.biz_context, &auth.user.id, request).await?;
-
-    Ok((StatusCode::CREATED, Json(ApiResponse::new(project))))
+    cms_projects::handlers::core::create_project_handler(
+        state,
+        to_project_user(&auth),
+        Json(request),
+    )
+    .await
 }
 
 /// Get project handler
@@ -133,26 +100,16 @@ pub async fn create_project_handler(
     )
 )]
 pub async fn get_project_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
     Path(project_id): Path<ProjectId>,
 ) -> Result<Json<ApiResponse<ProjectResponse>>, AppError> {
-    let project =
-        ProjectService::get_project(&state.biz_context, &auth.user.id, &project_id).await?;
-
-    if !project.is_public {
-        let project_uuid = uuid::Uuid::parse_str(project_id.as_str())
-            .map_err(|_| AppError::NotFound("Project not found".to_string()))?;
-        cms_authz_gate::require_project_access(
-            state.authz_backend(),
-            &auth.authz_context(),
-            project_uuid,
-            cms_authz::Relation::Viewer,
-        )
-        .await?;
-    }
-
-    Ok(Json(ApiResponse::new(project)))
+    cms_projects::handlers::core::get_project_handler(
+        state,
+        to_project_user(&auth),
+        Path(project_id.to_string()),
+    )
+    .await
 }
 
 /// Update project handler
@@ -178,16 +135,18 @@ pub async fn get_project_handler(
     )
 )]
 pub async fn update_project_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
     Path(project_id): Path<ProjectId>,
     ValidatedJson(request): ValidatedJson<UpdateProjectRequest>,
 ) -> Result<Json<ApiResponse<ProjectResponse>>, AppError> {
-    let project =
-        ProjectService::update_project(&state.biz_context, &auth.user.id, &project_id, request)
-            .await?;
-
-    Ok(Json(ApiResponse::new(project)))
+    cms_projects::handlers::core::update_project_handler(
+        state,
+        to_project_user(&auth),
+        Path(project_id.to_string()),
+        Json(request),
+    )
+    .await
 }
 
 /// Delete project handler
@@ -211,15 +170,16 @@ pub async fn update_project_handler(
     )
 )]
 pub async fn delete_project_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
     Path(project_id): Path<ProjectId>,
 ) -> Result<Json<ApiResponse<DeleteProjectResponse>>, AppError> {
-    ProjectService::delete_project(&state.biz_context, &auth.user.id, &project_id).await?;
-
-    Ok(Json(ApiResponse::new(DeleteProjectResponse::new(
-        project_id,
-    ))))
+    cms_projects::handlers::core::delete_project_handler(
+        state,
+        to_project_user(&auth),
+        Path(project_id.to_string()),
+    )
+    .await
 }
 
 /// Get project settings handler
@@ -243,15 +203,16 @@ pub async fn delete_project_handler(
     )
 )]
 pub async fn get_project_settings_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
     Path(project_id): Path<ProjectId>,
 ) -> Result<Json<ApiResponse<ProjectSettings>>, AppError> {
-    let settings =
-        ProjectService::get_project_settings(&state.biz_context, &auth.user.id, &project_id)
-            .await?;
-
-    Ok(Json(ApiResponse::new(settings)))
+    cms_projects::handlers::core::get_project_settings_handler(
+        state,
+        to_project_user(&auth),
+        Path(project_id.to_string()),
+    )
+    .await
 }
 
 /// Update project settings handler
@@ -277,20 +238,18 @@ pub async fn get_project_settings_handler(
     )
 )]
 pub async fn update_project_settings_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
     Path(project_id): Path<ProjectId>,
-    Json(request): Json<UpdateProjectSettingsRequest>,
+    request: Json<UpdateProjectSettingsRequest>,
 ) -> Result<Json<ApiResponse<ProjectSettings>>, AppError> {
-    let settings = ProjectService::update_project_settings(
-        &state.biz_context,
-        &auth.user.id,
-        &project_id,
+    cms_projects::handlers::core::update_project_settings_handler(
+        state,
+        to_project_user(&auth),
+        Path(project_id.to_string()),
         request,
     )
-    .await?;
-
-    Ok(Json(ApiResponse::new(settings)))
+    .await
 }
 
 /// List project addons handler
@@ -314,12 +273,14 @@ pub async fn update_project_settings_handler(
     )
 )]
 pub async fn list_project_addons_handler(
-    State(state): State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
     auth: AuthExtractor,
     Path(project_id): Path<ProjectId>,
 ) -> Result<Json<ApiResponse<Vec<ProjectAddonResponse>>>, AppError> {
-    let addons =
-        ProjectService::list_project_addons(&state.biz_context, &auth.user.id, &project_id).await?;
-
-    Ok(Json(ApiResponse::new(addons)))
+    cms_projects::handlers::core::list_project_addons_handler(
+        state,
+        to_project_user(&auth),
+        Path(project_id.to_string()),
+    )
+    .await
 }

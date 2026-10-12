@@ -28,6 +28,7 @@ cms-onboarding = { path = "../cms-onboarding" }
 cms-reports = { path = "../cms-reports" }
 cms-content = { path = "../cms-content" }
 cms-assets = { path = "../cms-assets" }
+cms-projects = { path = "../cms-projects" }
 cms-server-services = { path = "../cms-server-services" }
 
 # External dependencies

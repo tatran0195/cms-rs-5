@@ -20,3 +20,19 @@ Plan: `docs/superpowers/plans/2026-10-12-phase1-cms-content-vertical-slice.md`
 - [x] Task 5: Comment Domain Vertical Slice & Composite Router
 - [x] Task 6: Wire into `cms-api` and delegate routers
 - [x] Task 7: Full Workspace Verification, Clippy & Documentation Update
+
+## Phase 2: Asset & Project Vertical Slices (`cms-assets` & `cms-projects`)
+Plan: `docs/superpowers/plans/2026-10-12-phase2-cms-assets-and-projects-vertical-slices.md`
+- [x] Task 1: Crate Scaffolding & Workspace Registration (`crates/cms-assets`)
+- [x] Task 2: Models and SQLx Queries (`cms-assets`)
+- [x] Task 3: Decoupled Service (`cms-assets`)
+- [x] Task 4: Axum Handlers & Routers (`cms-assets`)
+- [x] Task 5: Contract & Serde Tests (`cms-assets`)
+- [x] Task 6: Wire `cms-assets` into `cms-api` and verify
+- [x] Task 7: Crate Scaffolding & Workspace Registration (`crates/cms-projects`)
+- [x] Task 8: Models and SQLx Queries (`cms-projects`)
+- [x] Task 9: Decoupled Services (`cms-projects`)
+- [x] Task 10: Axum Handlers & Routers (`cms-projects`)
+- [x] Task 11: Contract & Serde Tests (`cms-projects`)
+- [x] Task 12: Wire `cms-projects` into `cms-api` and full workspace verification
+
