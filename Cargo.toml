@@ -1,20 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/cms-core",
-    "crates/cms-db",
-    "crates/cms-server-core",
-    "crates/cms-auth",
-    "crates/cms-authz",
-    "crates/cms-outbox",
-    "crates/cms-notifications",
-    "crates/cms-sites",
-    "crates/cms-docs",
-    "crates/cms-server",
+  "crates/*",
+  "apps/api",
 ]
 
 default-members = [
-    "crates/cms-server",
+  "apps/api",
 ]
 
 [workspace.package]
@@ -24,49 +16,106 @@ rust-version = "1.85"
 license = "UNLICENSED"
 
 [workspace.dependencies]
+# Internal crates
+cms-entity = { path = "crates/cms-entity" }
+cms-db = { path = "crates/cms-db" }
+cms-biz = { path = "crates/cms-biz" }
+cms-api = { path = "crates/cms-api" }
+cms-error = { path = "crates/cms-error" }
+cms-config = { path = "crates/cms-config" }
+cms-i18n = { path = "crates/cms-i18n" }
+cms-auth = { path = "crates/cms-auth" }
+cms-authz = { path = "crates/cms-authz" }
+cms-authz-gate = { path = "crates/cms-authz-gate" }
+cms-api-keys = { path = "crates/cms-api-keys" }
+cms-mfa = { path = "crates/cms-mfa" }
+cms-oauth = { path = "crates/cms-oauth" }
+cms-storage = { path = "crates/cms-storage" }
+cms-search = { path = "crates/cms-search" }
+cms-queue = { path = "crates/cms-queue" }
+cms-worker = { path = "crates/cms-worker" }
+cms-mailer = { path = "crates/cms-mailer" }
+cms-mcp = { path = "crates/cms-mcp" }
+cms-analytics = { path = "crates/cms-analytics" }
+cms-middleware = { path = "crates/cms-middleware" }
+cms-sites = { path = "crates/cms-sites" }
+
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 
 # Web framework
 axum = { version = "0.8", features = ["macros", "ws"] }
+axum-extra = { version = "0.12.6", features = ["typed-header", "cookie"] }
 tower = { version = "0.5" }
-tower-http = { version = "0.6", features = ["cors", "trace", "request-id", "util", "set-header", "fs", "compression-br", "compression-gzip", "compression-zstd", "compression-deflate"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "request-id", "util", "set-header", "fs", "compression-br", "compression-gzip", "compression-zstd", "compression-deflate", "limit", "sensitive-headers", "catch-panic", "timeout"] }
+hyper = "1.11.1"
+http = "1.5.0"
 
 # Database
-sqlx = { version = "0.8.3", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "migrate", "macros", "rust_decimal"] }
+sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "migrate", "macros", "rust_decimal"] }
+rusqlite = { version = "0.33.0", features = ["bundled"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+ts-rs = { version = "12.0", features = ["chrono-impl", "uuid-impl", "serde-json-impl"] }
+
+# Time & UUID
+chrono = { version = "0.4.45", features = ["serde"] }
+uuid = { version = "1.26.0", features = ["v4", "v5", "serde"] }
 
 # Configuration
 figment = { version = "0.10", features = ["toml", "env"] }
+config = { version = "0.14", features = ["toml"] }
 
-# Auth
-jsonwebtoken = { version = "9" }
-argon2 = "0.5"
-axum-extra = { version = "0.10", features = ["cookie"] }
-getrandom = { version = "0.3", features = ["std"] }
+# Auth & Crypto
+jsonwebtoken = { version = "11.1.0", features = ["rust_crypto"] }
+argon2 = "0.6.0"
+getrandom = { version = "0.4.3", features = ["std"] }
+sha2 = "0.11.0"
+hex = "0.4"
+base64 = "0.23.1"
+serde_urlencoded = "0.7.1"
+urlencoding = "2.1.3"
+idna = "1.1.0"
+rand = "0.10.3"
+hmac = "0.13.0"
+subtle = "2.6"
+totp-rs = { version = "5.6", features = ["gen_secret", "qr"] }
+
+# CLI
+clap = { version = "4.5", features = ["derive"] }
+
+# MCP
+rmcp = { version = "3.5", features = ["server", "macros", "transport-streamable-http-server", "transport-io"] }
 
 # Utilities
-uuid = { version = "1", features = ["v4", "v5", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }
-cron = "0.15"
-thiserror = "2"
-anyhow = "1"
+log = "0.4"
+cron = "0.17.0"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
 dotenvy = "0.15"
+bytes = "1.12.1"
+pulldown-cmark = "0.13.4"
+ammonia = "4.1.4"
+syntect = { version = "5.3.0", default-features = false, features = ["default-syntaxes", "default-themes", "html", "regex-onig"] }
+validator = { version = "0.21.0", features = ["derive"] }
+utoipa = { version = "5.5.0", features = ["axum_extras", "chrono", "uuid", "yaml"] }
+parking_lot = "0.12.5"
+mockall = "0.15.0"
+tempfile = "3"
+rust-embed = "8.6"
+mime_guess = "2.0"
+ipnet = "2.12"
+schemars = "1"
+
+# Error handling
+anyhow = "1.0.104"
+thiserror = "2.0.20"
+async-trait = "0.1"
 
 # Decimal
 rust_decimal = { version = "1", features = ["serde-with-str"] }
-
-# Crypto
-rand = "0.9"
-sha2 = "0.10"
-hmac = "0.12"
-hex = "0.4"
-base64 = "0.22"
 
 # Compression (cold-tier ObjectStore)
 flate2 = "1"
@@ -77,19 +126,45 @@ url = "2"
 
 # Async streams (WebSocket)
 futures = "0.3"
-async-trait = "0.1"
 async-stream = "0.3"
 
 # Hybrid deploy mode — local Ed25519 JWT signer + tests
-ed25519-dalek = "2"
-tempfile = "3"
+ed25519-dalek = "3.0.0"
 
-# HTTP client (for YottaDB REST)
-reqwest = { version = "0.12", features = ["json", "rustls-tls-native-roots"], default-features = false }
+# HTTP client
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls-native-roots"] }
 
 # AI / LLM
-rig-core = { version = "0.35", features = ["derive"] }
-schemars = "1"
+rig-core = { version = "0.44.0", features = ["derive"] }
+
+# Email
+lettre = { version = "0.11", features = ["tokio1", "tokio1-native-tls"] }
+minijinja = { version = "3.0.0", features = ["json"] }
+
+# Production-ready infrastructure
+governor = "0.10.4"
+moka = { version = "0.12", features = ["future"] }
+metrics = "0.24.6"
+metrics-exporter-prometheus = "0.18.3"
+
+# Export generation
+printpdf = { version = "0.7" }
+epub-builder = { version = "0.8.3" }
+
+# Optional & feature dependencies
+aws-sdk-s3 = { version = "1.152", features = ["rt-tokio"] }
+aws-config = { version = "1.12" }
+aws-credential-types = { version = "1.3" }
+
+# Full-text search (Japanese)
+# SudachiDict is compiled into the binary so no dictionary files need to be
+# shipped to the server. Override with `search.lindera_dict_path` if desired.
+lindera = { version = "6.0.0", features = ["embed-sudachidict"] }
+tantivy = { version = "0.26.2" }
+unicode-normalization = "0.1.25"
+
+# Vector / AI search
+fastembed = "7.1.1"
 
 # Code execution (pipeline custom code)
 mlua = { version = "0.10", features = ["lua54", "serialize", "send", "vendored"] }
@@ -98,7 +173,7 @@ mlua = { version = "0.10", features = ["lua54", "serialize", "send", "vendored"]
 loro = "1.4"
 
 # LAN service discovery for the edge sync hub
-mdns-sd = "0.13"
+mdns-sd = "0.21.5"
 
 # ── Build profiles ──────────────────────────────────────────
 

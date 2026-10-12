@@ -1,0 +1,303 @@
+//! Search entity types
+
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+use crate::common::Id;
+
+/// Search index run status
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, ts_rs::TS)]
+#[serde(rename_all = "lowercase")]
+#[sqlx(
+    type_name = "\"SearchIndexRunStatus\"",
+    rename_all = "SCREAMING_SNAKE_CASE"
+)]
+pub enum SearchIndexRunStatus {
+    Pending,
+    Processing,
+    Completed,
+    Failed,
+}
+
+/// Search index run entity
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct SearchIndexRun {
+    pub id: Id,
+    pub project_id: Id,
+    pub branch_id: Option<Id>,
+    pub language_id: Option<Id>,
+    pub status: SearchIndexRunStatus,
+    pub pages_indexed: i32,
+    pub error_message: Option<String>,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Search index run response
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct SearchIndexRunResponse {
+    pub id: Id,
+    pub project_id: Id,
+    pub branch_id: Option<Id>,
+    pub language_id: Option<Id>,
+    pub status: SearchIndexRunStatus,
+    pub pages_indexed: i32,
+    pub error_message: Option<String>,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl From<SearchIndexRun> for SearchIndexRunResponse {
+    fn from(run: SearchIndexRun) -> Self {
+        Self {
+            id: run.id,
+            project_id: run.project_id,
+            branch_id: run.branch_id,
+            language_id: run.language_id,
+            status: run.status,
+            pages_indexed: run.pages_indexed,
+            error_message: run.error_message,
+            started_at: run.started_at,
+            completed_at: run.completed_at,
+            created_at: run.created_at,
+            updated_at: run.updated_at,
+        }
+    }
+}
+
+/// Create search index run request
+#[derive(Debug, Clone, Deserialize, Serialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct CreateSearchIndexRunRequest {
+    pub project_id: Id,
+    #[serde(default)]
+    pub branch_id: Option<Id>,
+    #[serde(default)]
+    pub language_id: Option<Id>,
+}
+
+/// Search request
+#[derive(Debug, Clone, Deserialize, Serialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct SearchRequest {
+    pub query: String,
+    pub project_id: Id,
+    #[serde(default)]
+    pub branch_id: Option<Id>,
+    #[serde(default)]
+    pub language_id: Option<Id>,
+    #[serde(default = "default_limit")]
+    pub limit: i32,
+    #[serde(default)]
+    pub offset: Option<i32>,
+}
+
+fn default_limit() -> i32 {
+    10
+}
+
+/// Search result item
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct SearchResultItem {
+    pub page_id: Id,
+    pub project_id: Id,
+    pub title: String,
+    pub path: String,
+    pub score: f32,
+    pub chunk_text: String,
+    pub chunk_index: i32,
+    pub metadata: serde_json::Value,
+}
+
+/// Search response
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct SearchResponse {
+    pub query: String,
+    pub results: Vec<SearchResultItem>,
+    pub total: i64,
+    pub limit: i32,
+    pub offset: i32,
+}
+
+/// Reindex request
+#[derive(Debug, Clone, Deserialize, Serialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct ReindexRequest {
+    pub project_id: Id,
+    #[serde(default)]
+    pub branch_id: Option<Id>,
+    #[serde(default)]
+    pub language_id: Option<Id>,
+    #[serde(default = "default_reindex_full")]
+    pub full_reindex: bool,
+}
+
+fn default_reindex_full() -> bool {
+    false
+}
+
+/// List search index runs query
+#[derive(Debug, Clone, Deserialize, Serialize, utoipa::ToSchema)]
+pub struct ListSearchIndexRunsQuery {
+    #[serde(default)]
+    pub project_id: Option<Id>,
+    #[serde(default)]
+    pub status: Option<SearchIndexRunStatus>,
+    #[serde(default)]
+    pub limit: Option<i64>,
+    #[serde(default)]
+    pub offset: Option<i64>,
+}
+
+/// Search options for hybrid search
+#[derive(Debug, Clone, Deserialize, Serialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct SearchOptions {
+    /// Maximum number of results to return
+    #[serde(default = "default_search_limit")]
+    pub limit: usize,
+    /// Minimum relevance score (0.0 to 1.0)
+    #[serde(default)]
+    pub min_score: f32,
+    /// Weight given to FTS results vs vector results (0.0 = all vector, 1.0 = all FTS)
+    #[serde(default = "default_fts_weight")]
+    pub fts_weight: f32,
+}
+
+fn default_search_limit() -> usize {
+    10
+}
+fn default_fts_weight() -> f32 {
+    0.5
+}
+
+impl Default for SearchOptions {
+    fn default() -> Self {
+        Self {
+            limit: default_search_limit(),
+            min_score: 0.0,
+            fts_weight: default_fts_weight(),
+        }
+    }
+}
+
+/// A single search result hit
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct SearchHit {
+    pub page_id: Id,
+    pub project_id: Id,
+    pub title: String,
+    pub path: String,
+    pub score: f32,
+    pub chunk_text: String,
+    pub chunk_index: i32,
+    pub metadata: serde_json::Value,
+}
+
+/// RAG (Retrieval Augmented Generation) answer
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct RagAnswer {
+    /// The generated answer
+    pub answer: String,
+    /// Confidence score (0.0 to 1.0)
+    pub confidence: f32,
+    /// Source pages used to generate the answer
+    pub sources: Vec<SearchHit>,
+}
+
+/// Live index statistics for a single project, sourced directly from the search index
+/// (Tantivy segment data plus the per-project vector index).
+#[derive(Debug, Clone, Serialize, Deserialize, Default, utoipa::ToSchema, ts_rs::TS)]
+pub struct ProjectIndexStats {
+    /// Total number of stored document chunks (one page may have multiple chunks).
+    pub chunk_count: u64,
+    /// Number of distinct pages represented in the index.
+    pub page_count: u64,
+    /// A sample of up to 25 indexed page IDs (in no guaranteed order).
+    pub sample_page_ids: Vec<String>,
+    /// Embedding model used for semantic search (`None` when vector search is disabled).
+    #[serde(default)]
+    pub embedding_model: Option<String>,
+    /// Embedding dimension (0 when vector search is disabled).
+    #[serde(default)]
+    pub vector_dim: u64,
+    /// Number of chunk embeddings stored for the project.
+    #[serde(default)]
+    pub vector_count: u64,
+}
+
+/// Request to index a specific page
+#[derive(Debug, Clone, Deserialize, Serialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct IndexPageRequest {
+    pub page_id: Id,
+    pub project_id: Id,
+    #[serde(default)]
+    pub branch_id: Option<Id>,
+    #[serde(default)]
+    pub language_id: Option<Id>,
+}
+
+/// Project search configuration item
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchConfiguration {
+    pub max_results: i64,
+    pub filters_enabled: bool,
+    pub version_filter_enabled: bool,
+    pub ai_answers: bool,
+    pub hotkey: String,
+    pub placeholder: Option<String>,
+    pub suggested_questions: serde_json::Value,
+    pub popular_searches: serde_json::Value,
+}
+
+/// Constraints on search configuration
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchConstraints {
+    pub max_results: serde_json::Value,
+}
+
+/// Project search settings response for GET /api/app/projects/:id/search/settings
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchSettingsResponse {
+    pub configuration: SearchConfiguration,
+    pub constraints: SearchConstraints,
+}
+
+/// Update project search settings request for PATCH /api/app/projects/:id/search/settings
+#[derive(Debug, Clone, Default, Deserialize, Serialize, utoipa::ToSchema, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSearchSettingsRequest {
+    pub enabled: Option<bool>,
+    pub ai_answers: Option<bool>,
+    pub placeholder: Option<String>,
+    pub max_results: Option<i64>,
+    pub filters_enabled: Option<bool>,
+    pub version_filter_enabled: Option<bool>,
+    pub hotkey: Option<String>,
+    pub suggested_questions: Option<serde_json::Value>,
+    pub popular_searches: Option<serde_json::Value>,
+}
+
+/// Search index diagnostics response for GET /api/app/projects/:id/search/diagnostics
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchDiagnosticsResponse {
+    pub availability: serde_json::Value,
+    pub health: String,
+    pub runtime: String,
+    pub index: serde_json::Value,
+    pub corpus: serde_json::Value,
+    pub latest_run: Option<serde_json::Value>,
+    pub samples: serde_json::Value,
+    pub issues: serde_json::Value,
+}
+
+/// Reindex response for POST /api/app/projects/:id/search/reindex
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
+pub struct SearchReindexResponse {
+    pub id: String,
+    pub status: String,
+}
