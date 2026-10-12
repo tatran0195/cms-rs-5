@@ -108,10 +108,14 @@ cms-rs-4/
 │   ├── cms-error/                # AppError and HTTP error responses
 │   ├── cms-config/               # Figment configuration loader
 │   ├── cms-server-core/          # Server foundation (pagination, validation, http_trace, app_state, enterprise middleware)
+│   ├── cms-server-services/      # Shared cross-domain services (auth audit hash-chain, storage URLs, tenant context, outbox dispatch)
 │   ├── cms-middleware/           # Backwards-compatible facade re-exporting cms-server-core
 │   ├── cms-sites/                # Static documentation site generator & SPA server
 │   │
 │   ├── cms-notifications/        # Vertical Slice: Notification models, queries, service, WebSocket live hub, router
+│   ├── cms-invitations/          # Vertical Slice: Workspace invitations models, queries, service, email outbox events, router
+│   ├── cms-onboarding/           # Vertical Slice: Setup status, initial admin creation, cryptographic email verification, router
+│   ├── cms-reports/              # Vertical Slice: Report runs lifecycle, sequence generation, background export orchestration, router
 │   ├── cms-outbox/               # Subsystem 1: Transactional Outbox with jittered backoff, worker, DLQ
 │   ├── cms-seed/                 # Subsystem 2: Deterministic UUID v5 dev fixtures & CLI runner
 │   └── cms-scheduler/            # Subsystem 5: Distributed cron scheduler with SKIP LOCKED execution
@@ -124,9 +128,10 @@ cms-rs-4/
 1. `cms-entity` has **zero** internal crate dependencies.
 2. `cms-db` depends only on `cms-entity` and database drivers. It **never** depends on `cms-biz` or `cms-api`.
 3. `cms-biz` depends on `cms-entity`, `cms-db`, and infrastructure crates. It **never** depends on `cms-api` or HTTP concepts.
-4. `cms-api` depends on `cms-biz`, `cms-entity`, `cms-db`. It handles HTTP routing and status codes.
-5. **Vertical Slices** (e.g. `cms-notifications`): High-cohesion domain modules encapsulating domain queries, models, WebSocket broadcast hubs, and Axum routers directly.
-6. `cms-server` is the composition root binary assembling all crates.
+4. `cms-api` depends on `cms-biz`, `cms-entity`, `cms-db`, and vertical slice crates. It handles HTTP routing and status codes.
+5. **Vertical Slices** (e.g. `cms-notifications`, `cms-invitations`, `cms-onboarding`, `cms-reports`): High-cohesion domain modules encapsulating domain queries, models, services, and Axum routers directly.
+6. `cms-server-services`: Shared cross-domain services foundation breaking cyclic dependencies across vertical slices.
+7. `cms-server` is the composition root binary assembling all crates.
 
 ---
 
@@ -139,38 +144,46 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
 - **Unified Domain Package**: Encapsulates database queries (`NotificationQueries`), business service (`NotificationService`), WebSocket upgrade endpoint (`GET /ws`), and REST route handlers in a self-contained crate.
 - **Contract Tests**: 100% test coverage verifying serialization, subscriber isolation, and event multiplexing.
 
-### 2. Subsystem 1: Transactional Outbox (`cms-outbox`)
+### 2. Vertical Slice: `cms-invitations`
+- **Lifecycle Management**: Tracks invitations through `pending`, `accepted`, `revoked`, and `expired` states in `workspace_invitations` (`0022_workspace_invitations.sql`).
+- **Security & Integrity**: 64-character SHA-256 token hashing with role-based assignment (`owner`, `admin`, `member`, `viewer`).
+- **Transactional Email Dispatch**: Automatically fires `email.invitation` events via the transactional outbox (`cms_outbox::queue_in_tx`).
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` handling invitation creation, listing, preview, acceptance, and revocation.
+
+### 3. Vertical Slice: `cms-onboarding`
+- **Cryptographic Tokens**: 32-byte secure random tokens (`getrandom`), stored via SHA-256 hashes in `email_verification_tokens` (`0021_email_verification_tokens.sql`).
+- **Transactional Dispatch**: Enqueues `email.verification` outbox events atomically on user signup and admin onboarding.
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` with public endpoints (`GET /status`, `POST /complete`, `GET /verify-email`, `POST /resend-verification`).
+
+### 4. Vertical Slice: `cms-reports`
+- **Atomic Sequential Identifiers**: Uses `cms_db::next_sequence` to generate sequential codes (e.g. `RPT-2026-00001`) atomically inside transactions.
+- **Lifecycle State Machine**: Tracks status (`queued` -> `running` -> `completed` / `failed`) with artifact storage keys, sizes, and retention expiration timestamps in `report_runs` (`0024_report_runs.sql`).
+- **Background Dispatch & Downloads**: Enqueues typed `JobType::Export` envelopes to `cms-queue` and resolves presigned download targets via `StorageUrlService`.
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/reports` with list, create, get, download, and delete endpoints.
+
+### 5. Shared Foundation: `cms-server-services`
+- **Audit Logging**: `AuthAuditService` guarantees tamper-evident SHA-256 hash-chain audit logging.
+- **Storage URL Resolution**: `StorageUrlService` resolves download and upload targets (presigned S3 URLs or local server-mediated endpoints).
+- **Tenant Context**: `TenantContextService` validates workspace access, active membership, and role authorization.
+- **Event Dispatcher**: `EventDispatcherService` enqueues atomic outbox notifications within database transactions.
+
+### 6. Subsystem 1: Transactional Outbox (`cms-outbox`)
 - **At-Least-Once Delivery**: Atomic `queue_in_tx(&mut tx, &OutboxRow)` enqueues events within the same PostgreSQL transaction as domain mutations (`0020_outbox.sql`).
 - **Concurrent Worker**: Background processor claims batches via `FOR UPDATE SKIP LOCKED`, records Prometheus metrics, and recovers abandoned locks.
 - **Exponential Jittered Backoff**: `BackoffConfig` provides mathematically validated exponential intervals with ±20% jitter and `clamp(0, 30)` overflow protection.
 - **Dead-Letter Queue (DLQ)**: Automatic permanent error classification and DLQ archiving after 10 failed retry attempts.
 
-### 3. Subsystem 2: Seed & Dev Fixtures (`cms-seed`)
+### 7. Subsystem 2: Seed & Dev Fixtures (`cms-seed`)
 - **Deterministic Fixtures**: UUID v5 namespace derivation (`CMS_SEED_NAMESPACE`) guarantees stable, reproducible IDs across fresh environments.
 - **Production-grade Security**: Generates Argon2-hashed passwords with standard cost parameters.
 - **CLI Runner**: Standalone `cms_seed` binary supporting `--profile dev` and `--force` flags.
 
-### 4. Subsystem 3: Onboarding Verification
-- **Cryptographic Tokens**: 32-byte secure random tokens (`getrandom`), stored via SHA-256 hashes in `email_verification_tokens` (`0021_email_verification_tokens.sql`).
-- **Transactional Dispatch**: Enqueues `email.verification` outbox events atomically on user signup.
-- **Public Endpoints**: `GET /public/setup/verify-email?token=...` and `POST /public/setup/resend-verification`.
-
-### 5. Subsystem 4: Workspace Invitations
-- **Lifecycle Management**: Tracks invitations through `pending`, `accepted`, `revoked`, and `expired` states in `workspace_invitations` (`0022_workspace_invitations.sql`).
-- **Security & Integrity**: 64-character SHA-256 token hashing with role-based assignment (`owner`, `admin`, `member`, `viewer`).
-- **Transactional Email**: Automatically fires `email.invitation` events via the transactional outbox.
-
-### 6. Subsystem 5: Cron Scheduling (`cms-scheduler`)
+### 8. Subsystem 5: Cron Scheduling (`cms-scheduler`)
 - **Distributed Cron Engine**: Normalizes standard 5-part and 6-part cron expressions to compute precise next execution timestamps.
 - **Lock-Free Concurrency**: Scans `cms_scheduled_jobs` with `FOR UPDATE SKIP LOCKED` to prevent duplicate concurrent runs across nodes.
 - **Maintenance Registry**: Pre-configured maintenance jobs for session purging, token cleanup, invitation expiry, and search index maintenance.
 
-### 7. Subsystem 6: Report Runs (`report_runs`)
-- **Atomic Sequential Identifiers**: Uses `cms_db::next_sequence` to generate sequential codes (e.g. `RPT-2026-00001`) atomically inside transactions.
-- **Lifecycle State Machine**: Tracks status (`queued` -> `running` -> `completed` / `failed`) with artifact storage keys, sizes, and retention expiration timestamps in `report_runs` (`0024_report_runs.sql`).
-- **Background Dispatch**: Enqueues typed `JobType::Export` envelopes to `cms-queue` for asynchronous document generation.
-
-### 8. Server Foundation & Middleware Suite (`cms-server-core`)
+### 9. Server Foundation & Middleware Suite (`cms-server-core`)
 - **Zero-Route Server Foundation**: Houses pagination (`Pagination`, `CursorPage` keyset seek), regex validation & anti-XSS (`ValidationErrors`), status-painted terminal HTTP tracing (`http_trace`), and unified `AppState`.
 - **Enterprise Middleware Suite**:
   - `client_ip`: Trusted proxy verification (`ipnet::IpNet`) preventing `X-Forwarded-For` spoofing.
