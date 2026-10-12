@@ -8,7 +8,7 @@ use axum::{
     extract::{Query, State},
     Json,
 };
-use cms_biz::mcp::McpService;
+use cms_mcp::McpService;
 use cms_entity::{
     common::PaginatedResponse,
     mcp::{ListMcpAuditEventsQuery, McpAuditEventResponse},
@@ -51,7 +51,7 @@ pub async fn list_mcp_audit_events_handler(
     Query(query): Query<ListMcpAuditEventsQuery>,
 ) -> Result<Json<PaginatedResponse<McpAuditEventResponse>>, AppError> {
     let result = McpService::list_audit_events(
-        &state.biz_context,
+        state.db(),
         &auth.user.id,
         query.project_id.as_deref(),
         query.user_id.as_deref(),

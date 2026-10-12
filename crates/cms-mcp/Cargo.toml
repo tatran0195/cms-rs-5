@@ -1,0 +1,36 @@
+[package]
+name = "cms-mcp"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cms-mcp"
+path = "src/main.rs"
+
+[dependencies]
+rmcp = { workspace = true }
+schemars = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }
+uuid = { workspace = true }
+
+cms-config = { path = "../cms-config" }
+cms-db = { path = "../cms-db" }
+cms-authz = { path = "../cms-authz" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+reqwest = { workspace = true }
+
+[lints]
+workspace = true

@@ -20,7 +20,6 @@ pub mod export;
 pub mod git;
 pub mod integration;
 pub mod language;
-pub mod mcp;
 pub mod notification;
 pub mod invitation;
 pub use invitation::InvitationService;
