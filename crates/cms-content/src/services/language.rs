@@ -166,12 +166,15 @@ impl LanguageService {
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
-        let offset = page.saturating_sub(1).saturating_mul(page_size);
+        let limit = i64::try_from(page_size.clamp(1, 1000)).unwrap_or(50);
+        let offset = i64::try_from(page.saturating_sub(1))
+            .unwrap_or(0)
+            .saturating_mul(limit);
         let languages = LanguageQueries::get_by_project(
             pool,
             &query.project_id,
-            Some(page_size.min(i64::MAX as u64) as i64),
-            Some(offset.min(i64::MAX as u64) as i64),
+            Some(limit),
+            Some(offset),
         )
         .await?;
         let total = LanguageQueries::count_by_project(pool, &query.project_id).await?;
@@ -342,9 +345,11 @@ fn parse_direction(direction: Option<&str>, fallback_rtl: bool) -> Result<bool, 
     }
 }
 
-/// Canonicalize and validate a practical BCP-47 language-tag subset. It accepts
-/// language/script/region/variant/extension/private-use subtags and rejects
+/// Canonicalize and validate a practical BCP-47 language-tag subset.
+///
+/// It accepts language/script/region/variant/extension/private-use subtags and rejects
 /// separators, empty subtags, non-ASCII tags, and malformed extension chains.
+#[allow(clippy::too_many_lines)]
 pub fn canonical_language_tag(value: &str) -> Result<String, AppError> {
     let value = value.trim();
     if value.is_empty() || value.len() > 63 || !value.is_ascii() {

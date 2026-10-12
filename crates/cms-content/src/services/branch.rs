@@ -220,8 +220,8 @@ impl BranchService {
             pool,
             &query.project_id,
             query.search.as_deref(),
-            Some(limit as i64),
-            Some(offset as i64),
+            Some(i64::try_from(limit.clamp(1, 1000)).unwrap_or(50)),
+            Some(i64::try_from(offset).unwrap_or(0)),
         )
         .await?;
 
@@ -254,6 +254,7 @@ impl BranchService {
     }
 
     /// Duplicate a branch (create a copy with all pages)
+    #[allow(clippy::too_many_lines)]
     pub async fn duplicate_branch(
         pool: &PgPool,
         _user_id: &str,
@@ -318,10 +319,10 @@ impl BranchService {
             let mut next_remaining = Vec::new();
 
             for page in remaining {
-                let can_create = match &page.parent_id {
-                    None => true,
-                    Some(parent_id) => id_mapping.contains_key(parent_id),
-                };
+                let can_create = page
+                    .parent_id
+                    .as_ref()
+                    .is_none_or(|parent_id| id_mapping.contains_key(parent_id));
 
                 if can_create {
                     let mapped_parent = page

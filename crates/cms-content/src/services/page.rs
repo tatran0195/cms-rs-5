@@ -75,6 +75,7 @@ async fn record_page_edited(pool: &PgPool, user_id: &str, event: PageEditEvent<'
 
 impl PageService {
     /// Create a page in one project/branch/language tree.
+    #[allow(clippy::too_many_lines)]
     pub async fn create_page(
         pool: &PgPool,
         user_id: &str,
@@ -183,10 +184,10 @@ impl PageService {
             } else {
                 format!("{original_slug}-{suffix}")
             };
-            let candidate_path = match parent_path {
-                Some(path) => format!("{}/{}", path.trim_end_matches('/'), slug),
-                None => format!("/{slug}"),
-            };
+            let candidate_path = parent_path.map_or_else(
+                || format!("/{slug}"),
+                |path| format!("{}/{}", path.trim_end_matches('/'), slug),
+            );
             if candidate_path.len() > 1024 {
                 return Err(AppError::Validation(
                     "Page path must be 1024 bytes or fewer".to_string(),
@@ -333,8 +334,8 @@ impl PageService {
             query.parent_id.as_deref(),
             query.is_published,
             query.search.as_deref(),
-            Some(page_size as i64),
-            Some(offset as i64),
+            Some(i64::try_from(page_size.clamp(1, 1000)).unwrap_or(50)),
+            Some(i64::try_from(offset).unwrap_or(0)),
         )
         .await?;
 
@@ -379,6 +380,7 @@ impl PageService {
     }
 
     /// Update page content/metadata and keep its materialized subtree paths in sync.
+    #[allow(clippy::too_many_lines)]
     pub async fn update_page(
         pool: &PgPool,
         user_id: &str,
@@ -521,12 +523,10 @@ impl PageService {
             None
         };
         let effective_slug = normalized_slug.as_deref().unwrap_or(&page.slug);
-        let mut candidate_path = match effective_parent_path.as_deref() {
-            Some(parent_path) => {
-                format!("{}/{}", parent_path.trim_end_matches('/'), effective_slug)
-            }
-            None => format!("/{effective_slug}"),
-        };
+        let mut candidate_path = effective_parent_path.as_deref().map_or_else(
+            || format!("/{effective_slug}"),
+            |parent_path| format!("{}/{}", parent_path.trim_end_matches('/'), effective_slug),
+        );
         if page.slug == "untitled" && request.slug.is_none() {
             if let Some(base_slug) = normalized_slug.as_deref() {
                 for suffix in 0..=1000u32 {
@@ -535,12 +535,10 @@ impl PageService {
                     } else {
                         format!("{base_slug}-{suffix}")
                     };
-                    let test_path = match effective_parent_path.as_deref() {
-                        Some(parent_path) => {
-                            format!("{}/{}", parent_path.trim_end_matches('/'), test_slug)
-                        }
-                        None => format!("/{test_slug}"),
-                    };
+                    let test_path = effective_parent_path.as_deref().map_or_else(
+                        || format!("/{test_slug}"),
+                        |parent_path| format!("{}/{}", parent_path.trim_end_matches('/'), test_slug),
+                    );
                     if PageQueries::is_path_available(
                         pool,
                         &page.project_id,

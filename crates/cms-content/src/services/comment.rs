@@ -92,8 +92,10 @@ impl CommentService {
             .await?
             .ok_or_else(|| AppError::NotFound("Page not found".to_string()))?;
 
-        let limit = page_size.max(1) as i64;
-        let offset = page.saturating_sub(1) as i64 * limit;
+        let limit = i64::try_from(page_size.clamp(1, 1000)).unwrap_or(50);
+        let offset = i64::try_from(page.saturating_sub(1))
+            .unwrap_or(0)
+            .saturating_mul(limit);
         let comments = CommentQueries::get_by_page(
             pool,
             page_id,

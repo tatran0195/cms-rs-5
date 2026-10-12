@@ -112,6 +112,7 @@ cms-rs-4/
 │   ├── cms-middleware/           # Backwards-compatible facade re-exporting cms-server-core
 │   ├── cms-sites/                # Static documentation site generator & SPA server
 │   │
+│   ├── cms-content/              # Vertical Slice: Page hierarchy, branches, BCP-47 languages, comments
 │   ├── cms-notifications/        # Vertical Slice: Notification models, queries, service, WebSocket live hub, router
 │   ├── cms-invitations/          # Vertical Slice: Workspace invitations models, queries, service, email outbox events, router
 │   ├── cms-onboarding/           # Vertical Slice: Setup status, initial admin creation, cryptographic email verification, router
@@ -161,29 +162,35 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
 - **Background Dispatch & Downloads**: Enqueues typed `JobType::Export` envelopes to `cms-queue` and resolves presigned download targets via `StorageUrlService`.
 - **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/reports` with list, create, get, download, and delete endpoints.
 
-### 5. Shared Foundation: `cms-server-services`
+### 5. Vertical Slice: `cms-content`
+- **Core Content Engine**: Encapsulates pages, branches, languages, and page comments in a cohesive domain vertical slice.
+- **Materialized Paths & Hierarchies**: Unicode-aware slug generation, cyclic tree validation, and branch duplication with hierarchy preservation.
+- **BCP-47 & Translations**: Canonical BCP-47 validation, direction detection, project translations, and default-branch coverage calculation.
+- **Self-Contained Routers**: Exposes subrouters `page_router`, `branch_router`, `language_router`, `comment_router`, and composite `router` mounted at `/pages`, `/branches`, `/languages`, `/comments`.
+
+### 6. Shared Foundation: `cms-server-services`
 - **Audit Logging**: `AuthAuditService` guarantees tamper-evident SHA-256 hash-chain audit logging.
 - **Storage URL Resolution**: `StorageUrlService` resolves download and upload targets (presigned S3 URLs or local server-mediated endpoints).
 - **Tenant Context**: `TenantContextService` validates workspace access, active membership, and role authorization.
 - **Event Dispatcher**: `EventDispatcherService` enqueues atomic outbox notifications within database transactions.
 
-### 6. Subsystem 1: Transactional Outbox (`cms-outbox`)
+### 7. Subsystem 1: Transactional Outbox (`cms-outbox`)
 - **At-Least-Once Delivery**: Atomic `queue_in_tx(&mut tx, &OutboxRow)` enqueues events within the same PostgreSQL transaction as domain mutations (`0020_outbox.sql`).
 - **Concurrent Worker**: Background processor claims batches via `FOR UPDATE SKIP LOCKED`, records Prometheus metrics, and recovers abandoned locks.
 - **Exponential Jittered Backoff**: `BackoffConfig` provides mathematically validated exponential intervals with ±20% jitter and `clamp(0, 30)` overflow protection.
 - **Dead-Letter Queue (DLQ)**: Automatic permanent error classification and DLQ archiving after 10 failed retry attempts.
 
-### 7. Subsystem 2: Seed & Dev Fixtures (`cms-seed`)
+### 8. Subsystem 2: Seed & Dev Fixtures (`cms-seed`)
 - **Deterministic Fixtures**: UUID v5 namespace derivation (`CMS_SEED_NAMESPACE`) guarantees stable, reproducible IDs across fresh environments.
 - **Production-grade Security**: Generates Argon2-hashed passwords with standard cost parameters.
 - **CLI Runner**: Standalone `cms_seed` binary supporting `--profile dev` and `--force` flags.
 
-### 8. Subsystem 5: Cron Scheduling (`cms-scheduler`)
+### 9. Subsystem 5: Cron Scheduling (`cms-scheduler`)
 - **Distributed Cron Engine**: Normalizes standard 5-part and 6-part cron expressions to compute precise next execution timestamps.
 - **Lock-Free Concurrency**: Scans `cms_scheduled_jobs` with `FOR UPDATE SKIP LOCKED` to prevent duplicate concurrent runs across nodes.
 - **Maintenance Registry**: Pre-configured maintenance jobs for session purging, token cleanup, invitation expiry, and search index maintenance.
 
-### 9. Server Foundation & Middleware Suite (`cms-server-core`)
+### 10. Server Foundation & Middleware Suite (`cms-server-core`)
 - **Zero-Route Server Foundation**: Houses pagination (`Pagination`, `CursorPage` keyset seek), regex validation & anti-XSS (`ValidationErrors`), status-painted terminal HTTP tracing (`http_trace`), and unified `AppState`.
 - **Enterprise Middleware Suite**:
   - `client_ip`: Trusted proxy verification (`ipnet::IpNet`) preventing `X-Forwarded-For` spoofing.

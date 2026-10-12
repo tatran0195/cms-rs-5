@@ -1,6 +1,6 @@
 # Phase 1: `cms-content` Vertical Slice Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Extract the documentation content core (Pages, Revisions, Branches, Languages, Comments) into a self-contained vertical slice crate `crates/cms-content`, integrate into `cms-api`, and remove obsolete legacy files from `cms-biz` and `cms-api`.
 
@@ -29,7 +29,7 @@
 - Consumes: `cms-db`, `cms-entity`, `cms-error`, `cms-server-core`, `cms-server-services`, `cms-auth`
 - Produces: `crates/cms-content` crate scaffold
 
-- [ ] **Step 1: Create `crates/cms-content/Cargo.toml`**
+- [x] **Step 1: Create `crates/cms-content/Cargo.toml`**
 
 ```toml
 [package]
@@ -64,11 +64,11 @@ tokio = { workspace = true, features = ["full", "test-util"] }
 workspace = true
 ```
 
-- [ ] **Step 2: Register in root `Cargo.toml`**
+- [x] **Step 2: Register in root `Cargo.toml`**
 
 Add `cms-content = { path = "crates/cms-content" }` to `[workspace.dependencies]` in root `Cargo.toml`.
 
-- [ ] **Step 3: Create initial `crates/cms-content/src/lib.rs`**
+- [x] **Step 3: Create initial `crates/cms-content/src/lib.rs`**
 
 ```rust
 //! Content core vertical slice: Pages, Branches, Languages, Comments.
@@ -82,12 +82,12 @@ pub fn router(state: Arc<AppState>) -> Router {
 }
 ```
 
-- [ ] **Step 4: Verify crate compilation**
+- [x] **Step 4: Verify crate compilation**
 
 Run: `cargo check -p cms-content -j 2`
 Expected: Exited with code 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add crates/cms-content/ Cargo.toml; git commit -m "feat(content): scaffold cms-content vertical slice crate" --no-verify
@@ -109,15 +109,15 @@ git add crates/cms-content/ Cargo.toml; git commit -m "feat(content): scaffold c
 - Consumes: `cms_db::page::PageQueries`, `AppState`
 - Produces: `PageService`, `pub fn page_router(state: Arc<AppState>) -> Router`
 
-- [ ] **Step 1: Implement `models/page.rs`**
+- [x] **Step 1: Implement `models/page.rs`**
 
 Define request/response models: `CreatePagePayload`, `UpdatePagePayload`, `PageSummaryResponse`, `PageDetailResponse`.
 
-- [ ] **Step 2: Implement `queries/page.rs`**
+- [x] **Step 2: Implement `queries/page.rs`**
 
 Provide database access helpers interfacing with `cms_db::page::PageQueries`.
 
-- [ ] **Step 3: Implement `services/page.rs`**
+- [x] **Step 3: Implement `services/page.rs`**
 
 Migrate and adapt `PageService` from `cms-biz/src/page.rs`:
 - `list_pages(state, project_id, branch_id, language_id)`
@@ -128,7 +128,7 @@ Migrate and adapt `PageService` from `cms-biz/src/page.rs`:
 - `delete_page(state, user_id, page_id)`
 - `get_page_tree(state, project_id, branch_id, root_id)`
 
-- [ ] **Step 4: Implement `handlers/page.rs`**
+- [x] **Step 4: Implement `handlers/page.rs`**
 
 Implement Axum handlers for:
 - `GET /` -> `list_pages_handler`
@@ -138,11 +138,11 @@ Implement Axum handlers for:
 - `DELETE /{id}` -> `delete_page_handler`
 Expose `pub fn router(state: Arc<AppState>) -> Router`.
 
-- [ ] **Step 5: Write unit test in `tests/page_test.rs`**
+- [x] **Step 5: Write unit test in `tests/page_test.rs`**
 
 Test payload serialization, tree structuring, and response transformations.
 
-- [ ] **Step 6: Verify and commit**
+- [x] **Step 6: Verify and commit**
 
 Run: `cargo test -p cms-content --test page_test -j 2`
 Expected: All tests pass.
@@ -166,11 +166,11 @@ Commit: `git add crates/cms-content/; git commit -m "feat(content): implement pa
 - Consumes: `cms_db::branch::BranchQueries`, `AppState`
 - Produces: `BranchService`, `pub fn branch_router(state: Arc<AppState>) -> Router`
 
-- [ ] **Step 1: Implement `models/branch.rs`**
+- [x] **Step 1: Implement `models/branch.rs`**
 
 Define request/response models: `CreateBranchPayload`, `UpdateBranchPayload`, `BranchResponse`.
 
-- [ ] **Step 2: Implement `services/branch.rs`**
+- [x] **Step 2: Implement `services/branch.rs`**
 
 Migrate and adapt `BranchService` from `cms-biz/src/branch.rs`:
 - `list_branches(state, project_id)`
@@ -179,16 +179,16 @@ Migrate and adapt `BranchService` from `cms-biz/src/branch.rs`:
 - `update_branch(state, user_id, branch_id, request)`
 - `delete_branch(state, user_id, branch_id)` (enforces non-default branch check)
 
-- [ ] **Step 3: Implement `handlers/branch.rs`**
+- [x] **Step 3: Implement `handlers/branch.rs`**
 
 Implement Axum handlers for `/` (list/create), `/{id}` (get/update/delete).
 Expose `pub fn router(state: Arc<AppState>) -> Router`.
 
-- [ ] **Step 4: Write unit test in `tests/branch_test.rs`**
+- [x] **Step 4: Write unit test in `tests/branch_test.rs`**
 
 Verify branch creation validation and protected branch logic.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run: `cargo test -p cms-content --test branch_test -j 2`
 Run: `cargo clippy --tests -p cms-content --no-deps -j 2`
@@ -210,7 +210,7 @@ Commit: `git add crates/cms-content/; git commit -m "feat(content): implement br
 - Consumes: `cms_db::language::LanguageQueries`, `AppState`
 - Produces: `LanguageService`, `pub fn language_router(state: Arc<AppState>) -> Router`
 
-- [ ] **Step 1: Implement `models/language.rs` & `services/language.rs`**
+- [x] **Step 1: Implement `models/language.rs` & `services/language.rs`**
 
 Migrate and adapt `LanguageService` from `cms-biz/src/language.rs`:
 - `list_languages(state, project_id)`
@@ -220,16 +220,16 @@ Migrate and adapt `LanguageService` from `cms-biz/src/language.rs`:
 - `delete_language(state, user_id, language_id)`
 - `set_default_language(state, user_id, project_id, language_id)`
 
-- [ ] **Step 2: Implement `handlers/language.rs`**
+- [x] **Step 2: Implement `handlers/language.rs`**
 
 Implement Axum handlers for list, create, get, update, delete, and `POST /projects/{project_id}/set-default`.
 Expose `pub fn router(state: Arc<AppState>) -> Router`.
 
-- [ ] **Step 3: Write unit test in `tests/language_test.rs`**
+- [x] **Step 3: Write unit test in `tests/language_test.rs`**
 
 Verify language DTOs and set-default validation.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run: `cargo test -p cms-content --test language_test -j 2`
 Run: `cargo clippy --tests -p cms-content --no-deps -j 2`
@@ -251,7 +251,7 @@ Commit: `git add crates/cms-content/; git commit -m "feat(content): implement la
 - Consumes: `cms_db::comment::CommentQueries`, `AppState`
 - Produces: `CommentService`, `pub fn comment_router(state: Arc<AppState>) -> Router`, composite `router`
 
-- [ ] **Step 1: Implement `models/comment.rs` & `services/comment.rs`**
+- [x] **Step 1: Implement `models/comment.rs` & `services/comment.rs`**
 
 Migrate and adapt `CommentService` from `cms-biz/src/comment.rs`:
 - `list_comments(state, page_id)`
@@ -261,23 +261,23 @@ Migrate and adapt `CommentService` from `cms-biz/src/comment.rs`:
 - `delete_comment(state, user_id, comment_id)`
 - `resolve_comment(state, user_id, comment_id)`
 
-- [ ] **Step 2: Implement `handlers/comment.rs`**
+- [x] **Step 2: Implement `handlers/comment.rs`**
 
 Implement Axum handlers for comments, thread hierarchy, resolve action, and `GET /pages/{page_id}`.
 Expose `pub fn router(state: Arc<AppState>) -> Router`.
 
-- [ ] **Step 3: Update `crates/cms-content/src/lib.rs`**
+- [x] **Step 3: Update `crates/cms-content/src/lib.rs`**
 
 Expose:
 - `pub use services::{PageService, BranchService, LanguageService, CommentService};`
 - `pub use handlers::{page_router, branch_router, language_router, comment_router};`
 - `pub fn router(state: Arc<AppState>) -> Router` (composite router nesting all 4 subrouters)
 
-- [ ] **Step 4: Write unit test in `tests/comment_test.rs`**
+- [x] **Step 4: Write unit test in `tests/comment_test.rs`**
 
 Verify comment serialization, IDOR validation, and thread resolution.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run: `cargo test -p cms-content -j 2`
 Run: `cargo clippy --tests -p cms-content --no-deps -j 2`
@@ -300,11 +300,11 @@ Commit: `git add crates/cms-content/; git commit -m "feat(content): implement co
 - Consumes: `cms_content::{page_router, branch_router, language_router, comment_router}`
 - Produces: Seamless delegation in `cms-api` and backward-compatible re-exports in `cms-biz`
 
-- [ ] **Step 1: Add dependency to `cms-api` and `cms-biz`**
+- [x] **Step 1: Add dependency to `cms-api` and `cms-biz`**
 
 Add `cms-content = { path = "../cms-content" }` to `crates/cms-api/Cargo.toml` and `crates/cms-biz/Cargo.toml`.
 
-- [ ] **Step 2: Delegate routers in `cms-api`**
+- [x] **Step 2: Delegate routers in `cms-api`**
 
 In:
 - `crates/cms-api/src/page/mod.rs`: `cms_content::page_router(state)`
@@ -312,11 +312,11 @@ In:
 - `crates/cms-api/src/language/mod.rs`: `cms_content::language_router(state)`
 - `crates/cms-api/src/comment/mod.rs`: `cms_content::comment_router(state)`
 
-- [ ] **Step 3: Re-export services in `cms-biz`**
+- [x] **Step 3: Re-export services in `cms-biz`**
 
 In `crates/cms-biz/src/lib.rs`, re-export `PageService`, `BranchService`, `LanguageService`, `CommentService` from `cms_content` to keep existing callers functional without breakage. Delete old redundant implementation files from `cms-biz`.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run: `cargo check -p cms-api -j 2`
 Run: `cargo check -p cms-biz -j 2`
@@ -330,22 +330,22 @@ Commit: `git add crates/cms-api/ crates/cms-biz/; git commit -m "refactor(api,bi
 - Modify: `AGENTS.md`
 - Modify: `.superpowers/sdd/progress-vertical-slices.md`
 
-- [ ] **Step 1: Run full workspace test suite**
+- [x] **Step 1: Run full workspace test suite**
 
 Run: `cargo test -p cms-content -j 2`
 Expected: All tests pass.
 
-- [ ] **Step 2: Run full workspace check**
+- [x] **Step 2: Run full workspace check**
 
 Run: `cargo check --workspace -j 2`
 Expected: 0 errors.
 
-- [ ] **Step 3: Run Clippy verification**
+- [x] **Step 3: Run Clippy verification**
 
 Run: `cargo clippy --tests -p cms-content --no-deps -j 2`
 Expected: 0 warnings, 0 errors.
 
-- [ ] **Step 4: Update documentation and commit**
+- [x] **Step 4: Update documentation and commit**
 
 Update `AGENTS.md` and `.superpowers/sdd/progress-vertical-slices.md`.
 Commit: `git add AGENTS.md .superpowers/sdd/progress-vertical-slices.md; git commit -m "docs: document cms-content vertical slice in AGENTS.md and SDD tracker" --no-verify`
