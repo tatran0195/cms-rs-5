@@ -105,9 +105,9 @@ impl ProjectQueries {
 
         if let Some(search) = search {
             query_builder.push(" AND (name ILIKE ");
-            query_builder.push_bind(format!("%{}%", search));
+            query_builder.push_bind(format!("%{search}%"));
             query_builder.push(" OR description ILIKE ");
-            query_builder.push_bind(format!("%{}%", search));
+            query_builder.push_bind(format!("%{search}%"));
             query_builder.push(")");
         }
 
@@ -148,9 +148,9 @@ impl ProjectQueries {
 
         if let Some(search) = search {
             query_builder.push(" AND (name ILIKE ");
-            query_builder.push_bind(format!("%{}%", search));
+            query_builder.push_bind(format!("%{search}%"));
             query_builder.push(" OR description ILIKE ");
-            query_builder.push_bind(format!("%{}%", search));
+            query_builder.push_bind(format!("%{search}%"));
             query_builder.push(")");
         }
 
@@ -184,6 +184,7 @@ impl ProjectQueries {
 
     /// Create a project atomically along with default branch, default language, default settings,
     /// and project owner member.
+    #[allow(clippy::too_many_arguments)]
     pub async fn create_atomic(
         pool: &PgPool,
         name: &str,
@@ -296,6 +297,7 @@ impl ProjectQueries {
     }
 
     /// Create a new project
+    #[allow(clippy::too_many_arguments)]
     pub async fn create(
         pool: &PgPool,
         name: &str,
@@ -318,6 +320,7 @@ impl ProjectQueries {
     }
 
     /// Update a project
+    #[allow(clippy::too_many_arguments, clippy::useless_let_if_seq)]
     pub async fn update(
         pool: &PgPool,
         project_id: &str,
@@ -462,6 +465,7 @@ impl ProjectSettingsQueries {
     }
 
     /// Create or update settings for a project
+    #[allow(clippy::too_many_arguments, clippy::useless_let_if_seq)]
     pub async fn upsert(
         pool: &PgPool,
         project_id: &str,
@@ -630,6 +634,7 @@ impl ProjectAddonQueries {
     }
 
     /// Update an addon
+    #[allow(clippy::useless_let_if_seq)]
     pub async fn update(
         pool: &PgPool,
         addon_id: &str,

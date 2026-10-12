@@ -1,4 +1,4 @@
-//! Project domain service decoupled from BizContext.
+//! Project domain service decoupled from `BizContext`.
 
 use cms_error::AppError;
 use sqlx::PgPool;

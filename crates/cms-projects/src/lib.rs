@@ -4,10 +4,15 @@ use std::sync::Arc;
 use axum::Router;
 use cms_server_core::app_state::AppState;
 
+pub mod handlers;
 pub mod models;
 pub mod queries;
 pub mod services;
 
+pub use handlers::{
+    addons_router, core_router, domains_router, members_router, project_router,
+    reader_access_router, ProjectUser,
+};
 pub use models::{
     AddProjectDomainRequest, AddProjectMemberRequest, CreateDomainRequest, CreateProjectRequest,
     DeleteDomainResponse, DeleteProjectResponse, DnsRecord, Domain, DomainResponse,
@@ -15,8 +20,8 @@ pub use models::{
     ProjectAddon, ProjectAddonResponse, ProjectAuditEvent, ProjectCountResponse,
     ProjectMember, ProjectResponse, ProjectSettings, SpaDomainResponse,
     UpdateDomainRequest, UpdateProjectMemberRequest, UpdateProjectRequest,
-    UpdateProjectSettingsRequest, WorkspaceInvitationItem, WorkspaceMemberItem,
-    WorkspaceMemberUser, WorkspaceMembersResponse,
+    UpdateProjectSettingsRequest, WorkspaceInvitationItem, WorkspaceInvitationResponse,
+    WorkspaceMemberItem, WorkspaceMemberUser, WorkspaceMembersResponse,
 };
 pub use queries::{
     normalize_hostname, DomainQueries, ProjectAddonQueries, ProjectMemberQueries, ProjectQueries,
@@ -25,5 +30,5 @@ pub use queries::{
 pub use services::{DomainService, MemberService, ProjectService, ReaderAccessService};
 
 pub fn router(state: Arc<AppState>) -> Router {
-    Router::new().with_state(state)
+    project_router(state)
 }

@@ -3,11 +3,12 @@
 use chrono::{DateTime, Utc};
 pub use cms_entity::authz::{AddProjectMemberRequest, ProjectMember, UpdateProjectMemberRequest};
 pub use cms_entity::workspace::{
-    WorkspaceInvitationItem, WorkspaceMemberItem, WorkspaceMemberUser, WorkspaceMembersResponse,
+    WorkspaceInvitationItem, WorkspaceInvitationResponse, WorkspaceMemberItem,
+    WorkspaceMemberUser, WorkspaceMembersResponse,
 };
 use sqlx::FromRow;
 
-/// Database representation of a ProjectMember row
+/// Database representation of a [`ProjectMember`] row.
 #[derive(Debug, Clone, FromRow)]
 pub struct ProjectMemberRow {
     pub id: String,

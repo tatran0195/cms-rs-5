@@ -1,4 +1,4 @@
-//! Project member service decoupled from BizContext.
+//! Project member service decoupled from `BizContext`.
 
 use std::collections::HashMap;
 
@@ -27,12 +27,12 @@ impl MemberService {
         let proj_members = ProjectMemberQueries::list_by_project(pool, project_id).await?;
 
         let uids: Vec<&str> = proj_members.iter().map(|m| m.user_id.as_str()).collect();
-        let users = if !uids.is_empty() {
+        let users = if uids.is_empty() {
+            Vec::new()
+        } else {
             cms_db::auth::UserQueries::get_by_ids(pool, &uids)
                 .await
                 .unwrap_or_default()
-        } else {
-            Vec::new()
         };
         let user_map: HashMap<String, cms_entity::auth::User> =
             users.into_iter().map(|u| (u.id.clone(), u)).collect();
@@ -40,11 +40,10 @@ impl MemberService {
         let items: Vec<WorkspaceMemberItem> = proj_members
             .into_iter()
             .map(|m| {
-                let (user_name, user_email, user_image) = if let Some(u) = user_map.get(&m.user_id) {
-                    (u.name.clone(), u.email.clone(), u.image.clone())
-                } else {
-                    (None, String::new(), None)
-                };
+                let (user_name, user_email, user_image) = user_map.get(&m.user_id).map_or_else(
+                    || (None, String::new(), None),
+                    |u| (u.name.clone(), u.email.clone(), u.image.clone()),
+                );
                 WorkspaceMemberItem {
                     id: m.id,
                     user_id: m.user_id.clone(),

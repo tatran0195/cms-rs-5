@@ -1,4 +1,4 @@
-//! Project business logic decoupled from BizContext.
+//! Project business logic decoupled from `BizContext`.
 
 use cms_entity::common::PaginatedResponse;
 use cms_error::AppError;
@@ -18,24 +18,22 @@ impl ProjectService {
     /// Sanitize a project name into a URL-friendly slug
     #[must_use]
     pub fn sanitize_slug(name: &str) -> String {
-        let sanitized = name
-            .trim()
-            .chars()
-            .flat_map(char::to_lowercase)
-            .filter_map(|c| {
-                if c.is_ascii_alphanumeric() {
-                    Some(c)
-                } else if c == ' ' || c == '-' || c == '_' {
-                    Some('-')
-                } else {
-                    None
-                }
-            })
-            .collect::<String>();
-        if sanitized.trim_matches('-').is_empty() {
+        let mut slug = String::new();
+        let mut prev_dash = false;
+        for c in name.trim().chars().flat_map(char::to_lowercase) {
+            if c.is_ascii_alphanumeric() {
+                slug.push(c);
+                prev_dash = false;
+            } else if (c == ' ' || c == '-' || c == '_') && !prev_dash {
+                slug.push('-');
+                prev_dash = true;
+            }
+        }
+        let trimmed = slug.trim_matches('-');
+        if trimmed.is_empty() {
             "project".to_string()
         } else {
-            sanitized.trim_matches('-').to_string()
+            trimmed.to_string()
         }
     }
 
@@ -160,6 +158,7 @@ impl ProjectService {
     }
 
     /// List all projects
+    #[allow(clippy::cast_possible_wrap)]
     pub async fn list_projects(
         pool: &PgPool,
         _user_id: &str,
@@ -193,6 +192,7 @@ impl ProjectService {
     }
 
     /// List all projects accessible to a user
+    #[allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
     pub async fn list_all_projects_for_user(
         pool: &PgPool,
         user_id: &str,

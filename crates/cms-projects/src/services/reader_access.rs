@@ -1,4 +1,4 @@
-//! Project reader access business logic decoupled from BizContext.
+//! Project reader access business logic decoupled from `BizContext`.
 
 use chrono::{Duration, Utc};
 use cms_error::AppError;

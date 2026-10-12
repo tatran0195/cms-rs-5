@@ -84,6 +84,7 @@ impl ProjectMemberQueries {
     }
 
     /// Update a member's role
+    #[allow(clippy::useless_let_if_seq)]
     pub async fn update_role(
         pool: &PgPool,
         project_id: &str,
