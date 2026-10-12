@@ -1,0 +1,112 @@
+//! Project domain service decoupled from BizContext.
+
+use cms_error::AppError;
+use sqlx::PgPool;
+
+use crate::models::{Domain, SpaDomainResponse};
+use crate::queries::DomainQueries;
+
+/// Domain service
+#[derive(Debug)]
+pub struct DomainService;
+
+impl DomainService {
+    /// Require that a domain belongs to a project via its deployment.
+    pub async fn require_domain_in_project(
+        pool: &PgPool,
+        project_id: &str,
+        domain_id: &str,
+    ) -> Result<Domain, AppError> {
+        let domain = DomainQueries::get_by_id(pool, domain_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
+
+        let deployment = cms_db::deployment::DeploymentQueries::get_by_id(pool, &domain.deployment_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        if deployment.project_id != project_id {
+            return Err(AppError::Forbidden);
+        }
+
+        Ok(domain)
+    }
+
+    /// List all domains configured across deployments of a project
+    pub async fn list_domains_for_project(
+        pool: &PgPool,
+        project_id: &str,
+    ) -> Result<Vec<SpaDomainResponse>, AppError> {
+        let deployments = cms_db::deployment::DeploymentQueries::get_by_project(
+            pool,
+            project_id,
+            Some(100),
+            None,
+        )
+        .await?;
+
+        let mut items = Vec::new();
+        for d in deployments {
+            let domains = DomainQueries::get_by_deployment(pool, &d.id).await?;
+            items.extend(domains.iter().map(SpaDomainResponse::from_domain));
+        }
+
+        Ok(items)
+    }
+
+    /// Add a domain to the newest deployment of a project
+    pub async fn add_domain(
+        pool: &PgPool,
+        project_id: &str,
+        hostname: &str,
+    ) -> Result<SpaDomainResponse, AppError> {
+        let normalized = hostname.trim().trim_end_matches('.').to_lowercase();
+        if normalized.is_empty() {
+            return Err(AppError::InvalidInput("domain is required".to_string()));
+        }
+
+        let deployments = cms_db::deployment::DeploymentQueries::get_by_project(
+            pool,
+            project_id,
+            Some(1),
+            None,
+        )
+        .await?;
+
+        let deployment = deployments
+            .first()
+            .ok_or_else(|| AppError::NotFound("No deployment exists for this project".to_string()))?;
+
+        let has_primary = DomainQueries::get_primary_by_deployment(pool, &deployment.id)
+            .await?
+            .is_some();
+        let is_primary = !has_primary;
+
+        let domain = DomainQueries::create(pool, &deployment.id, &normalized, is_primary).await?;
+
+        Ok(SpaDomainResponse::from_domain(&domain))
+    }
+
+    /// Delete a domain
+    pub async fn delete_domain(pool: &PgPool, domain_id: &str) -> Result<bool, AppError> {
+        DomainQueries::delete(pool, domain_id).await
+    }
+
+    /// Set a domain as the primary domain for its deployment
+    pub async fn set_primary(
+        pool: &PgPool,
+        deployment_id: &str,
+        domain_id: &str,
+    ) -> Result<Domain, AppError> {
+        DomainQueries::set_primary_for_deployment(pool, deployment_id, domain_id).await
+    }
+
+    /// Mark a domain verified
+    pub async fn verify(
+        pool: &PgPool,
+        domain_id: &str,
+        expected_token: &str,
+    ) -> Result<Domain, AppError> {
+        DomainQueries::verify(pool, domain_id, expected_token).await
+    }
+}

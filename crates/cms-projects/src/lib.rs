@@ -6,6 +6,7 @@ use cms_server_core::app_state::AppState;
 
 pub mod models;
 pub mod queries;
+pub mod services;
 
 pub use models::{
     AddProjectDomainRequest, AddProjectMemberRequest, CreateDomainRequest, CreateProjectRequest,
@@ -21,6 +22,7 @@ pub use queries::{
     normalize_hostname, DomainQueries, ProjectAddonQueries, ProjectMemberQueries, ProjectQueries,
     ProjectSettingsQueries,
 };
+pub use services::{DomainService, MemberService, ProjectService, ReaderAccessService};
 
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new().with_state(state)
