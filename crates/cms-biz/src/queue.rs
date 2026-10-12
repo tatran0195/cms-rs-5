@@ -5,11 +5,11 @@
 use std::sync::Arc;
 
 use cms_queue::{JobEnvelope, JobId, JobQueue, JobStatus, JobType};
-use uuid::Uuid;
 
 use crate::AppError;
 
 /// Queue service
+#[derive(Debug)]
 pub struct QueueService;
 
 impl QueueService {
@@ -20,37 +20,11 @@ impl QueueService {
         payload: serde_json::Value,
         delay: Option<std::time::Duration>,
     ) -> Result<JobId, AppError> {
+        let envelope = JobEnvelope::new(job_type, payload);
         if let Some(delay) = delay {
-            queue
-                .enqueue_delayed(
-                    JobEnvelope {
-                        id: JobId(Uuid::new_v4().to_string()),
-                        job_type,
-                        payload,
-                        status: JobStatus::Pending,
-                        created_at: chrono::Utc::now(),
-                        started_at: None,
-                        completed_at: None,
-                        error_message: None,
-                        retry_count: 0,
-                    },
-                    delay,
-                )
-                .await
+            queue.enqueue_delayed(envelope, delay).await
         } else {
-            queue
-                .enqueue(JobEnvelope {
-                    id: JobId(Uuid::new_v4().to_string()),
-                    job_type,
-                    payload,
-                    status: JobStatus::Pending,
-                    created_at: chrono::Utc::now(),
-                    started_at: None,
-                    completed_at: None,
-                    error_message: None,
-                    retry_count: 0,
-                })
-                .await
+            queue.enqueue(envelope).await
         }
     }
 

@@ -27,6 +27,8 @@ pub mod invitation;
 pub use invitation::InvitationService;
 pub mod onboarding;
 pub use onboarding::OnboardingService;
+pub mod report;
+pub use report::ReportService;
 pub mod openapi;
 pub mod page;
 pub mod platform_event;

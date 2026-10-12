@@ -29,6 +29,8 @@ pub mod invitation;
 pub use invitation::{WorkspaceInvitationRow, InvitationQueries};
 pub mod onboarding;
 pub use onboarding::{EmailVerificationTokenRow, OnboardingQueries};
+pub mod report;
+pub use report::{ReportRunRow, ReportQueries};
 pub mod page;
 pub mod platform_event;
 pub mod project;

@@ -74,6 +74,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/members", workspace::members_router(state.clone()));
     router = router.nest("/workspace", workspace::workspace_router(state.clone()));
     router = router.nest("/invitations", invitation::router(state.clone()));
+    router = router.nest("/reports", export::reports_router(state.clone()));
 
     // App and canonical v1 subrouters
     let app_router = Router::new()
@@ -99,7 +100,8 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
         .nest("/mcp", mcp::router(state.clone()))
         .nest("/members", workspace::members_router(state.clone()))
         .nest("/workspace", workspace::workspace_router(state.clone()))
-        .nest("/invitations", invitation::router(state.clone()));
+        .nest("/invitations", invitation::router(state.clone()))
+        .nest("/reports", export::reports_router(state.clone()));
     router = router.nest("/app", app_router.clone());
     router = router.nest("/v1", app_router);
 
