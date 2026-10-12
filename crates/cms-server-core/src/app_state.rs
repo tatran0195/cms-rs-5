@@ -1,6 +1,12 @@
-//! Application state
+//! Unified Application State for CMS Server.
 //!
-//! This module contains the shared application state that is passed to all handlers.
+//! Houses shared platform context passed to all route handlers:
+//! - Configuration & Business context
+//! - Storage & Search engine
+//! - Queue & Mailer
+//! - Host resolution invalidation
+//! - Trusted proxy CIDR cache
+//! - Class-scoped sliding window rate limiter
 
 use std::sync::{
     atomic::{AtomicU64, Ordering},
@@ -13,7 +19,9 @@ use cms_error::AppError;
 use cms_queue::JobQueue;
 use cms_storage::Storage;
 
-/// Application state shared across all handlers
+use crate::middleware::rate_limit::SlidingRateLimiter;
+
+/// Application state shared across all HTTP handlers and services.
 #[derive(Clone)]
 pub struct AppState {
     /// Application configuration
@@ -30,24 +38,51 @@ pub struct AppState {
     pub mailer: Arc<dyn cms_biz::email::Mailer>,
     /// Transactional email renderer with embedded localized catalog
     pub email_renderer: cms_biz::email::EmailRenderer,
-    /// Generation counter used to invalidate cached host-to-project resolutions.
+    /// Generation counter used to invalidate cached host-to-project resolutions
     pub host_resolution_generation: Arc<AtomicU64>,
+    /// Trusted proxy CIDRs for X-Forwarded-For validation
+    pub trusted_proxies: Arc<Vec<ipnet::IpNet>>,
+    /// In-memory sliding window rate limiter
+    pub sliding_rate_limiter: Arc<SlidingRateLimiter>,
 }
 
 impl AppState {
+    /// Access the underlying PostgreSQL connection pool.
+    #[inline]
+    #[must_use]
+    pub fn db(&self) -> &sqlx::PgPool {
+        &self.biz_context.pool
+    }
+
     /// Returns a reference to the authorization engine state.
     #[inline]
+    #[must_use]
     pub fn authz(&self) -> &Arc<cms_authz::AuthzState> {
         &self.biz_context.authz
     }
 
     /// Returns a reference to the authorization backend trait object.
     #[inline]
+    #[must_use]
     pub fn authz_backend(&self) -> &dyn cms_authz::AuthzBackend {
         self.biz_context.authz.backend.as_ref()
     }
 
-    /// Create AppState from full configuration
+    /// Parse trusted proxy CIDRs from environment variable `TRUSTED_PROXIES`.
+    #[must_use]
+    pub fn load_trusted_proxies_from_env() -> Vec<ipnet::IpNet> {
+        match std::env::var("TRUSTED_PROXIES") {
+            Ok(val) => val
+                .split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .filter_map(|s| s.parse::<ipnet::IpNet>().ok())
+                .collect(),
+            Err(_) => Vec::new(),
+        }
+    }
+
+    /// Create `AppState` from full configuration.
     pub async fn from_config(config: &Config) -> Result<Self, AppError> {
         Self::validate_config(config)?;
         let pool = cms_db::create_pool(&config.database.url).await?;
@@ -62,21 +97,26 @@ impl AppState {
         ));
         let biz_context = BizContext::new(pool, authz);
         let mailer = cms_biz::email::create_mailer(config.mailer.as_ref())?;
-        let email_renderer = cms_biz::email::EmailRenderer::embedded()
-            .map_err(AppError::internal)?;
+        let email_renderer =
+            cms_biz::email::EmailRenderer::embedded().map_err(AppError::internal)?;
+        let trusted_proxies = Arc::new(Self::load_trusted_proxies_from_env());
+        let sliding_rate_limiter = Arc::new(SlidingRateLimiter::new());
 
-        Ok(Self::new_with_mailer_and_renderer(
-            config.clone(),
+        Ok(Self {
+            config: Arc::new(config.clone()),
             biz_context,
             storage,
             job_queue,
             search_engine,
             mailer,
             email_renderer,
-        ))
+            host_resolution_generation: Arc::new(AtomicU64::new(0)),
+            trusted_proxies,
+            sliding_rate_limiter,
+        })
     }
 
-    /// Create a new AppState with provided dependencies
+    /// Create a new `AppState` with provided base dependencies (using default mailer and proxies).
     pub fn new(
         config: Config,
         biz_context: BizContext,
@@ -126,6 +166,8 @@ impl AppState {
         mailer: Arc<dyn cms_biz::email::Mailer>,
         email_renderer: cms_biz::email::EmailRenderer,
     ) -> Self {
+        let trusted_proxies = Arc::new(Self::load_trusted_proxies_from_env());
+        let sliding_rate_limiter = Arc::new(SlidingRateLimiter::new());
         Self {
             config: Arc::new(config),
             biz_context,
@@ -135,6 +177,8 @@ impl AppState {
             mailer,
             email_renderer,
             host_resolution_generation: Arc::new(AtomicU64::new(0)),
+            trusted_proxies,
+            sliding_rate_limiter,
         }
     }
 
@@ -151,14 +195,14 @@ impl AppState {
     /// - Database password is `postgres` or empty
     /// - Queue backend is in-memory
     pub fn validate_config(config: &Config) -> Result<(), AppError> {
-        // Validate basic middleware configurations
         if config.security_headers.enable_hsts && config.security_headers.hsts_max_age == 0 {
             return Err(AppError::Validation(
                 "HSTS max age cannot be 0 when HSTS is enabled".into(),
             ));
         }
 
-        let admin_origin: crate::admin_origin::AdminOriginConfig = (&config.admin_origin).into();
+        let admin_origin: crate::middleware::admin_origin::AdminOriginConfig =
+            (&config.admin_origin).into();
         if let Err(err) = admin_origin.validate() {
             return Err(AppError::Validation(format!(
                 "Invalid admin origin configuration: {err}"
@@ -246,6 +290,17 @@ fn extract_db_password(url_str: &str) -> Option<String> {
     let user_info = after_scheme.split('@').next()?;
     let (_, password) = user_info.split_once(':')?;
     Some(password.to_string())
+}
+
+impl std::fmt::Debug for AppState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AppState")
+            .field("config", &"Config")
+            .field("biz_context", &"BizContext")
+            .field("trusted_proxies", &self.trusted_proxies.len())
+            .field("host_resolution_generation", &self.host_resolution_generation.load(Ordering::Relaxed))
+            .finish()
+    }
 }
 
 #[cfg(test)]

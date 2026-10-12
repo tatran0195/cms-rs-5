@@ -6,6 +6,7 @@ description = "Cross-cutting Tower layers for CMS"
 
 [dependencies]
 # Internal crates
+cms-server-core = { path = "../cms-server-core" }
 cms-error = { path = "../cms-error" }
 cms-config = { path = "../cms-config" }
 cms-entity = { path = "../cms-entity" }
