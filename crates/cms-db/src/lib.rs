@@ -25,6 +25,8 @@ pub mod language;
 pub mod mcp;
 pub mod notification;
 pub mod openapi;
+pub mod onboarding;
+pub use onboarding::{EmailVerificationTokenRow, OnboardingQueries};
 pub mod page;
 pub mod platform_event;
 pub mod project;

@@ -72,3 +72,47 @@ pub async fn complete_setup_handler(
 
     Ok((res_headers, Json(res)))
 }
+
+#[derive(Debug, serde::Deserialize)]
+pub struct VerifyEmailQuery {
+    pub token: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ResendVerificationRequest {
+    pub email: String,
+}
+
+/// Verify an onboarding email using a secure token link
+pub async fn verify_email_onboarding_handler(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Query(query): axum::extract::Query<VerifyEmailQuery>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let email = cms_biz::OnboardingService::verify_email_token(&state.biz_context, &query.token).await?;
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "email": email,
+        "message": "Email address successfully verified"
+    })))
+}
+
+/// Resend an onboarding email verification link
+pub async fn resend_verification_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<ResendVerificationRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let scheme = if state.config.server.https { "https" } else { "http" };
+    let host = if state.config.server.host == "0.0.0.0" { "localhost" } else { &state.config.server.host };
+    let base_url = format!("{scheme}://{host}:{}", state.config.server.port);
+    cms_biz::OnboardingService::generate_verification_token(
+        &state.biz_context,
+        &payload.email,
+        "email_verification",
+        24,
+        &base_url,
+    ).await?;
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Verification email has been enqueued"
+    })))
+}

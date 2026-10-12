@@ -23,6 +23,8 @@ pub mod integration;
 pub mod language;
 pub mod mcp;
 pub mod notification;
+pub mod onboarding;
+pub use onboarding::OnboardingService;
 pub mod openapi;
 pub mod page;
 pub mod platform_event;
