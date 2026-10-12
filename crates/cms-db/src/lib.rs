@@ -12,6 +12,7 @@
 pub mod analytics;
 pub mod asset;
 pub mod audit;
+pub use audit::{AuditEntry, AuditLogger, ChainVerificationResult, HttpAuditEntry};
 pub mod auth;
 pub mod authz;
 pub mod branch;

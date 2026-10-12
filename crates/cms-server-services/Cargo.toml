@@ -1,0 +1,35 @@
+[package]
+name = "cms-server-services"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Shared cross-domain services and platform helpers for CMS"
+
+[dependencies]
+# Internal crates
+cms-error = { path = "../cms-error" }
+cms-entity = { path = "../cms-entity" }
+cms-db = { path = "../cms-db" }
+cms-server-core = { path = "../cms-server-core" }
+cms-storage = { path = "../cms-storage" }
+cms-outbox = { path = "../cms-outbox" }
+cms-queue = { path = "../cms-queue" }
+
+# External dependencies
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+
+[lints]
+workspace = true
