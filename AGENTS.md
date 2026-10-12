@@ -107,7 +107,8 @@ cms-rs-4/
 │   ├── cms-analytics/            # Internal operational metrics & usage telemetry
 │   ├── cms-error/                # AppError and HTTP error responses
 │   ├── cms-config/               # Figment configuration loader
-│   ├── cms-middleware/           # Observability, rate limit, CORS, security headers
+│   ├── cms-server-core/          # Server foundation (pagination, validation, http_trace, app_state, enterprise middleware)
+│   ├── cms-middleware/           # Backwards-compatible facade re-exporting cms-server-core
 │   ├── cms-sites/                # Static documentation site generator & SPA server
 │   │
 │   ├── cms-notifications/        # Vertical Slice: Notification models, queries, service, WebSocket live hub, router
@@ -168,6 +169,16 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
 - **Atomic Sequential Identifiers**: Uses `cms_db::next_sequence` to generate sequential codes (e.g. `RPT-2026-00001`) atomically inside transactions.
 - **Lifecycle State Machine**: Tracks status (`queued` -> `running` -> `completed` / `failed`) with artifact storage keys, sizes, and retention expiration timestamps in `report_runs` (`0024_report_runs.sql`).
 - **Background Dispatch**: Enqueues typed `JobType::Export` envelopes to `cms-queue` for asynchronous document generation.
+
+### 8. Server Foundation & Middleware Suite (`cms-server-core`)
+- **Zero-Route Server Foundation**: Houses pagination (`Pagination`, `CursorPage` keyset seek), regex validation & anti-XSS (`ValidationErrors`), status-painted terminal HTTP tracing (`http_trace`), and unified `AppState`.
+- **Enterprise Middleware Suite**:
+  - `client_ip`: Trusted proxy verification (`ipnet::IpNet`) preventing `X-Forwarded-For` spoofing.
+  - `rate_limit`: Sliding-window class-scoped limiter (`check_and_record_class`) with poison-safe mutex, plus governor token bucket for high-throughput routes.
+  - `csrf`: Double-submit cookie pattern protecting state-changing mutations while allowing safe methods and Bearer auth.
+  - `ip_restrict`: Pure IPv4 & IPv6 CIDR subnet matching (`ip_in_cidr`, `ip_allowed`) with DENY precedence.
+  - `observability`, `security_headers`, `admin_origin`, and `locale`: Hardened production headers and tracing.
+- **Backwards Compatibility**: `crates/cms-middleware` operates as a zero-overhead facade re-exporting all components from `cms-server-core`.
 
 ---
 

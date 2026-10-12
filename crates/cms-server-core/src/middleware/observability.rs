@@ -101,6 +101,7 @@ fn register_metrics() {
 
 /// Observability configuration
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct ObservabilityConfig {
     /// Whether to add X-Response-Time header to responses
     pub enable_response_time_header: bool,
@@ -174,7 +175,7 @@ pub fn record_duration(method: &str, duration: Duration) {
 /// Request tracing middleware
 ///
 /// Creates a span for each request and adds request ID to headers.
-pub async fn trace_request<B>(request: Request<B>) -> Request<B> {
+pub fn trace_request<B>(request: Request<B>) -> Request<B> {
     let method = request.method().clone();
     let uri = request.uri().clone();
     let mut headers = request.headers().clone();
@@ -205,7 +206,7 @@ pub async fn trace_request<B>(request: Request<B>) -> Request<B> {
 /// Response logging middleware
 ///
 /// Logs response status and records metrics.
-pub async fn log_response<B>(response: Response<B>) -> Response<B> {
+pub fn log_response<B>(response: Response<B>) -> Response<B> {
     let status = response.status();
 
     // Record metrics
@@ -233,9 +234,10 @@ where
 {
     type Rejection = std::convert::Infallible;
 
+    #[allow(clippy::unused_async_trait_impl)]
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let request_id = get_or_generate_request_id(&parts.headers);
-        Ok(RequestId(request_id))
+        Ok(Self(request_id))
     }
 }
 
@@ -265,12 +267,12 @@ impl ObservabilityLayer {
         }
     }
 
-    pub fn with_config(config: ObservabilityConfig) -> Self {
+    pub const fn with_config(config: ObservabilityConfig) -> Self {
         Self { config }
     }
 
     /// Get the configuration
-    pub fn config(&self) -> &ObservabilityConfig {
+    pub const fn config(&self) -> &ObservabilityConfig {
         &self.config
     }
 }
@@ -471,13 +473,13 @@ pub fn render_prometheus_metrics() -> String {
 
     PROMETHEUS_HANDLE
         .get()
-        .map(|h| h.render())
-        .unwrap_or_else(|| "# Prometheus recorder not initialized\n".to_string())
+        .map_or_else(|| "# Prometheus recorder not initialized\n".to_string(), PrometheusHandle::render)
 }
 
 /// Axum HTTP handler for GET /metrics endpoint.
 ///
 /// Returns Prometheus metrics text with Content-Type `text/plain; version=0.0.4; charset=utf-8`.
+#[allow(clippy::unused_async)]
 pub async fn metrics_handler() -> impl axum::response::IntoResponse {
     let output = render_prometheus_metrics();
     (
@@ -491,6 +493,7 @@ pub async fn metrics_handler() -> impl axum::response::IntoResponse {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::wildcard_imports)]
 mod tests {
     use axum::body::Body;
 

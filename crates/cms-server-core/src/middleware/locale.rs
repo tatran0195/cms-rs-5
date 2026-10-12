@@ -71,7 +71,7 @@ impl Locale {
     }
 
     /// Get locale as ISO 639-1 string
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::En => "en",
             Self::Ja => "ja",
@@ -85,7 +85,7 @@ impl Locale {
     }
 
     /// Get locale as BCP 47 string (language-region)
-    pub fn as_bcp47(&self) -> &'static str {
+    pub const fn as_bcp47(&self) -> &'static str {
         match self {
             Self::En => "en-US",
             Self::Ja => "ja-JP",
@@ -109,11 +109,12 @@ where
 {
     type Rejection = Infallible;
 
+    #[allow(clippy::unused_async_trait_impl)]
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         // Try to get locale from the `x-cms-locale` header the SPA sends.
         if let Some(locale_header) = parts.headers.get("x-cms-locale") {
             if let Ok(locale_str) = locale_header.to_str() {
-                if let Some(locale) = Locale::from_language_tag(locale_str.trim()) {
+                if let Some(locale) = Self::from_language_tag(locale_str.trim()) {
                     return Ok(locale);
                 }
             }
@@ -127,7 +128,7 @@ where
                     let lang = lang.trim();
                     // Remove quality factor if present (e.g., "en;q=0.9" -> "en")
                     let lang_code = lang.split(';').next().unwrap_or(lang);
-                    if let Some(locale) = Locale::from_language_tag(lang_code) {
+                    if let Some(locale) = Self::from_language_tag(lang_code) {
                         return Ok(locale);
                     }
                 }
@@ -140,14 +141,14 @@ where
                 let cookie_map = parse_cookies(cookie_str);
 
                 if let Some(locale_str) = cookie_map.get("locale") {
-                    if let Some(locale) = Locale::from_language_tag(locale_str) {
+                    if let Some(locale) = Self::from_language_tag(locale_str) {
                         return Ok(locale);
                     }
                 }
 
                 // Also check for language cookie
                 if let Some(locale_str) = cookie_map.get("language") {
-                    if let Some(locale) = Locale::from_language_tag(locale_str) {
+                    if let Some(locale) = Self::from_language_tag(locale_str) {
                         return Ok(locale);
                     }
                 }
@@ -155,7 +156,7 @@ where
         }
 
         // Return default locale
-        Ok(Locale::default())
+        Ok(Self::default())
     }
 }
 
@@ -182,11 +183,11 @@ fn parse_cookies(cookie_str: &str) -> HashMap<String, String> {
 
 impl From<Locale> for cms_i18n::Locale {
     fn from(l: Locale) -> Self {
-        cms_i18n::Locale::parse(l.as_str()).unwrap_or_default()
+        Self::parse(l.as_str()).unwrap_or_default()
     }
 }
 
-/// Resolve the incoming request's preferred BCP-47 locale using cms_i18n negotiation
+/// Resolve the incoming request's preferred BCP-47 locale using `cms_i18n` negotiation
 pub fn extract_request_i18n_locale(parts: &Parts) -> cms_i18n::Locale {
     // 1. Try x-cms-locale header from SPA
     if let Some(locale_header) = parts.headers.get("x-cms-locale") {
@@ -242,7 +243,7 @@ impl Default for LocaleLayer {
 }
 
 impl LocaleLayer {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -258,7 +259,7 @@ impl Default for SetLocaleMiddleware {
 }
 
 impl SetLocaleMiddleware {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 
@@ -268,11 +269,12 @@ impl SetLocaleMiddleware {
             "locale={}; Path=/; SameSite=Lax; Max-Age=31536000",
             locale.as_str()
         ))
-        .expect("Invalid locale cookie header")
+        .unwrap_or_else(|_| HeaderValue::from_static("locale=en; Path=/; SameSite=Lax; Max-Age=31536000"))
     }
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::wildcard_imports)]
 mod tests {
     use super::*;
 

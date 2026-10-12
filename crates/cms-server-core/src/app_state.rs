@@ -50,14 +50,14 @@ impl AppState {
     /// Access the underlying PostgreSQL connection pool.
     #[inline]
     #[must_use]
-    pub fn db(&self) -> &sqlx::PgPool {
+    pub const fn db(&self) -> &sqlx::PgPool {
         &self.biz_context.pool
     }
 
     /// Returns a reference to the authorization engine state.
     #[inline]
     #[must_use]
-    pub fn authz(&self) -> &Arc<cms_authz::AuthzState> {
+    pub const fn authz(&self) -> &Arc<cms_authz::AuthzState> {
         &self.biz_context.authz
     }
 
@@ -71,15 +71,16 @@ impl AppState {
     /// Parse trusted proxy CIDRs from environment variable `TRUSTED_PROXIES`.
     #[must_use]
     pub fn load_trusted_proxies_from_env() -> Vec<ipnet::IpNet> {
-        match std::env::var("TRUSTED_PROXIES") {
-            Ok(val) => val
-                .split(',')
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .filter_map(|s| s.parse::<ipnet::IpNet>().ok())
-                .collect(),
-            Err(_) => Vec::new(),
-        }
+        std::env::var("TRUSTED_PROXIES").map_or_else(
+            |_| Vec::new(),
+            |val| {
+                val.split(',')
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+                    .filter_map(|s| s.parse::<ipnet::IpNet>().ok())
+                    .collect()
+            },
+        )
     }
 
     /// Create `AppState` from full configuration.
@@ -123,7 +124,7 @@ impl AppState {
         storage: Arc<dyn Storage>,
         job_queue: Arc<dyn JobQueue>,
         search_engine: Arc<dyn cms_search::SearchEngine>,
-    ) -> Self {
+    ) -> Result<Self, AppError> {
         Self::new_with_mailer(
             config,
             biz_context,
@@ -142,10 +143,10 @@ impl AppState {
         job_queue: Arc<dyn JobQueue>,
         search_engine: Arc<dyn cms_search::SearchEngine>,
         mailer: Arc<dyn cms_biz::email::Mailer>,
-    ) -> Self {
-        let email_renderer = cms_biz::email::EmailRenderer::embedded()
-            .unwrap_or_else(|e| panic!("embedded email translations must be valid: {e}"));
-        Self::new_with_mailer_and_renderer(
+    ) -> Result<Self, AppError> {
+        let email_renderer =
+            cms_biz::email::EmailRenderer::embedded().map_err(AppError::internal)?;
+        Ok(Self::new_with_mailer_and_renderer(
             config,
             biz_context,
             storage,
@@ -153,7 +154,7 @@ impl AppState {
             search_engine,
             mailer,
             email_renderer,
-        )
+        ))
     }
 
     /// Create state with explicitly configured mail provider and email renderer.
@@ -299,11 +300,12 @@ impl std::fmt::Debug for AppState {
             .field("biz_context", &"BizContext")
             .field("trusted_proxies", &self.trusted_proxies.len())
             .field("host_resolution_generation", &self.host_resolution_generation.load(Ordering::Relaxed))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::wildcard_imports)]
 mod tests {
     use super::*;
 

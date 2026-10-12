@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use axum::{
@@ -21,7 +23,7 @@ use tower_http::request_id::MakeRequestId;
 
 #[test]
 fn test_request_id_generation() {
-    let mut maker = MakeRequestUuid::default();
+    let mut maker = MakeRequestUuid;
     let req = Request::new(());
     let id1 = maker.make_request_id(&req).expect("must generate id");
     let id2 = maker.make_request_id(&req).expect("must generate id");

@@ -100,13 +100,13 @@ pub fn apply_api_middleware(router: Router, state: Arc<AppState>) -> Router {
             let limiter = Arc::new(limiter);
             router = router.layer(axum::middleware::from_fn(
                 move |req: axum::extract::Request, next: axum::middleware::Next| {
-                    let limiter = limiter.clone();
+                    let limiter = Arc::clone(&limiter);
                     async move {
                         let (parts, body) = req.into_parts();
                         let client =
                             cms_middleware::rate_limit::RateLimitClient::from_request(&parts);
                         let req = axum::extract::Request::from_parts(parts, body);
-                        match limiter.check_rate_limit(client) {
+                        match limiter.check_rate_limit(&client) {
                             cms_middleware::rate_limit::RateLimitResult::Allowed => {
                                 next.run(req).await
                             }

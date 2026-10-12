@@ -50,13 +50,10 @@ pub fn terminal_supports_colour() -> bool {
 }
 
 fn forced(name: &str) -> bool {
-    match std::env::var(name) {
-        Ok(value) => {
-            let value = value.trim();
-            !value.is_empty() && value != "0" && !value.eq_ignore_ascii_case("false")
-        }
-        Err(_) => false,
-    }
+    std::env::var(name).is_ok_and(|value| {
+        let value = value.trim();
+        !value.is_empty() && value != "0" && !value.eq_ignore_ascii_case("false")
+    })
 }
 
 fn shade(status: StatusCode) -> &'static str {

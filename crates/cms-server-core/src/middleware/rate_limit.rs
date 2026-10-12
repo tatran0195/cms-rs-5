@@ -1,7 +1,7 @@
 //! Rate limiting middleware suite.
 //!
 //! Provides two complementary rate limiting strategies:
-//! 1. **Sliding Window Class-Scoped Limiter (`SlidingRateLimiter`)** — from MedBrains:
+//! 1. **Sliding Window Class-Scoped Limiter (`SlidingRateLimiter`)** — from `MedBrains`:
 //!    In-memory per-(IP, class) sliding window limiting. Protects sensitive paths
 //!    (auth, reports, heavy exports) with distinct budgets and poison-safe mutexes.
 //! 2. **Governor Keyed Limiter (`RateLimiter`)**:
@@ -61,6 +61,7 @@ impl SlidingRateLimiter {
     }
 
     /// Record an attempt under a specific class sliding window.
+    #[allow(clippy::significant_drop_tightening)]
     pub fn check_and_record_class(
         &self,
         ip: IpAddr,
@@ -303,12 +304,12 @@ pub enum RateLimitResult {
 
 impl RateLimitResult {
     #[must_use]
-    pub fn is_allowed(&self) -> bool {
+    pub const fn is_allowed(&self) -> bool {
         matches!(self, Self::Allowed)
     }
 
     #[must_use]
-    pub fn retry_after(&self) -> Option<Duration> {
+    pub const fn retry_after(&self) -> Option<Duration> {
         match self {
             Self::Allowed => None,
             Self::Rejected { retry_after } => Some(*retry_after),
@@ -344,14 +345,14 @@ impl RateLimiter {
         })
     }
 
-    pub fn check_rate_limit(&self, client: RateLimitClient) -> RateLimitResult {
+    pub fn check_rate_limit(&self, client: &RateLimitClient) -> RateLimitResult {
         if !self.config.enabled {
             return RateLimitResult::Allowed;
         }
 
         self.total_requests.fetch_add(1, Ordering::Relaxed);
 
-        match self.limiter.check_key(&client) {
+        match self.limiter.check_key(client) {
             Ok(()) => {
                 self.allowed_requests.fetch_add(1, Ordering::Relaxed);
                 RateLimitResult::Allowed
@@ -430,13 +431,13 @@ impl RateLimitMiddleware {
     }
 
     #[must_use]
-    pub fn config(&self) -> &RateLimitConfig {
+    pub const fn config(&self) -> &RateLimitConfig {
         &self.config
     }
 
     #[must_use]
     pub fn limiter(&self) -> Arc<RateLimiter> {
-        self.limiter.clone()
+        Arc::clone(&self.limiter)
     }
 
     #[must_use]

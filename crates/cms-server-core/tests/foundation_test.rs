@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use std::time::Duration;
 use axum::http::StatusCode;
 use uuid::Uuid;

@@ -21,6 +21,7 @@ use axum::http::HeaderValue;
 
 /// Security headers configuration with validation
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct SecurityHeadersConfig {
     /// Enable HSTS (Strict-Transport-Security)
     pub enable_hsts: bool,
@@ -55,7 +56,7 @@ impl Default for SecurityHeadersConfig {
     fn default() -> Self {
         Self {
             enable_hsts: true,
-            hsts_max_age: 31536000, // 1 year
+            hsts_max_age: 31_536_000, // 1 year
             hsts_include_subdomains: true,
             enable_x_content_type_options: true,
             enable_x_frame_options: true,
@@ -116,7 +117,7 @@ pub enum XFrameOptions {
 }
 
 impl XFrameOptions {
-    fn as_str(&self) -> &'static str {
+    const fn as_str(&self) -> &'static str {
         match self {
             Self::Deny => "DENY",
             Self::SameOrigin => "SAMEORIGIN",
@@ -145,7 +146,7 @@ pub enum ReferrerPolicy {
 }
 
 impl ReferrerPolicy {
-    fn as_str(&self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::NoReferrer => "no-referrer",
             Self::NoReferrerWhenDowngrade => "no-referrer-when-downgrade",
@@ -176,7 +177,7 @@ pub fn create_security_headers_layer(
 
 /// Predefined security header configurations
 pub mod presets {
-    use super::*;
+    use super::{ReferrerPolicy, SecurityHeadersConfig, XFrameOptions};
 
     /// Security headers for API endpoints
     ///
@@ -186,7 +187,7 @@ pub mod presets {
     pub fn api() -> SecurityHeadersConfig {
         SecurityHeadersConfig {
             enable_hsts: true,
-            hsts_max_age: 31536000,
+            hsts_max_age: 31_536_000,
             hsts_include_subdomains: true,
             enable_x_content_type_options: true,
             enable_x_frame_options: true,
@@ -210,7 +211,7 @@ pub mod presets {
     pub fn published_site() -> SecurityHeadersConfig {
         SecurityHeadersConfig {
             enable_hsts: true,
-            hsts_max_age: 31536000,
+            hsts_max_age: 31_536_000,
             hsts_include_subdomains: true,
             enable_x_content_type_options: true,
             enable_x_frame_options: false, // Allow framing for embedded docs
@@ -231,7 +232,7 @@ pub mod presets {
     }
 
     /// Minimal security headers for development
-    pub fn development() -> SecurityHeadersConfig {
+    pub const fn development() -> SecurityHeadersConfig {
         SecurityHeadersConfig {
             enable_hsts: false, // Don't enforce HSTS in dev
             hsts_max_age: 0,
@@ -274,7 +275,8 @@ impl SecurityHeadersMiddleware {
 
         // HSTS
         if self.config.enable_hsts {
-            let mut hsts_value = format!("max-age={}", self.config.hsts_max_age);
+            let max_age = self.config.hsts_max_age;
+            let mut hsts_value = format!("max-age={max_age}");
             if self.config.hsts_include_subdomains {
                 hsts_value.push_str("; includeSubDomains");
             }
@@ -298,7 +300,7 @@ impl SecurityHeadersMiddleware {
             let value = match &self.config.x_frame_options {
                 XFrameOptions::Deny => "DENY",
                 XFrameOptions::SameOrigin => "SAMEORIGIN",
-                XFrameOptions::AllowFrom(uri) => &format!("ALLOW-FROM {}", uri),
+                XFrameOptions::AllowFrom(uri) => &format!("ALLOW-FROM {uri}"),
             };
             if let Ok(header_value) = HeaderValue::from_str(value) {
                 response
@@ -342,6 +344,7 @@ impl SecurityHeadersMiddleware {
 pub type SecurityHeadersLayer = SecurityHeadersMiddleware;
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::wildcard_imports)]
 mod tests {
     use super::*;
 

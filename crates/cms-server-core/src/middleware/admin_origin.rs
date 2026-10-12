@@ -15,7 +15,7 @@
 //! For single-machine AWS Windows deployment, this provides basic CSRF protection.
 //! For enhanced security in production, consider:
 //! - Adding CSRF tokens to admin forms
-//! - Using SameSite cookies
+//! - Using `SameSite` cookies
 //! - Implementing double-submit cookie pattern
 
 use std::{collections::HashSet, sync::Arc};
@@ -64,8 +64,7 @@ impl AdminOriginConfig {
             // Must start with http:// or https://
             if !origin.starts_with("http://") && !origin.starts_with("https://") {
                 return Err(format!(
-                    "Invalid origin format: {}. Must start with http:// or https://",
-                    origin
+                    "Invalid origin format: {origin}. Must start with http:// or https://"
                 ));
             }
 
@@ -76,8 +75,7 @@ impl AdminOriginConfig {
                 || without_scheme.contains('#')
             {
                 return Err(format!(
-                    "Invalid origin: {}. Must not contain path, query, or fragment",
-                    origin
+                    "Invalid origin: {origin}. Must not contain path, query, or fragment"
                 ));
             }
         }
@@ -86,8 +84,8 @@ impl AdminOriginConfig {
     }
 
     /// Add an allowed origin (automatically normalized)
-    pub fn add_origin(&mut self, origin: String) -> Result<(), String> {
-        let normalized = normalize_origin(&origin)?;
+    pub fn add_origin(&mut self, origin: &str) -> Result<(), String> {
+        let normalized = normalize_origin(origin)?;
         self.allowed_origins.insert(normalized);
         Ok(())
     }
@@ -103,9 +101,8 @@ impl AdminOriginConfig {
             return true;
         }
 
-        let normalized_origin = match normalize_origin(origin) {
-            Ok(o) => o,
-            Err(_) => return false,
+        let Ok(normalized_origin) = normalize_origin(origin) else {
+            return false;
         };
 
         // Allow localhost for development
@@ -137,27 +134,21 @@ pub fn normalize_origin(origin: &str) -> Result<String, String> {
     let origin_trimmed = origin_lower.trim_end_matches('/');
 
     // Parse scheme and host
-    let (scheme, host_port) = match origin_trimmed.split_once("://") {
-        Some((scheme, host_port)) => (scheme, host_port),
-        None => {
-            return Err(format!(
-                "Invalid origin: missing scheme: {}",
-                origin_trimmed
-            ))
-        }
+    let Some((scheme, host_port)) = origin_trimmed.split_once("://") else {
+        return Err(format!("Invalid origin: missing scheme: {origin_trimmed}"));
     };
 
     // Remove default ports
     let host = if let Some((host, port)) = host_port.split_once(':') {
         match (scheme, port) {
             ("http", "80") | ("https", "443") => host.to_string(),
-            _ => format!("{}:{}", host, port),
+            _ => format!("{host}:{port}"),
         }
     } else {
         host_port.to_string()
     };
 
-    Ok(format!("{}://{}", scheme, host))
+    Ok(format!("{scheme}://{host}"))
 }
 
 /// Check if an origin is localhost
@@ -208,11 +199,11 @@ pub struct AdminOriginExtractor {
 }
 
 impl AdminOriginExtractor {
-    pub fn new(config: Arc<AdminOriginConfig>) -> Self {
+    pub const fn new(config: Arc<AdminOriginConfig>) -> Self {
         Self { config }
     }
 
-    pub fn config(&self) -> &Arc<AdminOriginConfig> {
+    pub const fn config(&self) -> &Arc<AdminOriginConfig> {
         &self.config
     }
 }
@@ -251,7 +242,7 @@ impl From<cms_config::AdminOriginConfig> for AdminOriginConfig {
 /// - Origin is normalized before validation
 /// - Machine clients (Bearer / API-key without cookies) are preserved
 /// - Safe methods (GET, HEAD, OPTIONS) do not trigger CSRF rejection
-pub async fn validate_admin_origin(
+pub fn validate_admin_origin(
     parts: &mut Parts,
     config: &AdminOriginConfig,
 ) -> Result<AdminOriginValidation, StatusCode> {
@@ -272,7 +263,7 @@ pub async fn validate_admin_origin(
         .headers
         .get(header::ORIGIN)
         .and_then(|h| h.to_str().ok())
-        .map(|s| s.to_string());
+        .map(ToString::to_string);
 
     let final_origin = origin.as_ref().and_then(|o| {
         // Try to normalize the origin
@@ -336,13 +327,13 @@ impl AdminOriginLayer {
         })
     }
 
-    pub fn with_arc(config: Arc<AdminOriginConfig>) -> Self {
+    pub const fn with_arc(config: Arc<AdminOriginConfig>) -> Self {
         Self { config }
     }
 
     /// Get the configuration
     pub fn config(&self) -> Arc<AdminOriginConfig> {
-        self.config.clone()
+        Arc::clone(&self.config)
     }
 }
 
@@ -352,7 +343,7 @@ impl<S> tower::Layer<S> for AdminOriginLayer {
     fn layer(&self, inner: S) -> Self::Service {
         AdminOriginService {
             inner,
-            config: self.config.clone(),
+            config: Arc::clone(&self.config),
         }
     }
 }
@@ -388,11 +379,11 @@ where
 
     fn call(&mut self, req: axum::http::Request<ReqBody>) -> Self::Future {
         let mut inner = self.inner.clone();
-        let config = self.config.clone();
+        let config = Arc::clone(&self.config);
 
         Box::pin(async move {
             let (mut parts, body) = req.into_parts();
-            match validate_admin_origin(&mut parts, &config).await {
+            match validate_admin_origin(&mut parts, &config) {
                 Ok(_) => {
                     let req = axum::http::Request::from_parts(parts, body);
                     inner.call(req).await
@@ -428,6 +419,7 @@ where
 {
     type Rejection = (StatusCode, &'static str);
 
+    #[allow(clippy::unused_async_trait_impl)]
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let config = parts
             .extensions
@@ -436,7 +428,6 @@ where
             .unwrap_or_else(|| Arc::new(AdminOriginConfig::default()));
 
         validate_admin_origin(parts, &config)
-            .await
             .map_err(|status| (status, "Admin origin validation failed"))
     }
 }
@@ -453,6 +444,13 @@ pub fn extract_origin_from_request(parts: &Parts) -> Option<String> {
 }
 
 #[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::wildcard_imports,
+    clippy::ignored_unit_patterns,
+    clippy::similar_names
+)]
 mod tests {
     use super::*;
 
@@ -583,8 +581,8 @@ mod tests {
         assert!(config.is_origin_allowed("https://any-origin.com"));
     }
 
-    #[tokio::test]
-    async fn test_validate_admin_origin_safe_methods() {
+    #[test]
+    fn test_validate_admin_origin_safe_methods() {
         let config = AdminOriginConfig {
             allowed_origins: HashSet::new(),
             enforce: true,
@@ -597,11 +595,11 @@ mod tests {
             .body(())
             .unwrap();
         let (mut parts, _) = req.into_parts();
-        assert!(validate_admin_origin(&mut parts, &config).await.is_ok());
+        assert!(validate_admin_origin(&mut parts, &config).is_ok());
     }
 
-    #[tokio::test]
-    async fn test_validate_admin_origin_allowed_mutation() {
+    #[test]
+    fn test_validate_admin_origin_allowed_mutation() {
         let mut origins = HashSet::new();
         origins.insert("https://admin.cms.com".to_string());
         let config = AdminOriginConfig {
@@ -617,13 +615,13 @@ mod tests {
             .body(())
             .unwrap();
         let (mut parts, _) = req.into_parts();
-        let res = validate_admin_origin(&mut parts, &config).await;
+        let res = validate_admin_origin(&mut parts, &config);
         assert!(res.is_ok());
         assert!(res.unwrap().is_allowed);
     }
 
-    #[tokio::test]
-    async fn test_validate_admin_origin_rejected_evil_origin() {
+    #[test]
+    fn test_validate_admin_origin_rejected_evil_origin() {
         let mut origins = HashSet::new();
         origins.insert("https://admin.cms.com".to_string());
         let config = AdminOriginConfig {
@@ -639,12 +637,12 @@ mod tests {
             .body(())
             .unwrap();
         let (mut parts, _) = req.into_parts();
-        let res = validate_admin_origin(&mut parts, &config).await;
+        let res = validate_admin_origin(&mut parts, &config);
         assert_eq!(res, Err(StatusCode::FORBIDDEN));
     }
 
-    #[tokio::test]
-    async fn test_validate_admin_origin_bearer_preserved() {
+    #[test]
+    fn test_validate_admin_origin_bearer_preserved() {
         let config = AdminOriginConfig {
             allowed_origins: HashSet::new(),
             enforce: true,
@@ -658,12 +656,12 @@ mod tests {
             .body(())
             .unwrap();
         let (mut parts, _) = req.into_parts();
-        let res = validate_admin_origin(&mut parts, &config).await;
+        let res = validate_admin_origin(&mut parts, &config);
         assert!(res.is_ok());
     }
 
-    #[tokio::test]
-    async fn test_validate_admin_origin_cookie_production_rejected_without_origin() {
+    #[test]
+    fn test_validate_admin_origin_cookie_production_rejected_without_origin() {
         let config = AdminOriginConfig {
             allowed_origins: HashSet::new(),
             enforce: true,
@@ -677,12 +675,12 @@ mod tests {
             .body(())
             .unwrap();
         let (mut parts, _) = req.into_parts();
-        let res = validate_admin_origin(&mut parts, &config).await;
+        let res = validate_admin_origin(&mut parts, &config);
         assert_eq!(res, Err(StatusCode::FORBIDDEN));
     }
 
-    #[tokio::test]
-    async fn test_validate_admin_origin_cookie_dev_allowed_without_origin() {
+    #[test]
+    fn test_validate_admin_origin_cookie_dev_allowed_without_origin() {
         let config = AdminOriginConfig {
             allowed_origins: HashSet::new(),
             enforce: true,
@@ -696,7 +694,7 @@ mod tests {
             .body(())
             .unwrap();
         let (mut parts, _) = req.into_parts();
-        let res = validate_admin_origin(&mut parts, &config).await;
+        let res = validate_admin_origin(&mut parts, &config);
         assert!(res.is_ok());
     }
 
