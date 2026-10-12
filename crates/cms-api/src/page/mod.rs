@@ -1,26 +1,14 @@
 //! Page API module
 //!
-//! This module contains handlers for page routes.
+//! Delegates to cms-content page router.
 
 use std::sync::Arc;
-
-use axum::{
-    routing::{delete, get, post, put},
-    Router,
-};
+use axum::Router;
 use cms_middleware::app_state::AppState;
 
 pub mod handlers;
 
-use handlers::*;
-
 /// Create the page router
 pub fn router(state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/", get(list_pages_handler))
-        .route("/", post(create_page_handler))
-        .route("/{id}", get(get_page_handler))
-        .route("/{id}", put(update_page_handler))
-        .route("/{id}", delete(delete_page_handler))
-        .with_state(state)
+    cms_content::page_router(state)
 }

@@ -26,6 +26,7 @@ cms-notifications = { path = "../cms-notifications" }
 cms-invitations = { path = "../cms-invitations" }
 cms-onboarding = { path = "../cms-onboarding" }
 cms-reports = { path = "../cms-reports" }
+cms-content = { path = "../cms-content" }
 cms-server-services = { path = "../cms-server-services" }
 
 # External dependencies
