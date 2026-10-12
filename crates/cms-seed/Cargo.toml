@@ -1,0 +1,30 @@
+[package]
+name = "cms-seed"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+
+[[bin]]
+name = "cms_seed"
+path = "src/bin/cms_seed.rs"
+
+[dependencies]
+cms-db = { workspace = true }
+cms-entity = { workspace = true }
+cms-error = { workspace = true }
+
+argon2 = { workspace = true }
+anyhow = { workspace = true }
+sqlx = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+getrandom = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util", "macros"] }
