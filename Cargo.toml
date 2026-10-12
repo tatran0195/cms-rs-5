@@ -41,6 +41,7 @@ cms-middleware = { path = "crates/cms-middleware" }
 cms-notifications = { path = "crates/cms-notifications" }
 cms-outbox = { path = "crates/cms-outbox" }
 cms-seed = { path = "crates/cms-seed" }
+cms-scheduler = { path = "crates/cms-scheduler" }
 cms-sites = { path = "crates/cms-sites" }
 
 # Async runtime

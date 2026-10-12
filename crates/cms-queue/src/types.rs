@@ -56,6 +56,8 @@ pub struct JobEnvelope {
     pub completed_at: Option<DateTime<Utc>>,
     pub error_message: Option<String>,
     pub retry_count: u32,
+    #[serde(default)]
+    pub scheduled_at: Option<DateTime<Utc>>,
 }
 
 impl JobEnvelope {
@@ -70,6 +72,12 @@ impl JobEnvelope {
             completed_at: None,
             error_message: None,
             retry_count: 0,
+            scheduled_at: None,
         }
+    }
+
+    pub fn with_scheduled_at(mut self, scheduled_at: DateTime<Utc>) -> Self {
+        self.scheduled_at = Some(scheduled_at);
+        self
     }
 }

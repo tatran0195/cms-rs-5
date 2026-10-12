@@ -1,0 +1,21 @@
+[package]
+name = "cms-scheduler"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+chrono = { workspace = true }
+cron = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+cms-db = { path = "../cms-db" }
+cms-queue = { path = "../cms-queue" }
+cms-error = { path = "../cms-error" }
+
+[lints]
+workspace = true

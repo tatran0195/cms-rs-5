@@ -14,6 +14,24 @@ pub trait JobQueue: Send + Sync {
     /// Enqueue a job with a delay
     async fn enqueue_delayed(&self, job: JobEnvelope, delay: Duration) -> Result<JobId, AppError>;
 
+    /// Enqueue a job to be executed at a specific timestamp
+    async fn enqueue_at(
+        &self,
+        mut job: JobEnvelope,
+        scheduled_at: chrono::DateTime<chrono::Utc>,
+    ) -> Result<JobId, AppError> {
+        job.scheduled_at = Some(scheduled_at);
+        let now = chrono::Utc::now();
+        if scheduled_at <= now {
+            self.enqueue(job).await
+        } else {
+            let duration = (scheduled_at - now)
+                .to_std()
+                .unwrap_or(Duration::from_secs(0));
+            self.enqueue_delayed(job, duration).await
+        }
+    }
+
     /// Enqueue a repeatable job (cron-like)
     async fn enqueue_repeatable(
         &self,

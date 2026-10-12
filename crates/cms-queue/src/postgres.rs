@@ -25,6 +25,8 @@ struct JobRow {
     created_at: DateTime<Utc>,
     started_at: Option<DateTime<Utc>>,
     completed_at: Option<DateTime<Utc>>,
+    #[sqlx(default)]
+    scheduled_at: Option<DateTime<Utc>>,
 }
 
 impl TryFrom<JobRow> for JobEnvelope {
@@ -43,6 +45,7 @@ impl TryFrom<JobRow> for JobEnvelope {
             completed_at: row.completed_at,
             error_message: row.error_message,
             retry_count: row.retry_count.max(0) as u32,
+            scheduled_at: row.scheduled_at,
         })
     }
 }
@@ -112,14 +115,15 @@ impl PostgresJobQueue {
         sqlx::query(
             r#"INSERT INTO "CmsJob" (id, job_type, payload, status, retry_count,
                                       error_message, created_at, started_at, completed_at,
-                                      available_at)
-               VALUES ($1, $2, $3, 'pending', 0, NULL, $4, NULL, NULL, $5)"#,
+                                      available_at, scheduled_at)
+               VALUES ($1, $2, $3, 'pending', 0, NULL, $4, NULL, NULL, $5, $6)"#,
         )
         .bind(&id)
         .bind(job_type)
         .bind(job.payload)
         .bind(job.created_at)
         .bind(Utc::now())
+        .bind(job.scheduled_at)
         .execute(&mut **tx)
         .await
         .map_err(AppError::Database)?;
@@ -154,14 +158,15 @@ impl PostgresJobQueue {
         sqlx::query(
             r#"INSERT INTO "CmsJob" (id, job_type, payload, status, retry_count,
                                       error_message, created_at, started_at, completed_at,
-                                      available_at)
-               VALUES ($1, $2, $3, 'pending', 0, NULL, $4, NULL, NULL, $5)"#,
+                                      available_at, scheduled_at)
+               VALUES ($1, $2, $3, 'pending', 0, NULL, $4, NULL, NULL, $5, $6)"#,
         )
         .bind(&id)
         .bind(job_type)
         .bind(job.payload)
         .bind(job.created_at)
         .bind(available_at)
+        .bind(job.scheduled_at)
         .execute(&self.pool)
         .await
         .map_err(AppError::Database)?;
@@ -171,7 +176,7 @@ impl PostgresJobQueue {
     async fn load_one(&self, id: &str) -> Result<Option<JobEnvelope>, AppError> {
         let row = sqlx::query_as::<_, JobRow>(
             r#"SELECT id, job_type, payload, status, retry_count, error_message,
-                      created_at, started_at, completed_at
+                      created_at, started_at, completed_at, scheduled_at
                FROM "CmsJob" WHERE id = $1"#,
         )
         .bind(id)
@@ -212,9 +217,11 @@ impl JobQueue for PostgresJobQueue {
             let mut tx = self.pool.begin().await.map_err(AppError::Database)?;
             let row = sqlx::query_as::<_, JobRow>(
                 r#"SELECT id, job_type, payload, status, retry_count, error_message,
-                          created_at, started_at, completed_at
+                          created_at, started_at, completed_at, scheduled_at
                    FROM "CmsJob"
-                   WHERE status IN ('pending', 'retrying') AND available_at <= NOW()
+                   WHERE status IN ('pending', 'retrying')
+                     AND available_at <= NOW()
+                     AND (scheduled_at IS NULL OR scheduled_at <= NOW())
                    ORDER BY available_at, created_at
                    LIMIT 1
                    FOR UPDATE SKIP LOCKED"#,
@@ -324,7 +331,7 @@ impl JobQueue for PostgresJobQueue {
     ) -> Result<Vec<JobEnvelope>, AppError> {
         let mut query = QueryBuilder::<Postgres>::new(
             r#"SELECT id, job_type, payload, status, retry_count, error_message,
-                      created_at, started_at, completed_at FROM "CmsJob" WHERE TRUE"#,
+                      created_at, started_at, completed_at, scheduled_at FROM "CmsJob" WHERE TRUE"#,
         );
         if let Some(status) = status {
             query
