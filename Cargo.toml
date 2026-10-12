@@ -49,6 +49,7 @@ cms-invitations = { path = "crates/cms-invitations" }
 cms-onboarding = { path = "crates/cms-onboarding" }
 cms-reports = { path = "crates/cms-reports" }
 cms-content = { path = "crates/cms-content" }
+cms-assets = { path = "crates/cms-assets" }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }

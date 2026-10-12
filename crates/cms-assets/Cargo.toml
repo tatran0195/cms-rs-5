@@ -1,0 +1,32 @@
+[package]
+name = "cms-assets"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Asset management vertical slice (upload, storage, metadata, presigned URLs)"
+
+[dependencies]
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-server-services = { path = "../cms-server-services" }
+cms-storage = { path = "../cms-storage" }
+cms-auth = { path = "../cms-auth" }
+
+axum = { workspace = true, features = ["multipart"] }
+bytes = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+
+[lints]
+workspace = true
