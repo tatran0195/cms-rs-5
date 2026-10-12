@@ -1,0 +1,30 @@
+[package]
+name = "cms-notifications"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+
+[dependencies]
+cms-db = { workspace = true }
+cms-entity = { workspace = true }
+cms-error = { workspace = true }
+cms-middleware = { workspace = true }
+cms-auth = { workspace = true }
+cms-authz = { workspace = true }
+
+axum = { workspace = true }
+axum-extra = { workspace = true }
+tokio = { workspace = true }
+futures = "0.3"
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+utoipa = { workspace = true }
+parking_lot = { workspace = true }
+serde_urlencoded = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util", "macros"] }

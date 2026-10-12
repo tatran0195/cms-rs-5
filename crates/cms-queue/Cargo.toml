@@ -1,0 +1,24 @@
+[package]
+name = "cms-queue"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+cms-error = { path = "../cms-error" }
+cms-config = { path = "../cms-config" }
+cms-db = { path = "../cms-db" }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+
+[features]
+default = ["memory"]
+memory = []
+
+[lints]
+workspace = true

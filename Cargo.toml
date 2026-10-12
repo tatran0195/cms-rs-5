@@ -38,6 +38,7 @@ cms-mailer = { path = "crates/cms-mailer" }
 cms-mcp = { path = "crates/cms-mcp" }
 cms-analytics = { path = "crates/cms-analytics" }
 cms-middleware = { path = "crates/cms-middleware" }
+cms-notifications = { path = "crates/cms-notifications" }
 cms-sites = { path = "crates/cms-sites" }
 
 # Async runtime
