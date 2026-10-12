@@ -1,22 +1,14 @@
-//! Workspace invitations API router
+//! Workspace invitations API module
+//!
+//! This module delegates to the dedicated `cms-invitations` vertical slice crate.
 
 use std::sync::Arc;
-use axum::{
-    routing::{delete, get, post},
-    Router,
-};
+use axum::Router;
 use cms_middleware::app_state::AppState;
 
 pub mod handlers;
-use handlers::*;
 
-/// Create router for workspace invitations
+/// Create router for workspace invitations by delegating to cms-invitations vertical slice.
 pub fn router(state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/", get(list_invitations_handler))
-        .route("/", post(create_invitation_handler))
-        .route("/{id}", delete(revoke_invitation_handler))
-        .route("/details", get(get_invitation_details_handler))
-        .route("/accept", post(accept_invitation_handler))
-        .with_state(state)
+    cms_invitations::router(state)
 }

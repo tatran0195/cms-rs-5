@@ -23,6 +23,10 @@ cms-search = { path = "../cms-search" }
 cms-queue = { path = "../cms-queue" }
 cms-mcp = { path = "../cms-mcp" }
 cms-notifications = { path = "../cms-notifications" }
+cms-invitations = { path = "../cms-invitations" }
+cms-onboarding = { path = "../cms-onboarding" }
+cms-reports = { path = "../cms-reports" }
+cms-server-services = { path = "../cms-server-services" }
 
 # External dependencies
 axum = { workspace = true, features = ["json", "multipart"] }

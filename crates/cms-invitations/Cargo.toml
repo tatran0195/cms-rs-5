@@ -1,0 +1,36 @@
+[package]
+name = "cms-invitations"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Workspace Invitations vertical slice for CMS"
+
+[dependencies]
+# Internal crates
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-server-services = { path = "../cms-server-services" }
+cms-outbox = { path = "../cms-outbox" }
+cms-auth = { path = "../cms-auth" }
+
+# External dependencies
+axum = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+getrandom = { version = "0.2" }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+
+[lints]
+workspace = true

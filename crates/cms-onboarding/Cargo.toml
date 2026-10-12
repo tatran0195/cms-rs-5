@@ -1,0 +1,35 @@
+[package]
+name = "cms-onboarding"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Onboarding and email verification vertical slice for CMS"
+
+[dependencies]
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-server-services = { path = "../cms-server-services" }
+cms-outbox = { path = "../cms-outbox" }
+cms-auth = { path = "../cms-auth" }
+
+axum = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+getrandom = { version = "0.2" }
+argon2 = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+
+[lints]
+workspace = true
