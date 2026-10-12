@@ -40,6 +40,9 @@ regex = { workspace = true }
 metrics = { workspace = true }
 metrics-exporter-prometheus = { workspace = true }
 url = { workspace = true }
+governor = { workspace = true }
+parking_lot = { workspace = true }
+async-trait = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
