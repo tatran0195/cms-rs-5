@@ -16,6 +16,8 @@ use handlers::*;
 
 /// Create the export router
 pub fn router(state: Arc<AppState>) -> Router {
+    let reports_subrouter = cms_reports::router(state.clone());
+
     Router::new()
         .route("/jobs", get(list_export_jobs_handler))
         .route("/jobs", post(create_export_job_handler))
@@ -32,18 +34,11 @@ pub fn router(state: Arc<AppState>) -> Router {
         )
         .route("/schedules/{id}", put(update_export_schedule_handler))
         .route("/schedules/{id}", delete(delete_export_schedule_handler))
-        // Report run routes
-        .route("/reports", get(list_report_runs_handler))
-        .route("/reports", post(create_report_run_handler))
-        .route("/reports/{id}", get(get_report_run_handler))
         .with_state(state)
+        .nest("/reports", reports_subrouter)
 }
 
 /// Create the standalone reports router (for mounting at /reports)
 pub fn reports_router(state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/", get(list_report_runs_handler))
-        .route("/", post(create_report_run_handler))
-        .route("/{id}", get(get_report_run_handler))
-        .with_state(state)
+    cms_reports::router(state)
 }
