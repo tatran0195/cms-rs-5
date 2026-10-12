@@ -8,7 +8,7 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use cms_biz::deployment::DeploymentService;
+use cms_deployments::DeploymentService;
 use cms_entity::{
     common::{Id, PaginatedResponse},
     deployment::{CreateDeploymentRequest, DeploymentResponse, ListDeploymentsQuery},
@@ -52,7 +52,7 @@ pub async fn list_deployments_handler(
     let offset = query.offset.unwrap_or(0) as u64;
     let page = offset.checked_div(limit).unwrap_or(0).saturating_add(1);
     let result = DeploymentService::list_deployments(
-        &state.biz_context,
+        state.db(),
         &auth.user.id,
         project_id,
         page,
@@ -151,7 +151,7 @@ pub async fn get_deployment_handler(
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let deployment =
-        DeploymentService::get_deployment(&state.biz_context, &auth.user.id, &deployment_id)
+        DeploymentService::get_deployment(state.db(), &auth.user.id, &deployment_id)
             .await?;
 
     Ok(Json(deployment))
@@ -184,7 +184,7 @@ pub async fn get_deployment_logs_handler(
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let logs =
-        DeploymentService::get_deployment_logs(&state.biz_context, &auth.user.id, &deployment_id)
+        DeploymentService::get_deployment_logs(state.db(), &auth.user.id, &deployment_id)
             .await?;
 
     Ok(Json(serde_json::json!({"logs": logs})))
@@ -218,7 +218,7 @@ pub async fn retry_deployment_handler(
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let deployment =
-        DeploymentService::retry_deployment(&state.biz_context, &auth.user.id, &deployment_id)
+        DeploymentService::retry_deployment(state.db(), &auth.user.id, &deployment_id)
             .await?;
 
     Ok(Json(deployment))
@@ -253,7 +253,7 @@ pub async fn cancel_deployment_handler(
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let deployment =
-        DeploymentService::cancel_deployment(&state.biz_context, &auth.user.id, &deployment_id)
+        DeploymentService::cancel_deployment(state.db(), &auth.user.id, &deployment_id)
             .await?;
 
     Ok(Json(deployment))

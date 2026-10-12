@@ -1,6 +1,6 @@
-//! Deployment Business Logic
+//! Deployment Business Logic and Services
 //!
-//! This module contains business logic for deployments and custom domains.
+//! This module contains domain logic for deployments and custom domains.
 
 use std::sync::Arc;
 
@@ -9,6 +9,7 @@ use cms_db::{
     deployment::{DeploymentQueries, DomainQueries},
     page::PageQueries,
     project::ProjectQueries,
+    PgPool,
 };
 use cms_entity::{
     common::PaginatedResponse,
@@ -17,29 +18,29 @@ use cms_entity::{
     },
     domain::{CreateDomainRequest, DomainResponse, UpdateDomainRequest},
 };
+use cms_error::AppError;
 use cms_storage::Storage;
 
-use crate::{AppError, BizContext};
-
-/// Deployment service
+/// Deployment service providing core orchestration for project deployments.
+#[derive(Debug)]
 pub struct DeploymentService;
 
 impl DeploymentService {
-    /// Create a new deployment
+    /// Create a new deployment record.
     pub async fn create_deployment(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         project_id: &str,
         request: CreateDeploymentRequest,
     ) -> Result<DeploymentResponse, AppError> {
         // Verify project exists
-        let _project = ProjectQueries::get_by_id(&ctx.pool, project_id)
+        let _project = ProjectQueries::get_by_id(pool, project_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
         // Verify branch exists
         let branch_id = request.branch_id.as_deref().unwrap_or("");
-        let branch = BranchQueries::get_by_id(&ctx.pool, branch_id)
+        let branch = BranchQueries::get_by_id(pool, branch_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Branch not found".to_string()))?;
         if branch.project_id != project_id {
@@ -49,37 +50,103 @@ impl DeploymentService {
         }
 
         let deployment =
-            DeploymentQueries::create(&ctx.pool, project_id, branch_id, DeploymentStatus::Pending)
+            DeploymentQueries::create(pool, project_id, branch_id, DeploymentStatus::Pending)
                 .await?;
-
-        // Queue the deployment job for processing
-        // This would enqueue a job to the worker
 
         Ok(deployment.into())
     }
 
-    /// Get a deployment
+    /// Create a publish record and durably enqueue its render job.
+    pub async fn create_publish_deployment(
+        pool: &PgPool,
+        job_queue: &dyn cms_queue::JobQueue,
+        queue_backend: &str,
+        project_id: &str,
+        branch_id: &str,
+        user_id: &str,
+        commit_message: &str,
+        extra_payload: serde_json::Value,
+    ) -> Result<cms_entity::deployment::Deployment, AppError> {
+        if ProjectQueries::is_taken_down(pool, project_id)
+            .await?
+            .unwrap_or(false)
+        {
+            return Err(AppError::Forbidden);
+        }
+        if queue_backend.eq_ignore_ascii_case("postgres") {
+            return DeploymentQueries::create_pending_with_publish_job(
+                pool,
+                project_id,
+                branch_id,
+                commit_message,
+                extra_payload,
+                Some(user_id),
+            )
+            .await;
+        }
+
+        let deployment = DeploymentQueries::create(
+            pool,
+            project_id,
+            branch_id,
+            DeploymentStatus::Pending,
+        )
+        .await?;
+        DeploymentQueries::update_build_logs(
+            pool,
+            &deployment.id,
+            commit_message,
+        )
+        .await?;
+        let mut payload = extra_payload.as_object().cloned().ok_or_else(|| {
+            AppError::InvalidInput("Publish job payload must be a JSON object".to_string())
+        })?;
+        payload.insert(
+            "deployment_id".to_string(),
+            serde_json::Value::String(deployment.id.clone()),
+        );
+        payload.insert(
+            "actor_user_id".to_string(),
+            serde_json::Value::String(user_id.to_string()),
+        );
+        let job = cms_queue::JobEnvelope::new(
+            cms_queue::JobType::Publish,
+            serde_json::Value::Object(payload),
+        );
+        if let Err(error) = job_queue.enqueue(job).await {
+            let _ = DeploymentQueries::update_error(
+                pool,
+                &deployment.id,
+                &format!("Could not enqueue publish: {error}"),
+            )
+            .await;
+            return Err(error);
+        }
+        Ok(deployment)
+    }
+
+    /// Get a deployment by ID.
     pub async fn get_deployment(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         deployment_id: &str,
     ) -> Result<DeploymentResponse, AppError> {
-        let deployment = DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+        let deployment = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         Ok(deployment.into())
     }
 
-    /// List deployments for a project
+    /// List deployments for a project.
     pub async fn list_deployments(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         project_id: &str,
         page: u64,
         page_size: u64,
     ) -> Result<PaginatedResponse<DeploymentResponse>, AppError> {
-        let _project = ProjectQueries::get_by_id(&ctx.pool, project_id)
+        let _project = ProjectQueries::get_by_id(pool, project_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
@@ -87,96 +154,96 @@ impl DeploymentService {
         let offset = page.saturating_sub(1) * limit;
 
         let deployments = DeploymentQueries::get_by_project(
-            &ctx.pool,
+            pool,
             project_id,
             Some(limit as i64),
             Some(offset as i64),
         )
         .await?;
 
-        let total = DeploymentQueries::count_by_project(&ctx.pool, project_id).await?;
+        let total = DeploymentQueries::count_by_project(pool, project_id).await?;
 
         Ok(PaginatedResponse::new(
-            deployments.into_iter().map(|d| d.into()).collect(),
+            deployments.into_iter().map(Into::into).collect(),
             total as u64,
             page,
             page_size,
         ))
     }
 
-    /// Update a deployment
+    /// Update a deployment.
     pub async fn update_deployment(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         deployment_id: &str,
         request: UpdateDeploymentRequest,
     ) -> Result<DeploymentResponse, AppError> {
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         // If branch is changing, verify it exists
         if let Some(ref branch_id) = request.branch_id {
-            let _branch = BranchQueries::get_by_id(&ctx.pool, branch_id)
+            let _branch = BranchQueries::get_by_id(pool, branch_id)
                 .await?
                 .ok_or_else(|| AppError::NotFound("Branch not found".to_string()))?;
         }
 
         let updated =
-            DeploymentQueries::update(&ctx.pool, deployment_id, request.branch_id.as_deref())
+            DeploymentQueries::update(pool, deployment_id, request.branch_id.as_deref())
                 .await?;
 
         Ok(updated.into())
     }
 
-    /// Delete a deployment
+    /// Delete a deployment.
     pub async fn delete_deployment(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         deployment_id: &str,
     ) -> Result<bool, AppError> {
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        DeploymentQueries::delete(&ctx.pool, deployment_id).await
+        DeploymentQueries::delete(pool, deployment_id).await
     }
 
-    /// Get deployment logs
+    /// Get deployment logs.
     pub async fn get_deployment_logs(
-        ctx: &BizContext,
+        pool: &PgPool,
         user_id: &str,
         deployment_id: &str,
     ) -> Result<serde_json::Value, AppError> {
-        let _ = Self::get_deployment(ctx, user_id, deployment_id).await?;
+        let _ = Self::get_deployment(pool, user_id, deployment_id).await?;
         Ok(serde_json::json!({ "logs": "Deployment completed successfully" }))
     }
 
-    /// Retry a deployment
+    /// Retry a deployment.
     pub async fn retry_deployment(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         deployment_id: &str,
     ) -> Result<DeploymentResponse, AppError> {
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         // Reset deployment to pending so it can be re-processed
         let updated =
-            DeploymentQueries::update_status(&ctx.pool, deployment_id, DeploymentStatus::Pending)
+            DeploymentQueries::update_status(pool, deployment_id, DeploymentStatus::Pending)
                 .await?;
 
         Ok(updated.into())
     }
 
-    /// Cancel a deployment
+    /// Cancel a deployment.
     pub async fn cancel_deployment(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         deployment_id: &str,
     ) -> Result<DeploymentResponse, AppError> {
-        let deployment = DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+        let deployment = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
@@ -194,34 +261,31 @@ impl DeploymentService {
         }
 
         let updated =
-            DeploymentQueries::update_status(&ctx.pool, deployment_id, DeploymentStatus::Failed)
+            DeploymentQueries::update_status(pool, deployment_id, DeploymentStatus::Failed)
                 .await?;
 
         Ok(updated.into())
     }
 
-    /// Create a custom domain
+    /// Create a custom domain for a deployment.
     pub async fn create_domain(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         deployment_id: &str,
         request: CreateDomainRequest,
     ) -> Result<DomainResponse, AppError> {
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        // Normalize before lookup so case, IDNA and trailing-dot variants cannot
-        // bypass availability checks; the unique database constraint remains the
-        // final authority in case concurrent creates race.
         let hostname = cms_db::domain::normalize_hostname(&request.hostname)?;
-        let existing = DomainQueries::get_by_hostname(&ctx.pool, &hostname).await?;
+        let existing = DomainQueries::get_by_hostname(pool, &hostname).await?;
         if existing.is_some() {
             return Err(AppError::Conflict("Domain is already in use".to_string()));
         }
 
         let domain = cms_db::domain::DomainQueries::create(
-            &ctx.pool,
+            pool,
             deployment_id,
             &hostname,
             request.is_primary,
@@ -231,57 +295,57 @@ impl DeploymentService {
         Ok(domain.into())
     }
 
-    /// Get a domain
+    /// Get a domain by ID.
     pub async fn get_domain(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         domain_id: &str,
     ) -> Result<DomainResponse, AppError> {
-        let domain = DomainQueries::get_by_id(&ctx.pool, domain_id)
+        let domain = DomainQueries::get_by_id(pool, domain_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
 
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, &domain.deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, &domain.deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         Ok(domain.into())
     }
 
-    /// List domains for a deployment
+    /// List domains for a deployment.
     pub async fn list_domains(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         deployment_id: &str,
     ) -> Result<Vec<DomainResponse>, AppError> {
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        let domains = DomainQueries::get_by_deployment(&ctx.pool, deployment_id).await?;
+        let domains = DomainQueries::get_by_deployment(pool, deployment_id).await?;
 
-        Ok(domains.into_iter().map(|d| d.into()).collect())
+        Ok(domains.into_iter().map(Into::into).collect())
     }
 
-    /// Update a domain
+    /// Update a domain.
     pub async fn update_domain(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         domain_id: &str,
         request: UpdateDomainRequest,
     ) -> Result<DomainResponse, AppError> {
-        let domain = DomainQueries::get_by_id(&ctx.pool, domain_id)
+        let domain = DomainQueries::get_by_id(pool, domain_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
 
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, &domain.deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, &domain.deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         // Cannot make a non-primary domain primary if another domain is already primary
         if request.is_primary == Some(true) && !domain.is_primary {
             let existing_primary =
-                DomainQueries::get_primary_by_deployment(&ctx.pool, &domain.deployment_id).await?;
+                DomainQueries::get_primary_by_deployment(pool, &domain.deployment_id).await?;
 
             if existing_primary.is_some() {
                 return Err(AppError::Conflict(
@@ -290,10 +354,8 @@ impl DeploymentService {
             }
         }
 
-        // Use the hostname-aware domain query so changing the hostname rotates
-        // its challenge and clears verification/TLS state in the same SQL UPDATE.
         let updated = cms_db::domain::DomainQueries::update(
-            &ctx.pool,
+            pool,
             domain_id,
             request.hostname.as_deref(),
             request.is_primary,
@@ -305,17 +367,17 @@ impl DeploymentService {
         Ok(updated.into())
     }
 
-    /// Delete a domain
+    /// Delete a domain.
     pub async fn delete_domain(
-        ctx: &BizContext,
+        pool: &PgPool,
         _user_id: &str,
         domain_id: &str,
     ) -> Result<bool, AppError> {
-        let domain = DomainQueries::get_by_id(&ctx.pool, domain_id)
+        let domain = DomainQueries::get_by_id(pool, domain_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
 
-        let _deployment = DeploymentQueries::get_by_id(&ctx.pool, &domain.deployment_id)
+        let _deployment = DeploymentQueries::get_by_id(pool, &domain.deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
@@ -326,18 +388,18 @@ impl DeploymentService {
             ));
         }
 
-        DomainQueries::delete(&ctx.pool, domain_id).await
+        DomainQueries::delete(pool, domain_id).await
     }
 
-    /// Resolve a domain to a deployment
+    /// Resolve a domain to a deployment.
     pub async fn resolve_domain(
-        ctx: &BizContext,
+        pool: &PgPool,
         hostname: &str,
     ) -> Result<Option<DeploymentResponse>, AppError> {
-        let domain = DomainQueries::get_by_hostname(&ctx.pool, hostname).await?;
+        let domain = DomainQueries::get_by_hostname(pool, hostname).await?;
 
         if let Some(domain) = domain {
-            let deployment = DeploymentQueries::get_by_id(&ctx.pool, &domain.deployment_id)
+            let deployment = DeploymentQueries::get_by_id(pool, &domain.deployment_id)
                 .await?
                 .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
@@ -369,8 +431,6 @@ fn render_markdown_to_html(markdown: &str, title: &str, language_code: &str) -> 
     // Sanitize with ammonia (allowlist-based)
     let clean_body = ammonia::clean(&html_body);
 
-    // Language codes enter an HTML attribute. Keep only the safe BCP-47
-    // characters so legacy/imported values cannot break out of the attribute.
     let safe_language = language_code
         .chars()
         .filter(|character| character.is_ascii_alphanumeric() || *character == '-')
@@ -381,7 +441,6 @@ fn render_markdown_to_html(markdown: &str, title: &str, language_code: &str) -> 
         &safe_language
     };
 
-    // Wrap in a minimal HTML document
     format!(
         r#"<!DOCTYPE html>
 <html lang="{safe_language}">
@@ -405,15 +464,9 @@ fn render_markdown_to_html(markdown: &str, title: &str, language_code: &str) -> 
     )
 }
 
-/// Process deployment job (for worker)
-///
-/// This function:
-/// 1. Fetches all pages in the deployment's branch
-/// 2. Renders each page from Markdown to HTML
-/// 3. Uploads the HTML to the storage backend under `sites/{project_id}/{deployment_id}/`
-/// 4. Marks the deployment as Active on success, or Failed on error
+/// Process deployment job (for worker).
 pub async fn process_deployment_job(
-    pool: &cms_db::PgPool,
+    pool: &PgPool,
     storage: Arc<dyn Storage>,
     payload: &serde_json::Value,
 ) -> Result<(), AppError> {
@@ -427,8 +480,6 @@ pub async fn process_deployment_job(
         .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
     if matches!(&deployment.status, DeploymentStatus::Active) {
-        // Duplicate queue delivery for an already published immutable release is
-        // an idempotent success; never rebuild it from newer editor content.
         if DeploymentQueries::get_snapshot_by_deployment(pool, deployment_id)
             .await?
             .is_some()
@@ -464,8 +515,6 @@ pub async fn process_deployment_job(
             &current.status,
             DeploymentStatus::Building | DeploymentStatus::Deploying
         ) {
-            // Another worker already owns this idempotent job. Acknowledge the
-            // duplicate rather than marking the in-flight deployment failed.
             tracing::debug!("Deployment {} is already being processed", deployment_id);
             return Ok(());
         }
@@ -475,8 +524,6 @@ pub async fn process_deployment_job(
     }
 
     let result = async {
-        // One SQL statement captures a consistent release tree. Render and
-        // publish this frozen value even if editors continue changing pages.
         let snapshot_value = if let Some(source_deployment_id) = payload
             .get("snapshot_from_deployment_id")
             .and_then(serde_json::Value::as_str)
@@ -658,21 +705,14 @@ async fn do_deployment(
 }
 
 /// Process a legacy per-page publish job.
-///
-/// Published deployments are immutable release artifacts. A page edit must not
-/// rewrite every active deployment in place; callers should create a deployment
-/// for the intended branch to publish a new release.
 pub async fn process_publish_job(
-    pool: &cms_db::PgPool,
+    pool: &PgPool,
     storage: Arc<dyn Storage>,
     payload: &serde_json::Value,
 ) -> Result<(), AppError> {
     let page_id = payload.get("page_id").and_then(|v| v.as_str());
-
     let project_id = payload.get("project_id").and_then(|v| v.as_str());
 
-    // If we have a specific page_id, validate that it still belongs to the
-    // supplied project but never overwrite any already-active release.
     if let (Some(page_id), Some(project_id)) = (page_id, project_id) {
         let page = PageQueries::get_by_id(pool, page_id)
             .await?
@@ -683,13 +723,11 @@ pub async fn process_publish_job(
             ));
         }
         tracing::info!(
-            "Ignoring legacy in-place publish for page {}; create a new deployment to publish a \
-             release",
+            "Ignoring legacy in-place publish for page {}; create a new deployment to publish a release",
             page_id
         );
         Ok(())
     } else {
-        // Fall back to full deployment if payload doesn't have page_id
         process_deployment_job(pool, storage, payload).await
     }
 }

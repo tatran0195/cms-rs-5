@@ -13,7 +13,6 @@ pub mod asset;
 pub mod auth;
 pub mod branch;
 pub mod comment;
-pub mod deployment;
 pub mod domain;
 pub mod email;
 pub mod export;

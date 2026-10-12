@@ -136,7 +136,7 @@ pub async fn process_job(
         }
         JobType::Git => cms_biz::git::process_git_job(&state.db, &job.payload).await,
         JobType::Publish => {
-            cms_biz::deployment::process_deployment_job(
+            cms_deployments::process_deployment_job(
                 &state.db,
                 state.storage.clone(),
                 &job.payload,

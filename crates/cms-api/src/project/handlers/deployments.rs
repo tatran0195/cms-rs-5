@@ -106,8 +106,8 @@ pub async fn list_project_deployments_handler(
 ) -> Result<Json<ApiResponse<Vec<DeploymentListItem>>>, AppError> {
     super::common::authorize_project(&state, &auth, &project_id, cms_authz::Relation::Viewer)
         .await?;
-    let result = cms_biz::deployment::DeploymentService::list_deployments(
-        &state.biz_context,
+    let result = cms_deployments::DeploymentService::list_deployments(
+        state.db(),
         &auth.user.id,
         &project_id,
         1,
@@ -165,8 +165,8 @@ pub async fn get_latest_project_deployment_handler(
 ) -> Result<Json<ApiResponse<Option<DeploymentListItem>>>, AppError> {
     super::common::authorize_project(&state, &auth, &project_id, cms_authz::Relation::Viewer)
         .await?;
-    let result = cms_biz::deployment::DeploymentService::list_deployments(
-        &state.biz_context,
+    let result = cms_deployments::DeploymentService::list_deployments(
+        state.db(),
         &auth.user.id,
         &project_id,
         1,
@@ -227,10 +227,10 @@ pub async fn get_deployment_changes_handler(
 ) -> Result<Json<ApiResponse<DeploymentChangesResponse>>, AppError> {
     super::common::authorize_project(&state, &auth, &project_id, cms_authz::Relation::Viewer)
         .await?;
-    use cms_biz::deployment::DeploymentService;
+    use cms_deployments::DeploymentService;
 
     let deployments =
-        DeploymentService::list_deployments(&state.biz_context, &auth.user.id, &project_id, 1, 50)
+        DeploymentService::list_deployments(state.db(), &auth.user.id, &project_id, 1, 50)
             .await?;
 
     let baseline = deployments

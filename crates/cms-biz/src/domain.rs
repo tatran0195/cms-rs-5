@@ -91,52 +91,127 @@ impl DomainService {
     /// List domains
     pub async fn list_domains(
         ctx: &BizContext,
-        user_id: &str,
+        _user_id: &str,
         deployment_id: Option<&str>,
         _is_primary: Option<bool>,
         _is_verified: Option<bool>,
     ) -> Result<Vec<DomainResponse>, AppError> {
         let deployment_id = deployment_id.unwrap_or("");
-        crate::deployment::DeploymentService::list_domains(ctx, user_id, deployment_id).await
+        let _deployment = cms_db::deployment::DeploymentQueries::get_by_id(&ctx.pool, deployment_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+        let domains = DomainQueries::get_by_deployment(&ctx.pool, deployment_id).await?;
+        Ok(domains.into_iter().map(Into::into).collect())
     }
 
     /// Create domain
     pub async fn create_domain(
         ctx: &BizContext,
-        user_id: &str,
+        _user_id: &str,
         request: cms_entity::domain::CreateDomainRequest,
     ) -> Result<DomainResponse, AppError> {
         let deployment_id = request.deployment_id.clone();
-        crate::deployment::DeploymentService::create_domain(ctx, user_id, &deployment_id, request)
-            .await
+        let _deployment = cms_db::deployment::DeploymentQueries::get_by_id(&ctx.pool, &deployment_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        let hostname = cms_db::domain::normalize_hostname(&request.hostname)?;
+        let existing = DomainQueries::get_by_hostname(&ctx.pool, &hostname).await?;
+        if existing.is_some() {
+            return Err(AppError::Conflict("Domain is already in use".to_string()));
+        }
+
+        let domain = DomainQueries::create(
+            &ctx.pool,
+            &deployment_id,
+            &hostname,
+            request.is_primary,
+        )
+        .await?;
+
+        Ok(domain.into())
     }
 
     /// Get domain
     pub async fn get_domain(
         ctx: &BizContext,
-        user_id: &str,
+        _user_id: &str,
         domain_id: &str,
     ) -> Result<DomainResponse, AppError> {
-        crate::deployment::DeploymentService::get_domain(ctx, user_id, domain_id).await
+        let domain = DomainQueries::get_by_id(&ctx.pool, domain_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
+
+        let _deployment =
+            cms_db::deployment::DeploymentQueries::get_by_id(&ctx.pool, &domain.deployment_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        Ok(domain.into())
     }
 
     /// Update domain
     pub async fn update_domain(
         ctx: &BizContext,
-        user_id: &str,
+        _user_id: &str,
         domain_id: &str,
         request: cms_entity::domain::UpdateDomainRequest,
     ) -> Result<DomainResponse, AppError> {
-        crate::deployment::DeploymentService::update_domain(ctx, user_id, domain_id, request).await
+        let domain = DomainQueries::get_by_id(&ctx.pool, domain_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
+
+        let _deployment =
+            cms_db::deployment::DeploymentQueries::get_by_id(&ctx.pool, &domain.deployment_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        if request.is_primary == Some(true) && !domain.is_primary {
+            let existing_primary =
+                DomainQueries::get_primary_by_deployment(&ctx.pool, &domain.deployment_id).await?;
+
+            if existing_primary.is_some() {
+                return Err(AppError::Conflict(
+                    "Another domain is already primary for this deployment".to_string(),
+                ));
+            }
+        }
+
+        let updated = DomainQueries::update(
+            &ctx.pool,
+            domain_id,
+            request.hostname.as_deref(),
+            request.is_primary,
+            request.ssl_certificate.as_deref(),
+            request.ssl_certificate_expires_at,
+        )
+        .await?;
+
+        Ok(updated.into())
     }
 
     /// Delete domain
     pub async fn delete_domain(
         ctx: &BizContext,
-        user_id: &str,
+        _user_id: &str,
         domain_id: &str,
     ) -> Result<bool, AppError> {
-        crate::deployment::DeploymentService::delete_domain(ctx, user_id, domain_id).await
+        let domain = DomainQueries::get_by_id(&ctx.pool, domain_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
+
+        let _deployment =
+            cms_db::deployment::DeploymentQueries::get_by_id(&ctx.pool, &domain.deployment_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        if domain.is_primary {
+            return Err(AppError::AccessDenied(
+                "Cannot delete the primary domain".to_string(),
+            ));
+        }
+
+        DomainQueries::delete(&ctx.pool, domain_id).await
     }
 
     /// Verify domain

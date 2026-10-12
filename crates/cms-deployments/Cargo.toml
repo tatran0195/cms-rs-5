@@ -1,0 +1,37 @@
+[package]
+name = "cms-deployments"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Deployments and site generation vertical slice for CMS"
+
+[dependencies]
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-storage = { path = "../cms-storage" }
+cms-auth = { path = "../cms-auth" }
+cms-authz = { path = "../cms-authz" }
+cms-authz-gate = { path = "../cms-authz-gate" }
+cms-queue = { path = "../cms-queue" }
+
+axum = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+anyhow = { workspace = true }
+pulldown-cmark = { workspace = true }
+ammonia = { workspace = true }
+bytes = { workspace = true }
+utoipa = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+
+[lints]
+workspace = true
