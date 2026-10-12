@@ -1,23 +1,14 @@
-//! Setup API module
+//! Setup and onboarding API module
 //!
-//! Handlers for public setup and onboarding routes.
+//! This module delegates to the dedicated `cms-onboarding` vertical slice crate.
 
 use std::sync::Arc;
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::Router;
 use cms_middleware::app_state::AppState;
 
 pub mod handlers;
-use handlers::*;
 
-/// Create setup router
+/// Create setup router by delegating to cms-onboarding vertical slice.
 pub fn router(state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/status", get(get_setup_status_handler))
-        .route("/complete", post(complete_setup_handler))
-        .route("/verify-email", get(verify_email_onboarding_handler))
-        .route("/resend-verification", post(resend_verification_handler))
-        .with_state(state)
+    cms_onboarding::router(state)
 }
