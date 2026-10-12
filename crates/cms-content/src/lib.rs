@@ -11,12 +11,15 @@ pub mod services;
 
 pub use handlers::ContentUser;
 pub use models::branch::*;
+pub use models::comment::*;
 pub use models::language::*;
 pub use models::page::*;
 pub use queries::branch::*;
+pub use queries::comment::*;
 pub use queries::language::*;
 pub use queries::page::*;
 pub use services::BranchService;
+pub use services::CommentService;
 pub use services::LanguageService;
 pub use services::PageService;
 
@@ -74,10 +77,36 @@ pub fn language_router(state: Arc<AppState>) -> Router {
         .with_state(state)
 }
 
+/// Exposes the Axum router for comments.
+pub fn comment_router(state: Arc<AppState>) -> Router {
+    Router::new()
+        .route(
+            "/",
+            get(handlers::comment::list_comments_handler)
+                .post(handlers::comment::create_comment_handler),
+        )
+        .route(
+            "/{id}",
+            get(handlers::comment::get_comment_handler)
+                .put(handlers::comment::update_comment_handler)
+                .delete(handlers::comment::delete_comment_handler),
+        )
+        .route(
+            "/{id}/resolve",
+            axum::routing::post(handlers::comment::resolve_comment_handler),
+        )
+        .route(
+            "/pages/{page_id}",
+            get(handlers::comment::list_page_comments_handler),
+        )
+        .with_state(state)
+}
+
 /// Composite router for all content vertical slices.
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
         .nest("/pages", page_router(Arc::clone(&state)))
         .nest("/branches", branch_router(Arc::clone(&state)))
-        .nest("/languages", language_router(state))
+        .nest("/languages", language_router(Arc::clone(&state)))
+        .nest("/comments", comment_router(state))
 }

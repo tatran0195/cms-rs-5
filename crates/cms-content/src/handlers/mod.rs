@@ -2,6 +2,7 @@
 
 pub mod auth;
 pub mod branch;
+pub mod comment;
 pub mod language;
 pub mod page;
 
