@@ -43,6 +43,7 @@ cms-outbox = { path = "crates/cms-outbox" }
 cms-seed = { path = "crates/cms-seed" }
 cms-scheduler = { path = "crates/cms-scheduler" }
 cms-sites = { path = "crates/cms-sites" }
+cms-server-core = { path = "crates/cms-server-core" }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
