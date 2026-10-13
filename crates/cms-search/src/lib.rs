@@ -19,20 +19,19 @@ use cms_infra::config::SearchConfig;
 
 pub mod engine;
 pub mod handlers;
-#[cfg(feature = "vector")]
-pub mod rag;
 pub mod router;
 pub mod services;
-pub mod traits;
 
+pub use cms_server_core::search::SearchEngine;
 pub use engine::{markdown, tantivy, tokenizer};
+#[cfg(feature = "vector")]
+pub use engine::rag;
 #[cfg(feature = "vector")]
 pub use engine::vector::{Embedder, ProjectVectorIndex, VectorMeta, VectorSearchResult};
 pub use engine::tantivy::{ProjectIndex, TantivyFields, TantivySearchEngine};
 pub use engine::tokenizer::{JapaneseToken, JapaneseTokenizer, LinderaTantivyTokenizer};
 pub use router::router;
 pub use services::{process_search_job, SearchService};
-pub use traits::SearchEngine;
 
 /// Create the SearchEngine implementation described by configuration.
 ///
