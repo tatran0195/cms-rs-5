@@ -1,0 +1,62 @@
+[package]
+name = "cms-infra"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Consolidated infrastructure layer for CMS: config, storage, search, queue, mailer, analytics, i18n"
+build = "build.rs"
+
+[dependencies]
+# Internal workspace crates
+cms-entity = { path = "../cms-entity" }
+cms-db = { path = "../cms-db" }
+cms-error = { path = "../cms-error" }
+
+# Configuration & Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+config = { workspace = true }
+figment = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+async-trait = { workspace = true }
+bytes = { workspace = true }
+sqlx = { workspace = true }
+rusqlite = { workspace = true }
+
+# Search dependencies
+lindera = { workspace = true }
+unicode-normalization = { workspace = true }
+tantivy = { workspace = true }
+pulldown-cmark = { workspace = true }
+parking_lot = { workspace = true }
+fastembed = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
+
+# Mailer dependencies
+lettre = { workspace = true }
+minijinja = { workspace = true }
+
+# Storage dependencies
+aws-sdk-s3 = { workspace = true, optional = true }
+aws-config = { workspace = true, optional = true }
+aws-credential-types = { workspace = true, optional = true }
+
+[build-dependencies]
+serde_json = { workspace = true }
+
+[features]
+default = ["memory", "vector"]
+memory = []
+vector = ["dep:fastembed", "dep:reqwest"]
+s3 = ["dep:aws-sdk-s3", "dep:aws-config", "dep:aws-credential-types"]
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

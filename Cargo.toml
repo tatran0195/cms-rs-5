@@ -17,10 +17,9 @@ license = "UNLICENSED"
 
 [workspace.dependencies]
 # Internal crates
+cms-infra = { path = "crates/cms-infra" }
 cms-entity = { path = "crates/cms-entity" }
 cms-db = { path = "crates/cms-db" }
-cms-biz = { path = "crates/cms-biz" }
-cms-api = { path = "crates/cms-api" }
 cms-error = { path = "crates/cms-error" }
 cms-config = { path = "crates/cms-config" }
 cms-i18n = { path = "crates/cms-i18n" }
@@ -52,6 +51,14 @@ cms-content = { path = "crates/cms-content" }
 cms-assets = { path = "crates/cms-assets" }
 cms-projects = { path = "crates/cms-projects" }
 cms-deployments = { path = "crates/cms-deployments" }
+cms-git = { path = "crates/cms-git" }
+cms-integrations = { path = "crates/cms-integrations" }
+cms-themes = { path = "crates/cms-themes" }
+cms-platform-events = { path = "crates/cms-platform-events" }
+cms-openapi = { path = "crates/cms-openapi" }
+cms-workspaces = { path = "crates/cms-workspaces" }
+cms-admin = { path = "crates/cms-admin" }
+cms-public = { path = "crates/cms-public" }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
