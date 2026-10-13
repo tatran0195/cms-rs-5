@@ -90,7 +90,7 @@ cms-rs-4/
 │   │
 │   ├── cms-auth/                 # Auth system — JWT, sessions, API keys, MFA, OAuth
 │   ├── cms-authz/                # ReBAC engine + route authorization gates
-│   ├── cms-infra/                # Consolidated infrastructure (config with validation, storage with StorageService, search, queue, mailer, analytics, i18n)
+│   ├── cms-infra/                # Consolidated infrastructure (config with validation, storage with StorageService, queue, mailer, i18n)
 │   ├── cms-worker/               # Background task processor
 │   ├── cms-mcp/                  # MCP server endpoints for AI tools
 │   ├── cms-error/                # AppError and HTTP error responses
@@ -112,10 +112,12 @@ cms-rs-4/
 │   ├── cms-admin/                # Vertical Slice: Platform-level administrative parity router and operations (including platform telemetry events)
 │   ├── cms-public/               # Vertical Slice: Unauthenticated reader-facing JSON API, SEO, RSS, sitemaps, changelog
 │   ├── cms-api-specs/            # Vertical Slice: Stored OpenAPI document CRUD (user-uploaded API specs)
+│   ├── cms-analytics/            # Vertical Slice: Workspace analytics, view tracking, stats API
 │   │
 │   ├── cms-outbox/               # Subsystem 1: Transactional Outbox with jittered backoff, worker, DLQ
 │   ├── cms-seed/                 # Subsystem 2: Deterministic UUID v5 dev fixtures & CLI runner
-│   └── cms-scheduler/            # Subsystem 5: Distributed cron scheduler with SKIP LOCKED execution
+│   ├── cms-scheduler/            # Subsystem 5: Distributed cron scheduler with SKIP LOCKED execution
+│   └── cms-search/               # Subsystem 6: Hybrid Tantivy BM25 + Lindera Japanese + FastEmbed vector search & RAG
 └── apps/
     ├── api/                      # Composition Root binary & library (mounts all vertical slices into unified Axum HTTP router)
     ├── studio/                   # Notion-style documentation management frontend
@@ -221,6 +223,15 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
 - **Theme Management**: Project-specific and global theme creation, editing, deletion, and CSS variable extraction (`ThemeCssVariables`).
 - **Template Customization**: Active project theme configuration persisted to project settings.
 - **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/themes`.
+
+### 17. Vertical Slice: `cms-analytics`
+- **Workspace Analytics & Telemetry**: Page view tracking, unique visitor counting, search query metrics, and top-page performance breakdowns.
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/analytics`.
+
+### 18. Subsystem 6: Hybrid Search Engine (`cms-search`)
+- **Tantivy BM25 + Japanese Morphological Analysis**: Disk-persisted inverted indices tokenized using Lindera with IPADIC/SudachiDict.
+- **In-Process Semantic Vectors & RAG**: ONNX embeddings (`multilingual-e5-small`) and retrieval-augmented generation answer synthesis via `rag::generate_rag_answer`.
+- **Engine Abstraction**: Re-exports `cms_server_core::search::SearchEngine` for uniform workspace indexing and querying.
 
 ---
 
