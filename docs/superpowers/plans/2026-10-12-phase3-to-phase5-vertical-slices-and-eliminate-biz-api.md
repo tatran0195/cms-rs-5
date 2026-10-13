@@ -88,7 +88,7 @@ Extract dedicated high-cohesion vertical slice crates for the remaining modules:
   - Removed all crate dependencies on `cms-biz` and `cms-api`.
   - Deleted directories `crates/cms-biz` and `crates/cms-api`.
 
-- [ ] **Task 12: Full Monorepo Verification & Documentation**
+- [x] **Task 12: Full Monorepo Verification & Documentation**
   - Run `cargo check --workspace -j 2`.
   - Run all workspace tests: `cargo test --workspace -j 2`.
   - Run clippy check: `cargo clippy --all-targets --all-features -j 2`.

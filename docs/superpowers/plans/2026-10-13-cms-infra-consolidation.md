@@ -33,7 +33,7 @@
   - `cms_infra::i18n::{Locale, Catalog, translate, accept_language_tags, ...}`
   - `cms_infra::analytics::{AnalyticsStore, PostgresAnalyticsStore, AnalyticsService, create_analytics_store}`
 
-- [ ] **Step 1: Create `crates/cms-infra/Cargo.toml`**
+- [x] **Step 1: Create `crates/cms-infra/Cargo.toml`**
 
 ```toml
 [package]
@@ -100,11 +100,11 @@ tempfile = { workspace = true }
 workspace = true
 ```
 
-- [ ] **Step 2: Create `crates/cms-infra/build.rs` to embed translations and email messages**
+- [x] **Step 2: Create `crates/cms-infra/build.rs` to embed translations and email messages**
 
 Create `crates/cms-infra/build.rs` processing `../../packages/i18n/messages` for both generic i18n (`api_error_`, `email_`) and mailer namespaces into `embedded_messages.rs` in `OUT_DIR`.
 
-- [ ] **Step 3: Copy and organize `config`, `i18n`, and `analytics` into `crates/cms-infra/src/`**
+- [x] **Step 3: Copy and organize `config`, `i18n`, and `analytics` into `crates/cms-infra/src/`**
 - Move `crates/cms-config/src/*` into `crates/cms-infra/src/config/`
 - Move `crates/cms-i18n/src/*` into `crates/cms-infra/src/i18n/`
 - Move `crates/cms-analytics/src/*` into `crates/cms-infra/src/analytics/`
@@ -118,12 +118,12 @@ pub mod i18n;
 ```
 - Update internal module references (e.g. `cms_config::` to `crate::config::`).
 
-- [ ] **Step 4: Check compilation of `cms-infra`**
+- [x] **Step 4: Check compilation of `cms-infra`**
 
 Run: `cargo check -p cms-infra`
 Expected: PASS
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 Run:
 ```bash
@@ -150,26 +150,26 @@ git commit -m "feat(infra): scaffold cms-infra crate with config, i18n, and anal
   - `cms_infra::mailer::{Mailer, EmailRenderer, create_mailer, EmailMessage}`
   - `cms_infra::search::{SearchEngine, TantivySearchEngine, create_search_engine}`
 
-- [ ] **Step 1: Copy and adjust `storage` into `crates/cms-infra/src/storage/`**
+- [x] **Step 1: Copy and adjust `storage` into `crates/cms-infra/src/storage/`**
 - Copy `crates/cms-storage/src/*` into `crates/cms-infra/src/storage/`.
 - Replace `cms_config::` with `crate::config::`.
 - Replace `cms_error::` with `cms_error::AppError`.
 
-- [ ] **Step 2: Copy and adjust `queue` into `crates/cms-infra/src/queue/`**
+- [x] **Step 2: Copy and adjust `queue` into `crates/cms-infra/src/queue/`**
 - Copy `crates/cms-queue/src/*` into `crates/cms-infra/src/queue/`.
 - Replace `cms_config::` with `crate::config::`.
 - Ensure `reaper.rs` and types compile cleanly.
 
-- [ ] **Step 3: Copy and adjust `mailer` into `crates/cms-infra/src/mailer/`**
+- [x] **Step 3: Copy and adjust `mailer` into `crates/cms-infra/src/mailer/`**
 - Copy `crates/cms-mailer/src/*` into `crates/cms-infra/src/mailer/`.
 - Replace `cms_config::` with `crate::config::` and `cms_i18n::` with `crate::i18n::`.
 - Include `templates/` directory under `crates/cms-infra/src/mailer/templates/`.
 
-- [ ] **Step 4: Copy and adjust `search` into `crates/cms-infra/src/search/`**
+- [x] **Step 4: Copy and adjust `search` into `crates/cms-infra/src/search/`**
 - Copy `crates/cms-search/src/*` into `crates/cms-infra/src/search/`.
 - Replace `cms_config::` with `crate::config::`.
 
-- [ ] **Step 5: Export all submodules in `crates/cms-infra/src/lib.rs`**
+- [x] **Step 5: Export all submodules in `crates/cms-infra/src/lib.rs`**
 ```rust
 #![forbid(unsafe_code)]
 
@@ -190,12 +190,12 @@ pub use search::SearchEngine;
 pub use storage::Storage;
 ```
 
-- [ ] **Step 6: Run tests and compilation on `cms-infra`**
+- [x] **Step 6: Run tests and compilation on `cms-infra`**
 
 Run: `cargo test -p cms-infra`
 Expected: PASS
 
-- [ ] **Step 7: Commit Task 2**
+- [x] **Step 7: Commit Task 2**
 
 Run:
 ```bash
@@ -217,14 +217,14 @@ git commit -m "feat(infra): integrate storage, queue, mailer, and search into cm
 - Consumes: `cms-infra` (`cms_infra::config`, `cms_infra::storage`, `cms_infra::queue`, `cms_infra::search`, `cms_infra::mailer`, `cms_infra::analytics`, `cms_infra::i18n`)
 - Produces: `AppState`, `BizContext`, server middleware suite
 
-- [ ] **Step 1: Update `crates/cms-server-core/Cargo.toml`**
+- [x] **Step 1: Update `crates/cms-server-core/Cargo.toml`**
 
 Remove dependencies:
 - `cms-config`, `cms-storage`, `cms-queue`, `cms-search`, `cms-analytics`, `cms-mailer`, `cms-i18n`
 Add dependency:
 - `cms-infra = { path = "../cms-infra" }`
 
-- [ ] **Step 2: Update `crates/cms-server-core/src/app_state.rs`**
+- [x] **Step 2: Update `crates/cms-server-core/src/app_state.rs`**
 
 Replace:
 ```rust
@@ -244,16 +244,16 @@ And replace field types:
 - `pub email_renderer: cms_infra::mailer::EmailRenderer`
 Update `AppState::from_config` to invoke `cms_infra::storage::create_storage`, `cms_infra::queue::create_job_queue_with_pool`, etc.
 
-- [ ] **Step 3: Update `crates/cms-server-core/src/middleware/locale.rs`**
+- [x] **Step 3: Update `crates/cms-server-core/src/middleware/locale.rs`**
 
 Update `cms_i18n::*` imports to `cms_infra::i18n::*`.
 
-- [ ] **Step 4: Verify `cargo check -p cms-server-core`**
+- [x] **Step 4: Verify `cargo check -p cms-server-core`**
 
 Run: `cargo check -p cms-server-core`
 Expected: PASS
 
-- [ ] **Step 5: Commit Task 3**
+- [x] **Step 5: Commit Task 3**
 
 Run:
 ```bash
@@ -276,25 +276,25 @@ git commit -m "refactor(server-core): consume consolidated cms-infra"
 **Interfaces:**
 - Consumes: `cms_infra::storage`, `cms_infra::queue`, `cms_infra::search`, `cms_infra::mailer`
 
-- [ ] **Step 1: Update `crates/cms-server-services`**
+- [x] **Step 1: Update `crates/cms-server-services`**
 - In `Cargo.toml`: replace `cms-storage`, `cms-queue` with `cms-infra = { path = "../cms-infra" }`.
 - In `src/storage_url.rs`: use `cms_infra::storage::Storage`.
 - In `src/event_dispatcher.rs`: use `cms_infra::queue::JobQueue`.
 
-- [ ] **Step 2: Update `crates/cms-worker`**
+- [x] **Step 2: Update `crates/cms-worker`**
 - In `Cargo.toml`: replace `cms-storage`, `cms-queue`, `cms-search`, `cms-config`, `cms-analytics`, `cms-mailer` with `cms-infra = { path = "../cms-infra" }`.
 - In worker code: update imports to `cms_infra::*`.
 
-- [ ] **Step 3: Update Vertical Slices (`cms-reports`, `cms-assets`, `cms-deployments`, `cms-git`)**
+- [x] **Step 3: Update Vertical Slices (`cms-reports`, `cms-assets`, `cms-deployments`, `cms-git`)**
 - Replace dependencies on individual infra crates with `cms-infra = { path = "../cms-infra" }`.
 - Update import paths in source files.
 
-- [ ] **Step 4: Verify compilation**
+- [x] **Step 4: Verify compilation**
 
 Run: `cargo check -p cms-server-services -p cms-worker -p cms-reports -p cms-assets`
 Expected: PASS
 
-- [ ] **Step 5: Commit Task 4**
+- [x] **Step 5: Commit Task 4**
 
 Run:
 ```bash
@@ -317,21 +317,21 @@ git commit -m "refactor: update server services, worker, and vertical slices to 
 - Consumes: `cms-server-core`
 - Eliminates: `crates/cms-middleware`
 
-- [ ] **Step 1: Update consumers to import `cms-server-core` directly**
+- [x] **Step 1: Update consumers to import `cms-server-core` directly**
 - In `crates/cms-worker/src/`: replace `cms_middleware::*` with `cms_server_core::*`.
 - In `crates/cms-sites/src/`: replace `cms_middleware::*` with `cms_server_core::*`.
 - In `crates/cms-notifications/src/`: replace `cms_middleware::*` with `cms_server_core::*`.
 
-- [ ] **Step 2: Remove `crates/cms-middleware` directory**
+- [x] **Step 2: Remove `crates/cms-middleware` directory**
 
 Delete directory `crates/cms-middleware`.
 
-- [ ] **Step 3: Verify compilation without `cms-middleware`**
+- [x] **Step 3: Verify compilation without `cms-middleware`**
 
 Run: `cargo check -p cms-worker -p cms-sites -p cms-notifications`
 Expected: PASS
 
-- [ ] **Step 4: Commit Task 5**
+- [x] **Step 4: Commit Task 5**
 
 Run:
 ```bash
@@ -351,24 +351,24 @@ git commit -m "refactor: eliminate cms-middleware facade and migrate all callers
 **Interfaces:**
 - Produces: `cms-server` library and binary
 
-- [ ] **Step 1: Update workspace root `Cargo.toml`**
+- [x] **Step 1: Update workspace root `Cargo.toml`**
 - In `[workspace.dependencies]`:
   - Add `cms-infra = { path = "crates/cms-infra" }`
   - Remove `cms-config`, `cms-storage`, `cms-search`, `cms-queue`, `cms-mailer`, `cms-analytics`, `cms-i18n`, `cms-middleware`
 - Change downstream crates path dependencies to `{ workspace = true }` where standard.
 
-- [ ] **Step 2: Update `apps/api/Cargo.toml`**
+- [x] **Step 2: Update `apps/api/Cargo.toml`**
 - Replace individual infra dependencies and `cms-middleware` with `cms-infra = { workspace = true }` and `cms-server-core = { workspace = true }`.
 
-- [ ] **Step 3: Update `apps/api/lib.rs` and `apps/api/router.rs`**
+- [x] **Step 3: Update `apps/api/lib.rs` and `apps/api/router.rs`**
 - Update any remaining imports from `cms_config::` or other infra crates to `cms_infra::*`.
 
-- [ ] **Step 4: Verify `cms-server` compilation**
+- [x] **Step 4: Verify `cms-server` compilation**
 
 Run: `cargo check -p cms-server`
 Expected: PASS
 
-- [ ] **Step 5: Commit Task 6**
+- [x] **Step 5: Commit Task 6**
 
 Run:
 ```bash
@@ -391,16 +391,16 @@ git commit -m "chore(workspace): register cms-infra and update composition root"
 - Delete: `crates/cms-middleware`
 - Modify: `AGENTS.md`, `README.md`
 
-- [ ] **Step 1: Remove the 7 obsolete crate directories**
+- [x] **Step 1: Remove the 7 obsolete crate directories**
 Delete `crates/cms-config`, `crates/cms-storage`, `crates/cms-search`, `crates/cms-queue`, `crates/cms-mailer`, `crates/cms-analytics`, `crates/cms-i18n`.
 
-- [ ] **Step 2: Clean up git status for legacy `cms-biz` and `cms-api`**
+- [x] **Step 2: Clean up git status for legacy `cms-biz` and `cms-api`**
 Run `git add -u` to stage all deleted legacy files.
 
-- [ ] **Step 3: Update documentation in `AGENTS.md` and `README.md`**
+- [x] **Step 3: Update documentation in `AGENTS.md` and `README.md`**
 Update crate diagrams and references in `AGENTS.md` to document `cms-infra` and remove `cms-middleware`.
 
-- [ ] **Step 4: Run full workspace verification**
+- [x] **Step 4: Run full workspace verification**
 Run:
 ```bash
 cargo check --workspace
@@ -410,7 +410,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 ```
 Expected: All commands exit with code 0.
 
-- [ ] **Step 5: Final commit**
+- [x] **Step 5: Final commit**
 
 Run:
 ```bash
