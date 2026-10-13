@@ -1,4 +1,5 @@
 use std::{sync::Arc, time::Duration};
+
 use chrono::Utc;
 use cms_db::PgPool;
 use cms_error::AppError;
@@ -190,9 +191,9 @@ impl SchedulerHandle {
     /// Signal the scheduler to shut down and wait for completion
     pub async fn stop(self) -> Result<(), AppError> {
         let _ = self.shutdown_tx.send(true);
-        self.handle
-            .await
-            .map_err(|e| AppError::Internal(cms_error::anyhow::anyhow!("Scheduler join failed: {e}")))?;
+        self.handle.await.map_err(|e| {
+            AppError::Internal(cms_error::anyhow::anyhow!("Scheduler join failed: {e}"))
+        })?;
         Ok(())
     }
 }

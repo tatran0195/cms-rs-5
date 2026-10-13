@@ -11,7 +11,7 @@
 
 use chrono::Utc;
 use cms_auth::{
-    claims::{decode_jwt, encode_jwt, Claims},
+    claims::{Claims, decode_jwt, encode_jwt},
     cookies::{
         build_access_cookie, build_csrf_cookie, build_refresh_cookie, clear_access_cookie,
         clear_csrf_cookie, clear_refresh_cookie, parse_cookie_value,
@@ -19,10 +19,9 @@ use cms_auth::{
     password::{hash_password, verify_password},
 };
 use cms_authz::{
-    AuthzBackend, AuthzContext, Relation, Subject, TestAuthzBackend,
-    SYSTEM_WORKSPACE_ID,
+    AuthzBackend, AuthzContext, Relation, SYSTEM_WORKSPACE_ID, Subject, TestAuthzBackend,
+    gate::require_project_access,
 };
-use cms_authz::gate::require_project_access;
 use cms_error::AppError;
 use uuid::Uuid;
 
@@ -39,7 +38,8 @@ fn test_e2e_argon2id_and_account_lockout() {
 
     // Wrong password fails
     assert!(
-        !verify_password("WrongPassword123", &hashed).expect("password verification check should run"),
+        !verify_password("WrongPassword123", &hashed)
+            .expect("password verification check should run"),
         "invalid password must be rejected"
     );
 
@@ -58,7 +58,10 @@ fn test_e2e_argon2id_and_account_lockout() {
     // Once locked_until is in the past, account is unlocked
     let past_lockout = now - chrono::Duration::minutes(1);
     let is_still_locked = failed_attempts >= MAX_FAILED_ATTEMPTS && past_lockout > now;
-    assert!(!is_still_locked, "account past lockout window must not be locked");
+    assert!(
+        !is_still_locked,
+        "account past lockout window must not be locked"
+    );
 }
 
 #[test]
@@ -209,7 +212,10 @@ fn test_e2e_oauth_pkce_flow() {
     assert_eq!(decoded, payload);
 
     // Tampered state fails
-    assert!(cms_auth::oauth_provider::decode_callback_state::<StatePayload>("invalid.tampered.state").is_err());
+    assert!(
+        cms_auth::oauth_provider::decode_callback_state::<StatePayload>("invalid.tampered.state")
+            .is_err()
+    );
 }
 
 #[tokio::test]
@@ -284,26 +290,96 @@ async fn test_e2e_rebac_relations_and_cross_inheritance() {
     let outsider_ctx = AuthzContext::new(outsider_id, "user".to_string(), false);
 
     // Project Owner has all relations
-    assert!(backend.check(&owner_ctx, Relation::Owner, "project", project_id).await.unwrap());
-    assert!(backend.check(&owner_ctx, Relation::Editor, "project", project_id).await.unwrap());
-    assert!(backend.check(&owner_ctx, Relation::Viewer, "project", project_id).await.unwrap());
+    assert!(
+        backend
+            .check(&owner_ctx, Relation::Owner, "project", project_id)
+            .await
+            .unwrap()
+    );
+    assert!(
+        backend
+            .check(&owner_ctx, Relation::Editor, "project", project_id)
+            .await
+            .unwrap()
+    );
+    assert!(
+        backend
+            .check(&owner_ctx, Relation::Viewer, "project", project_id)
+            .await
+            .unwrap()
+    );
 
     // Project Editor has Editor & Viewer, but not Owner
-    assert!(!backend.check(&editor_ctx, Relation::Owner, "project", project_id).await.unwrap());
-    assert!(backend.check(&editor_ctx, Relation::Editor, "project", project_id).await.unwrap());
-    assert!(backend.check(&editor_ctx, Relation::Viewer, "project", project_id).await.unwrap());
+    assert!(
+        !backend
+            .check(&editor_ctx, Relation::Owner, "project", project_id)
+            .await
+            .unwrap()
+    );
+    assert!(
+        backend
+            .check(&editor_ctx, Relation::Editor, "project", project_id)
+            .await
+            .unwrap()
+    );
+    assert!(
+        backend
+            .check(&editor_ctx, Relation::Viewer, "project", project_id)
+            .await
+            .unwrap()
+    );
 
     // Project Viewer has Viewer only
-    assert!(!backend.check(&viewer_ctx, Relation::Owner, "project", project_id).await.unwrap());
-    assert!(!backend.check(&viewer_ctx, Relation::Editor, "project", project_id).await.unwrap());
-    assert!(backend.check(&viewer_ctx, Relation::Viewer, "project", project_id).await.unwrap());
+    assert!(
+        !backend
+            .check(&viewer_ctx, Relation::Owner, "project", project_id)
+            .await
+            .unwrap()
+    );
+    assert!(
+        !backend
+            .check(&viewer_ctx, Relation::Editor, "project", project_id)
+            .await
+            .unwrap()
+    );
+    assert!(
+        backend
+            .check(&viewer_ctx, Relation::Viewer, "project", project_id)
+            .await
+            .unwrap()
+    );
 
     // Workspace Admin inherits access across all projects in workspace
-    assert!(backend.check(&workspace_admin_ctx, Relation::Editor, "project", project_id).await.unwrap());
-    assert!(backend.check(&workspace_admin_ctx, Relation::Viewer, "project", project_id).await.unwrap());
+    assert!(
+        backend
+            .check(
+                &workspace_admin_ctx,
+                Relation::Editor,
+                "project",
+                project_id
+            )
+            .await
+            .unwrap()
+    );
+    assert!(
+        backend
+            .check(
+                &workspace_admin_ctx,
+                Relation::Viewer,
+                "project",
+                project_id
+            )
+            .await
+            .unwrap()
+    );
 
     // Outsider has zero access
-    assert!(!backend.check(&outsider_ctx, Relation::Viewer, "project", project_id).await.unwrap());
+    assert!(
+        !backend
+            .check(&outsider_ctx, Relation::Viewer, "project", project_id)
+            .await
+            .unwrap()
+    );
 }
 
 #[tokio::test]
@@ -316,7 +392,8 @@ async fn test_e2e_existence_oracle_defense() {
 
     // Calling require_project_access for a denied user must return AppError::NotFound,
     // NEVER AppError::Forbidden, to eliminate existence oracle attacks.
-    let result = require_project_access(&backend, &outsider_ctx, project_id, Relation::Viewer).await;
+    let result =
+        require_project_access(&backend, &outsider_ctx, project_id, Relation::Viewer).await;
 
     match result {
         Err(AppError::NotFound(msg)) => {

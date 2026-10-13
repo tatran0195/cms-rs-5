@@ -26,22 +26,6 @@ pub mod router;
 pub mod service;
 pub mod session;
 
-pub use claims::{Claims, decode_jwt, encode_jwt};
-pub use cookies::{
-    build_access_cookie, build_csrf_cookie, build_refresh_cookie, clear_access_cookie,
-    clear_csrf_cookie, clear_refresh_cookie, generate_csrf_token, parse_cookie_value,
-};
-pub use middleware::{
-    AuthExtractor, AuthMethod, AuthRejection, OptionalAuthExtractor, RequireAuthMiddleware,
-    RequireRoleMiddleware, RoleRejection,
-};
-pub use router::router;
-pub use service::{AuthExtensionsService, AuthService as DomainAuthService};
-pub use lockout::{
-    is_account_locked, record_failed_login, reset_failed_logins, LOCKOUT_MINUTES,
-    MAX_FAILED_LOGINS,
-};
-
 use std::sync::Arc;
 
 use axum::{
@@ -50,10 +34,24 @@ use axum::{
 };
 use axum_extra::extract::CookieJar;
 use chrono::Utc;
-use cms_infra::config::AuthConfig;
-use cms_db::{auth::ApiKeyQueries, PgPool};
+pub use claims::{Claims, decode_jwt, encode_jwt};
+use cms_db::{PgPool, auth::ApiKeyQueries};
 use cms_error::AppError;
+use cms_infra::config::AuthConfig;
+pub use cookies::{
+    build_access_cookie, build_csrf_cookie, build_refresh_cookie, clear_access_cookie,
+    clear_csrf_cookie, clear_refresh_cookie, generate_csrf_token, parse_cookie_value,
+};
 use jsonwebtoken::{DecodingKey, EncodingKey, Validation};
+pub use lockout::{
+    LOCKOUT_MINUTES, MAX_FAILED_LOGINS, is_account_locked, record_failed_login, reset_failed_logins,
+};
+pub use middleware::{
+    AuthExtractor, AuthMethod, AuthRejection, OptionalAuthExtractor, RequireAuthMiddleware,
+    RequireRoleMiddleware, RoleRejection,
+};
+pub use router::router;
+pub use service::{AuthExtensionsService, AuthService as DomainAuthService};
 pub use session::*;
 
 /// Authentication service

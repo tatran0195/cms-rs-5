@@ -12,12 +12,12 @@ pub mod queries;
 pub mod service;
 
 use std::sync::Arc;
+
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
 use cms_server_core::app_state::AppState;
-
 pub use handlers::{NotificationState, NotificationUser};
 pub use hub::{NotificationEvent, NotificationHub};
 pub use queries::NotificationQueries;
@@ -31,10 +31,19 @@ pub fn router_with_hub(app_state: Arc<AppState>, hub: Arc<NotificationHub>) -> R
         .route("/", get(handlers::list_notifications_handler))
         .route("/{id}", get(handlers::get_notification_handler))
         .route("/read", post(handlers::mark_notification_read_handler))
-        .route("/read-all", post(handlers::mark_all_notifications_read_handler))
-        .route("/{id}/archive", post(handlers::archive_notification_handler))
+        .route(
+            "/read-all",
+            post(handlers::mark_all_notifications_read_handler),
+        )
+        .route(
+            "/{id}/archive",
+            post(handlers::archive_notification_handler),
+        )
         .route("/count", get(handlers::get_notification_count_handler))
-        .route("/unread-count", get(handlers::get_notification_count_handler))
+        .route(
+            "/unread-count",
+            get(handlers::get_notification_count_handler),
+        )
         .route("/ws", get(handlers::ws_notifications_handler))
         .with_state(state)
 }

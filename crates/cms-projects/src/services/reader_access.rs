@@ -5,14 +5,16 @@ use cms_error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::models::{
-    Audience, JwtAccessProvider, ProjectAudienceItem, ProjectJwtProviderItem,
-    ProjectReaderAccessResponse, ProjectReaderEmergencyRevokeResponse,
-    ProjectReaderInvitationResponse, ProjectReaderItem, Reader,
-};
-use crate::queries::{
-    AudienceQueries, JwtAccessProviderQueries, ReaderAudienceQueries, ReaderInvitationQueries,
-    ReaderQueries,
+use crate::{
+    models::{
+        Audience, JwtAccessProvider, ProjectAudienceItem, ProjectJwtProviderItem,
+        ProjectReaderAccessResponse, ProjectReaderEmergencyRevokeResponse,
+        ProjectReaderInvitationResponse, ProjectReaderItem, Reader,
+    },
+    queries::{
+        AudienceQueries, JwtAccessProviderQueries, ReaderAudienceQueries, ReaderInvitationQueries,
+        ReaderQueries,
+    },
 };
 
 /// Reader access service
@@ -84,14 +86,11 @@ impl ReaderAccessService {
         let audiences = AudienceQueries::get_by_project(pool, project_id).await?;
         let readers = ReaderQueries::get_by_project(pool, project_id).await?;
 
-        let provider = JwtAccessProviderQueries::get_by_issuer_and_audience(
-            pool,
-            project_id,
-            project_id,
-        )
-        .await
-        .ok()
-        .flatten();
+        let provider =
+            JwtAccessProviderQueries::get_by_issuer_and_audience(pool, project_id, project_id)
+                .await
+                .ok()
+                .flatten();
 
         let access_mode = if provider.is_some() || !readers.is_empty() {
             "READERS"

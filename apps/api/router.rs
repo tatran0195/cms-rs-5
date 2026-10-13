@@ -6,10 +6,10 @@
 use std::sync::Arc;
 
 use axum::{
+    Json, Router,
     extract::{Path, Query, State},
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
 };
 use cms_auth::AuthExtractor;
 use cms_entity::{
@@ -28,10 +28,10 @@ use cms_error::AppError;
 use cms_server_core::{
     app_state::AppState,
     locale_scoping_middleware,
-    observability::{init_observability, ObservabilityConfig, ObservabilityLayer},
+    observability::{ObservabilityConfig, ObservabilityLayer, init_observability},
     rate_limit::{
-        rate_limit_exceeded_response, RateLimitClient, RateLimitConfig, RateLimitResult,
-        RateLimiter,
+        RateLimitClient, RateLimitConfig, RateLimitResult, RateLimiter,
+        rate_limit_exceeded_response,
     },
     security_headers::{
         ReferrerPolicy, SecurityHeadersConfig, SecurityHeadersMiddleware, XFrameOptions,
@@ -54,11 +54,9 @@ pub(crate) async fn check_domain_tls_handler(
         return Ok((StatusCode::BAD_REQUEST, "Missing domain query parameter").into_response());
     };
 
-    let is_allowed = cms_projects::services::DomainService::is_domain_allowed_for_tls(
-        state.db(),
-        &domain,
-    )
-    .await?;
+    let is_allowed =
+        cms_projects::services::DomainService::is_domain_allowed_for_tls(state.db(), &domain)
+            .await?;
     if is_allowed {
         Ok((StatusCode::OK, "Domain is authorized for TLS certificate").into_response())
     } else {
@@ -124,7 +122,8 @@ pub(crate) async fn list_search_index_runs_handler(
     auth: AuthExtractor,
     Query(query): Query<ListSearchIndexRunsQuery>,
 ) -> Result<Json<PaginatedResponse<SearchIndexRunResponse>>, AppError> {
-    let result = cms_infra::search::SearchService::list_index_runs(state.db(), &auth.user.id, query).await?;
+    let result =
+        cms_infra::search::SearchService::list_index_runs(state.db(), &auth.user.id, query).await?;
 
     Ok(Json(result))
 }
@@ -134,7 +133,8 @@ pub(crate) async fn get_search_index_run_handler(
     auth: AuthExtractor,
     Path(run_id): Path<Id>,
 ) -> Result<Json<SearchIndexRunResponse>, AppError> {
-    let run = cms_infra::search::SearchService::get_index_run(state.db(), &auth.user.id, &run_id).await?;
+    let run =
+        cms_infra::search::SearchService::get_index_run(state.db(), &auth.user.id, &run_id).await?;
 
     Ok(Json(run))
 }
@@ -145,7 +145,8 @@ pub(crate) async fn get_search_status_handler(
     Path(project_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let status =
-        cms_infra::search::SearchService::get_search_status(state.db(), &auth.user.id, &project_id).await?;
+        cms_infra::search::SearchService::get_search_status(state.db(), &auth.user.id, &project_id)
+            .await?;
 
     Ok(Json(status))
 }
@@ -178,7 +179,9 @@ pub(crate) async fn list_analytics_events_handler(
     auth: AuthExtractor,
     Query(query): Query<ListAnalyticsEventsQuery>,
 ) -> Result<Json<PaginatedResponse<AnalyticsEventResponse>>, AppError> {
-    let result = cms_infra::analytics::AnalyticsService::list_events(state.db(), &auth.user.id, query).await?;
+    let result =
+        cms_infra::analytics::AnalyticsService::list_events(state.db(), &auth.user.id, query)
+            .await?;
 
     Ok(Json(result))
 }
@@ -189,7 +192,8 @@ pub(crate) async fn query_analytics_handler(
     Json(request): Json<AnalyticsQueryRequest>,
 ) -> Result<Json<AnalyticsQueryResponse>, AppError> {
     let result =
-        cms_infra::analytics::AnalyticsService::query_analytics(state.db(), &auth.user.id, request).await?;
+        cms_infra::analytics::AnalyticsService::query_analytics(state.db(), &auth.user.id, request)
+            .await?;
 
     Ok(Json(result))
 }
@@ -199,8 +203,12 @@ pub(crate) async fn get_analytics_dashboard_handler(
     auth: AuthExtractor,
     Path(project_id): Path<Id>,
 ) -> Result<Json<AnalyticsDashboardResponse>, AppError> {
-    let dashboard =
-        cms_infra::analytics::AnalyticsService::get_dashboard(state.db(), &auth.user.id, &project_id).await?;
+    let dashboard = cms_infra::analytics::AnalyticsService::get_dashboard(
+        state.db(),
+        &auth.user.id,
+        &project_id,
+    )
+    .await?;
 
     Ok(Json(dashboard))
 }
@@ -211,7 +219,8 @@ pub(crate) async fn get_page_views_handler(
     Path(page_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let views =
-        cms_infra::analytics::AnalyticsService::get_page_views(state.db(), &auth.user.id, &page_id).await?;
+        cms_infra::analytics::AnalyticsService::get_page_views(state.db(), &auth.user.id, &page_id)
+            .await?;
 
     Ok(Json(serde_json::json!(views)))
 }
@@ -254,7 +263,10 @@ pub(crate) async fn list_mcp_audit_events_handler(
 
 fn mcp_router(state: Arc<AppState>) -> Router {
     let mcp_service = cms_mcp::create_mcp_http_service(
-        Arc::new(cms_mcp::McpContext::new(state.db().clone(), state.authz().clone())),
+        Arc::new(cms_mcp::McpContext::new(
+            state.db().clone(),
+            state.authz().clone(),
+        )),
         cms_mcp::McpSecurityContext::system(),
     );
 
@@ -281,8 +293,14 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/git", cms_git::router(state.clone()));
     router = router.nest("/integrations", cms_integrations::router(state.clone()));
     router = router.nest("/deployments", cms_deployments::router(state.clone()));
-    router = router.nest("/domains", cms_projects::domains_router().with_state(state.clone()));
-    router = router.nest("/reader-access", cms_projects::reader_access_router().with_state(state.clone()));
+    router = router.nest(
+        "/domains",
+        cms_projects::domains_router().with_state(state.clone()),
+    );
+    router = router.nest(
+        "/reader-access",
+        cms_projects::reader_access_router().with_state(state.clone()),
+    );
     router = router.nest("/comments", cms_content::comment_router(state.clone()));
     router = router.nest("/search", search_router(state.clone()));
     router = router.nest("/export", cms_reports::export_router(state.clone()));
@@ -291,10 +309,16 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/assets", cms_assets::router(state.clone()));
     router = router.nest("/analytics", analytics_router(state.clone()));
     router = router.nest("/themes", cms_themes::router(state.clone()));
-    router = router.nest("/platform-events", cms_admin::platform_events::router(state.clone()));
+    router = router.nest(
+        "/platform-events",
+        cms_admin::platform_events::router(state.clone()),
+    );
     router = router.nest("/mcp", mcp_router(state.clone()));
     router = router.nest("/members", cms_workspaces::members_router(state.clone()));
-    router = router.nest("/workspace", cms_workspaces::workspace_router(state.clone()));
+    router = router.nest(
+        "/workspace",
+        cms_workspaces::workspace_router(state.clone()),
+    );
     router = router.nest("/invitations", cms_invitations::router(state.clone()));
     router = router.nest("/reports", cms_reports::router(state.clone()));
     router = router.nest("/setup", cms_onboarding::router(state.clone()));
@@ -309,8 +333,14 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
         .nest("/git", cms_git::router(state.clone()))
         .nest("/integrations", cms_integrations::router(state.clone()))
         .nest("/deployments", cms_deployments::router(state.clone()))
-        .nest("/domains", cms_projects::domains_router().with_state(state.clone()))
-        .nest("/reader-access", cms_projects::reader_access_router().with_state(state.clone()))
+        .nest(
+            "/domains",
+            cms_projects::domains_router().with_state(state.clone()),
+        )
+        .nest(
+            "/reader-access",
+            cms_projects::reader_access_router().with_state(state.clone()),
+        )
         .nest("/comments", cms_content::comment_router(state.clone()))
         .nest("/search", search_router(state.clone()))
         .nest("/export", cms_reports::export_router(state.clone()))
@@ -319,10 +349,16 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
         .nest("/assets", cms_assets::router(state.clone()))
         .nest("/analytics", analytics_router(state.clone()))
         .nest("/themes", cms_themes::router(state.clone()))
-        .nest("/platform-events", cms_admin::platform_events::router(state.clone()))
+        .nest(
+            "/platform-events",
+            cms_admin::platform_events::router(state.clone()),
+        )
         .nest("/mcp", mcp_router(state.clone()))
         .nest("/members", cms_workspaces::members_router(state.clone()))
-        .nest("/workspace", cms_workspaces::workspace_router(state.clone()))
+        .nest(
+            "/workspace",
+            cms_workspaces::workspace_router(state.clone()),
+        )
         .nest("/invitations", cms_invitations::router(state.clone()))
         .nest("/reports", cms_reports::router(state.clone()))
         .nest("/setup", cms_onboarding::router(state.clone()));
@@ -336,8 +372,14 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/public", cms_public::router(state.clone()));
 
     // OpenAPI documentation endpoints
-    router = router.route("/api-docs/openapi.json", get(crate::docs::serve_openapi_spec));
-    router = router.route("/api-docs/openapi.yaml", get(crate::docs::serve_openapi_yaml));
+    router = router.route(
+        "/api-docs/openapi.json",
+        get(crate::docs::serve_openapi_spec),
+    );
+    router = router.route(
+        "/api-docs/openapi.yaml",
+        get(crate::docs::serve_openapi_yaml),
+    );
     router = router.route("/api-docs", get(crate::docs::serve_swagger_ui));
     router = router.route("/api-docs/redoc", get(crate::docs::serve_redoc));
 

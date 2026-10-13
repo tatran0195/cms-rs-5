@@ -7,14 +7,15 @@ use std::sync::Arc;
 
 use axum::{
     extract::FromRequestParts,
-    http::{header, request::Parts, StatusCode},
+    http::{StatusCode, header, request::Parts},
     response::{IntoResponse, Response},
 };
 use axum_extra::extract::cookie::Cookie;
-use crate::service::AuthService;
 use cms_entity::auth::UserResponse;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
+
+use crate::service::AuthService;
 
 /// Authentication extractor
 /// Authentication extractor
@@ -64,8 +65,10 @@ where
         let state = parts
             .extensions
             .get::<Arc<AppState>>()
-            .ok_or_else(|| AppError::Internal(anyhow::anyhow!("AppState not found in extensions")))?
-            .clone();
+            .map(Arc::clone)
+            .ok_or_else(|| {
+                AppError::Internal(anyhow::anyhow!("AppState not found in extensions"))
+            })?;
 
         // Try session cookie first
         if let Ok((user, claims)) = extract_from_session(parts, &state).await {
@@ -111,16 +114,13 @@ async fn extract_from_session(
     let cookie_str = cookie_header.to_str().map_err(|_| AppError::Unauthorized)?;
 
     // Try access_token first (15-minute JWT cookie)
-    if let Some(access_tok) = crate::parse_cookie_value(cookie_str, "access_token") {
-        if let Ok(claims) =
+    if let Some(access_tok) = crate::parse_cookie_value(cookie_str, "access_token")
+        && let Ok(claims) =
             crate::decode_jwt(access_tok, state.config.auth.session_secret.as_bytes())
-        {
-            if let Ok(Some(u)) =
-                cms_db::auth::UserQueries::get_by_id(state.db(), &claims.user_id_string()).await
-            {
-                return Ok((u.into(), claims));
-            }
-        }
+        && let Ok(Some(u)) =
+            cms_db::auth::UserQueries::get_by_id(state.db(), &claims.user_id_string()).await
+    {
+        return Ok((u.into(), claims));
     }
 
     // Try legacy session cookie
@@ -165,14 +165,11 @@ async fn extract_from_jwt(
     }
 
     // Otherwise validate as JWT claims
-    if let Ok(claims) =
-        crate::decode_jwt(token, state.config.auth.session_secret.as_bytes())
-    {
-        if let Ok(Some(u)) =
+    if let Ok(claims) = crate::decode_jwt(token, state.config.auth.session_secret.as_bytes())
+        && let Ok(Some(u)) =
             cms_db::auth::UserQueries::get_by_id(state.db(), &claims.user_id_string()).await
-        {
-            return Ok((u.into(), claims));
-        }
+    {
+        return Ok((u.into(), claims));
     }
 
     // Fall back to legacy JWT lookup
@@ -223,8 +220,10 @@ where
         let state = parts
             .extensions
             .get::<Arc<AppState>>()
-            .ok_or_else(|| AppError::Internal(anyhow::anyhow!("AppState not found in extensions")))?
-            .clone();
+            .map(Arc::clone)
+            .ok_or_else(|| {
+                AppError::Internal(anyhow::anyhow!("AppState not found in extensions"))
+            })?;
 
         if let Ok((user, claims)) = extract_from_session(parts, &state).await {
             return Ok(OptionalAuthExtractor {

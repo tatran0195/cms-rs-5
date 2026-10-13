@@ -1,9 +1,10 @@
 //! Comment HTTP handlers for content vertical slice.
 
 use std::sync::Arc;
+
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     comment::{
@@ -73,14 +74,9 @@ pub async fn update_comment_handler(
     Path(comment_id): Path<Id>,
     Json(request): Json<UpdateCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
-    let comment = CommentService::update_comment(
-        state.db(),
-        &auth.user_id,
-        &comment_id,
-        None,
-        request,
-    )
-    .await?;
+    let comment =
+        CommentService::update_comment(state.db(), &auth.user_id, &comment_id, None, request)
+            .await?;
 
     Ok(Json(comment))
 }

@@ -43,15 +43,27 @@ fn test_integration_response_serialization() {
 #[test]
 fn test_ssrf_private_ip_blocking() {
     // Loopback
-    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))));
+    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(
+        127, 0, 0, 1
+    ))));
     assert!(is_private_or_restricted_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)));
 
     // RFC 1918 Private ranges
-    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))));
-    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(172, 16, 0, 1))));
-    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1))));
+    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(
+        10, 0, 0, 1
+    ))));
+    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(
+        172, 16, 0, 1
+    ))));
+    assert!(is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(
+        192, 168, 1, 1
+    ))));
 
     // Public IPs should NOT be blocked
-    assert!(!is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8))));
-    assert!(!is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1))));
+    assert!(!is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(
+        8, 8, 8, 8
+    ))));
+    assert!(!is_private_or_restricted_ip(IpAddr::V4(Ipv4Addr::new(
+        1, 1, 1, 1
+    ))));
 }

@@ -3,22 +3,21 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use axum::{
+    Router,
     body::Body,
     extract::ConnectInfo,
-    http::{header, HeaderValue, Method, Request, StatusCode},
+    http::{HeaderValue, Method, Request, StatusCode, header},
     middleware::from_fn,
     routing::get,
-    Router,
 };
-use tower::ServiceExt;
-
 use cms_server_core::middleware::{
-    client_ip::{extract_client_ip, ClientIp},
+    client_ip::{ClientIp, extract_client_ip},
     csrf::csrf_middleware,
     ip_restrict::{ip_allowed, ip_in_cidr},
     rate_limit::SlidingRateLimiter,
-    request_id::{request_id_header, MakeRequestUuid},
+    request_id::{MakeRequestUuid, request_id_header},
 };
+use tower::ServiceExt;
 use tower_http::request_id::MakeRequestId;
 
 #[test]
@@ -42,11 +41,10 @@ fn test_client_ip_trusted_proxy_logic() {
 
     // Case 1: Direct connection from trusted proxy with X-Forwarded-For
     let mut req1 = Request::new(());
-    req1.extensions_mut()
-        .insert(ConnectInfo(SocketAddr::new(
-            IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)),
-            12345,
-        )));
+    req1.extensions_mut().insert(ConnectInfo(SocketAddr::new(
+        IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)),
+        12345,
+    )));
     req1.headers_mut().insert(
         "x-forwarded-for",
         HeaderValue::from_static("203.0.113.195, 10.0.0.1"),
@@ -62,19 +60,19 @@ fn test_client_ip_trusted_proxy_logic() {
     // Verify ClientIp wrapper
     let client_ip_wrapper = ClientIp(extracted.unwrap());
     assert_eq!(client_ip_wrapper.as_str(), "203.0.113.195");
-    assert_eq!(client_ip_wrapper.ip(), IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)));
+    assert_eq!(
+        client_ip_wrapper.ip(),
+        IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195))
+    );
 
     // Case 2: Direct connection from UNTRUSTED IP trying to spoof X-Forwarded-For
     let mut req2 = Request::new(());
-    req2.extensions_mut()
-        .insert(ConnectInfo(SocketAddr::new(
-            IpAddr::V4(Ipv4Addr::new(198, 51, 100, 7)),
-            12345,
-        )));
-    req2.headers_mut().insert(
-        "x-forwarded-for",
-        HeaderValue::from_static("1.1.1.1"),
-    );
+    req2.extensions_mut().insert(ConnectInfo(SocketAddr::new(
+        IpAddr::V4(Ipv4Addr::new(198, 51, 100, 7)),
+        12345,
+    )));
+    req2.headers_mut()
+        .insert("x-forwarded-for", HeaderValue::from_static("1.1.1.1"));
 
     let extracted_untrusted = extract_client_ip(&req2, &trusted_proxies);
     assert_eq!(
@@ -112,8 +110,14 @@ fn test_ip_cidr_matching_and_rules() {
     let ip_outside: IpAddr = "172.16.0.1".parse().expect("valid ip");
 
     assert!(ip_allowed(ip_normal, &allowed, &blocked));
-    assert!(!ip_allowed(ip_denied, &allowed, &blocked), "Denylist must take precedence");
-    assert!(!ip_allowed(ip_outside, &allowed, &blocked), "IP outside allowlist must be denied");
+    assert!(
+        !ip_allowed(ip_denied, &allowed, &blocked),
+        "Denylist must take precedence"
+    );
+    assert!(
+        !ip_allowed(ip_outside, &allowed, &blocked),
+        "IP outside allowlist must be denied"
+    );
 }
 
 #[test]

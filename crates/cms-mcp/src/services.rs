@@ -4,13 +4,14 @@
 //! MCP allows AI agents to query CMS documentation programmatically.
 
 use std::sync::Arc;
+
 use cms_db::{
-    branch::BranchQueries, mcp::McpAuditEventQueries, page::PageQueries, project::ProjectQueries,
-    PgPool,
+    PgPool, branch::BranchQueries, mcp::McpAuditEventQueries, page::PageQueries,
+    project::ProjectQueries,
 };
 use cms_entity::{
     common::PaginatedResponse,
-    mcp::{operation_types, McpAuditEventResponse, McpResourceItem},
+    mcp::{McpAuditEventResponse, McpResourceItem, operation_types},
     project::Project,
 };
 use cms_error::AppError;
@@ -63,7 +64,12 @@ impl McpService {
             let authz_ctx = cms_authz::AuthzContext::new(user_uuid, "member".to_string(), false);
             let allowed = ctx
                 .authz
-                .check(&authz_ctx, cms_authz::Relation::Viewer, "project", project_uuid)
+                .check(
+                    &authz_ctx,
+                    cms_authz::Relation::Viewer,
+                    "project",
+                    project_uuid,
+                )
                 .await
                 .map_err(AppError::internal)?;
             if !allowed {
@@ -181,15 +187,13 @@ impl McpService {
             page.title, page.path, page.content, page.updated_at
         );
 
-        if let Some(limit) = max_chars {
-            if content.len() > limit {
-                let mut end = limit;
-                while end > 0 && !content.is_char_boundary(end) {
-                    end -= 1;
-                }
-                content.truncate(end);
-                content.push_str("\n\n... [Truncated: exceeded max_chars limit]");
+        if let Some(limit) = max_chars.filter(|&limit| content.len() > limit) {
+            let mut end = limit;
+            while end > 0 && !content.is_char_boundary(end) {
+                end -= 1;
             }
+            content.truncate(end);
+            content.push_str("\n\n... [Truncated: exceeded max_chars limit]");
         }
 
         Self::record_audit_event(
@@ -328,7 +332,10 @@ impl McpService {
                     resources.push(McpResourceItem {
                         uri: format!("cms://projects/{}/pages{}", project.id, path_suffix),
                         name: page.title.clone(),
-                        description: Some(format!("Page '{}' in project '{}'", page.title, project.name)),
+                        description: Some(format!(
+                            "Page '{}' in project '{}'",
+                            page.title, project.name
+                        )),
                         mime_type: "text/markdown".to_string(),
                     });
                 }
@@ -383,18 +390,26 @@ impl McpService {
 
         let raw_path = after.trim_start_matches('/');
 
-        let page = match PageQueries::get_by_path(&ctx.pool, project_id, &branch_id, &normalized_path).await? {
-            Some(p) => p,
-            None => {
-                if !raw_path.is_empty() {
-                    PageQueries::get_by_path(&ctx.pool, project_id, &branch_id, raw_path)
-                        .await?
-                        .ok_or_else(|| AppError::NotFound(format!("Page not found at URI: {}", uri)))?
-                } else {
-                    return Err(AppError::NotFound(format!("Page not found at URI: {}", uri)));
+        let page =
+            match PageQueries::get_by_path(&ctx.pool, project_id, &branch_id, &normalized_path)
+                .await?
+            {
+                Some(p) => p,
+                None => {
+                    if !raw_path.is_empty() {
+                        PageQueries::get_by_path(&ctx.pool, project_id, &branch_id, raw_path)
+                            .await?
+                            .ok_or_else(|| {
+                                AppError::NotFound(format!("Page not found at URI: {}", uri))
+                            })?
+                    } else {
+                        return Err(AppError::NotFound(format!(
+                            "Page not found at URI: {}",
+                            uri
+                        )));
+                    }
                 }
-            }
-        };
+            };
 
         Self::record_audit_event(
             ctx,
@@ -420,22 +435,11 @@ impl McpService {
         limit: Option<i64>,
         offset: Option<i64>,
     ) -> Result<PaginatedResponse<McpAuditEventResponse>, AppError> {
-        let events = McpAuditEventQueries::list(
-            pool,
-            project_id,
-            user_id_filter,
-            operation,
-            limit,
-            offset,
-        )
-        .await?;
-        let total = McpAuditEventQueries::count(
-            pool,
-            project_id,
-            user_id_filter,
-            operation,
-        )
-        .await?;
+        let events =
+            McpAuditEventQueries::list(pool, project_id, user_id_filter, operation, limit, offset)
+                .await?;
+        let total =
+            McpAuditEventQueries::count(pool, project_id, user_id_filter, operation).await?;
         Ok(PaginatedResponse::new(
             events.into_iter().map(Into::into).collect(),
             total as u64,

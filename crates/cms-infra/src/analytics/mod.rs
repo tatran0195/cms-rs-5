@@ -7,9 +7,10 @@
 
 use std::sync::Arc;
 
-use crate::config::AnalyticsConfig;
 use cms_db::PgPool;
 use cms_error::AppError;
+
+use crate::config::AnalyticsConfig;
 
 pub mod postgres;
 pub mod services;

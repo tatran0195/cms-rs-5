@@ -3,10 +3,9 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
-use crate::auth::DeploymentUser;
 use cms_entity::{
     common::{Id, PaginatedResponse},
     deployment::{CreateDeploymentRequest, DeploymentResponse, ListDeploymentsQuery},
@@ -14,7 +13,7 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::service::DeploymentService;
+use crate::{auth::DeploymentUser, service::DeploymentService};
 
 /// List deployments for a project
 #[utoipa::path(
@@ -47,14 +46,9 @@ pub async fn list_deployments_handler(
     let limit = query.limit.unwrap_or(20) as u64;
     let offset = query.offset.unwrap_or(0) as u64;
     let page = offset.checked_div(limit).unwrap_or(0).saturating_add(1);
-    let result = DeploymentService::list_deployments(
-        state.db(),
-        &auth.user_id,
-        project_id,
-        page,
-        limit,
-    )
-    .await?;
+    let result =
+        DeploymentService::list_deployments(state.db(), &auth.user_id, project_id, page, limit)
+            .await?;
 
     Ok(Json(result))
 }

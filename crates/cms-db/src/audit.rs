@@ -95,17 +95,22 @@ impl AuditLogger {
     ) -> Result<(), AppError> {
         // allow-raw-sql: fetches prev_hash for chain construction; no user data in query
         let prev_hash: Option<String> = sqlx::query_scalar(
-            "SELECT hash FROM audit_log \
-             WHERE workspace_id IS NOT DISTINCT FROM $1 AND hash IS NOT NULL \
-             ORDER BY created_at DESC, id DESC LIMIT 1",
+            "SELECT hash FROM audit_log WHERE workspace_id IS NOT DISTINCT FROM $1 AND hash IS \
+             NOT NULL ORDER BY created_at DESC, id DESC LIMIT 1",
         )
         .bind(entry.workspace_id)
         .fetch_optional(&mut **tx)
         .await
         .map_err(|e| AppError::Database(e.into()))?;
 
-        let old_json = entry.old_values.map(ToString::to_string).unwrap_or_default();
-        let new_json = entry.new_values.map(ToString::to_string).unwrap_or_default();
+        let old_json = entry
+            .old_values
+            .map(ToString::to_string)
+            .unwrap_or_default();
+        let new_json = entry
+            .new_values
+            .map(ToString::to_string)
+            .unwrap_or_default();
         let hash_input = format!(
             "{}|{}|{}|{}|{}|{}|{}|{}",
             entry.workspace_id.unwrap_or(""),
@@ -123,11 +128,10 @@ impl AuditLogger {
         // allow-raw-sql: audit insert — compile-time check not possible due to
         // dynamic optional fields; query structure is stable and reviewed.
         sqlx::query(
-            "INSERT INTO audit_log \
-             (workspace_id, user_id, action, entity_type, entity_id, \
-              old_values, new_values, ip_address, module, correlation_id, \
-              description, prev_hash, hash, hash_input_canonical) \
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+            "INSERT INTO audit_log (workspace_id, user_id, action, entity_type, entity_id, \
+             old_values, new_values, ip_address, module, correlation_id, description, prev_hash, \
+             hash, hash_input_canonical) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, \
+             $12, $13, $14)",
         )
         .bind(entry.workspace_id)
         .bind(entry.user_id)
@@ -153,7 +157,10 @@ impl AuditLogger {
     /// Log an HTTP-level audit entry from Tower middleware.
     /// Opens its own transaction so it never blocks the handler's main TX.
     pub async fn log_http(pool: &PgPool, entry: &HttpAuditEntry) -> Result<(), AppError> {
-        let mut tx = pool.begin().await.map_err(|e| AppError::Database(e.into()))?;
+        let mut tx = pool
+            .begin()
+            .await
+            .map_err(|e| AppError::Database(e.into()))?;
 
         // allow-raw-sql: GUC bootstrap for RLS; no user data
         if let Some(wid) = &entry.workspace_id {
@@ -165,9 +172,8 @@ impl AuditLogger {
         }
 
         let prev_hash: Option<String> = sqlx::query_scalar(
-            "SELECT hash FROM audit_log \
-             WHERE workspace_id IS NOT DISTINCT FROM $1 AND hash IS NOT NULL \
-             ORDER BY created_at DESC, id DESC LIMIT 1",
+            "SELECT hash FROM audit_log WHERE workspace_id IS NOT DISTINCT FROM $1 AND hash IS \
+             NOT NULL ORDER BY created_at DESC, id DESC LIMIT 1",
         )
         .bind(entry.workspace_id.as_deref())
         .fetch_optional(&mut *tx)
@@ -188,11 +194,10 @@ impl AuditLogger {
         let hash = sha256_hex(&hash_input);
 
         sqlx::query(
-            "INSERT INTO audit_log \
-             (workspace_id, user_id, action, entity_type, entity_id, \
-              ip_address, user_agent, session_id, correlation_id, \
-              module, prev_hash, hash, description, hash_input_canonical) \
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+            "INSERT INTO audit_log (workspace_id, user_id, action, entity_type, entity_id, \
+             ip_address, user_agent, session_id, correlation_id, module, prev_hash, hash, \
+             description, hash_input_canonical) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, \
+             $11, $12, $13, $14)",
         )
         .bind(entry.workspace_id.as_deref())
         .bind(entry.user_id.as_deref())
@@ -206,13 +211,18 @@ impl AuditLogger {
         .bind(entry.module.as_deref())
         .bind(prev_hash.as_deref())
         .bind(&hash)
-        .bind(format!("{} {} → {}", entry.method, entry.action, entry.status_code))
+        .bind(format!(
+            "{} {} → {}",
+            entry.method, entry.action, entry.status_code
+        ))
         .bind(&hash_input)
         .execute(&mut *tx)
         .await
         .map_err(|e| AppError::Database(e.into()))?;
 
-        tx.commit().await.map_err(|e| AppError::Database(e.into()))?;
+        tx.commit()
+            .await
+            .map_err(|e| AppError::Database(e.into()))?;
         Ok(())
     }
 
@@ -234,12 +244,10 @@ impl AuditLogger {
         'pages: loop {
             // allow-raw-sql: keyset pagination over audit_log; workspace_id is a parameter
             let page: Vec<ChainRow> = sqlx::query_as(
-                "SELECT id, hash, hash_input_canonical, prev_hash, created_at \
-                 FROM audit_log \
-                 WHERE workspace_id IS NOT DISTINCT FROM $1 AND hash IS NOT NULL \
-                   AND ($2::timestamptz IS NULL OR (created_at, id) > ($2, $3)) \
-                 ORDER BY created_at ASC, id ASC \
-                 LIMIT $4",
+                "SELECT id, hash, hash_input_canonical, prev_hash, created_at FROM audit_log \
+                 WHERE workspace_id IS NOT DISTINCT FROM $1 AND hash IS NOT NULL AND \
+                 ($2::timestamptz IS NULL OR (created_at, id) > ($2, $3)) ORDER BY created_at \
+                 ASC, id ASC LIMIT $4",
             )
             .bind(workspace_id)
             .bind(cursor.map(|(at, _)| at))
@@ -292,15 +300,10 @@ impl AuditLogger {
     ) -> Result<Vec<AuditLogRow>, AppError> {
         // allow-raw-sql: filter query with multiple optional parameters
         let rows = sqlx::query_as::<_, AuditLogRow>(
-            "SELECT id, workspace_id, user_id, action, entity_type, entity_id, \
-                    old_values, new_values, ip_address, module, description, \
-                    correlation_id, created_at \
-             FROM audit_log \
-             WHERE workspace_id IS NOT DISTINCT FROM $1 \
-               AND ($2::text IS NULL OR user_id = $2) \
-               AND ($3::text IS NULL OR action = $3) \
-             ORDER BY created_at DESC \
-             LIMIT $4",
+            "SELECT id, workspace_id, user_id, action, entity_type, entity_id, old_values, \
+             new_values, ip_address, module, description, correlation_id, created_at FROM \
+             audit_log WHERE workspace_id IS NOT DISTINCT FROM $1 AND ($2::text IS NULL OR \
+             user_id = $2) AND ($3::text IS NULL OR action = $3) ORDER BY created_at DESC LIMIT $4",
         )
         .bind(workspace_id)
         .bind(user_id)

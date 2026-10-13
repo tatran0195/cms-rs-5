@@ -3,7 +3,7 @@
 //! Handles comments on pages, role enforcement, nested replies,
 //! and resolution state.
 
-use cms_db::{comment::CommentQueries, page::PageQueries, PgPool};
+use cms_db::{PgPool, comment::CommentQueries, page::PageQueries};
 use cms_entity::{
     comment::{CommentResponse, CommentWithReplies, CreateCommentRequest, UpdateCommentRequest},
     common::{MemberRole, PaginatedResponse},
@@ -51,10 +51,7 @@ impl CommentService {
     }
 
     /// Helper to enforce required role using in-memory member role
-    fn require_role(
-        member_role: Option<MemberRole>,
-        min_role: MemberRole,
-    ) -> Result<(), AppError> {
+    fn require_role(member_role: Option<MemberRole>, min_role: MemberRole) -> Result<(), AppError> {
         if let Some(role) = member_role {
             if role >= min_role {
                 return Ok(());

@@ -4,8 +4,8 @@
 //! cycle detection, and reordering.
 
 use cms_db::{
-    branch::BranchQueries, language::LanguageQueries, page::PageQueries,
-    platform_event::PlatformEventQueries, project::ProjectQueries, PgPool,
+    PgPool, branch::BranchQueries, language::LanguageQueries, page::PageQueries,
+    platform_event::PlatformEventQueries, project::ProjectQueries,
 };
 use cms_entity::{
     common::PaginatedResponse,
@@ -460,11 +460,7 @@ impl PageService {
         } else if page.slug == "untitled" {
             request.title.as_deref().and_then(|t| {
                 let s = normalize_page_slug(t);
-                if s.is_empty() {
-                    None
-                } else {
-                    Some(s)
-                }
+                if s.is_empty() { None } else { Some(s) }
             })
         } else {
             None
@@ -537,7 +533,9 @@ impl PageService {
                     };
                     let test_path = effective_parent_path.as_deref().map_or_else(
                         || format!("/{test_slug}"),
-                        |parent_path| format!("{}/{}", parent_path.trim_end_matches('/'), test_slug),
+                        |parent_path| {
+                            format!("{}/{}", parent_path.trim_end_matches('/'), test_slug)
+                        },
                     );
                     if PageQueries::is_path_available(
                         pool,

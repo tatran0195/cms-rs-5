@@ -18,7 +18,6 @@ use std::{
 };
 
 use async_trait::async_trait;
-use crate::config::RagConfig;
 use cms_entity::{
     page::Page,
     search::{ProjectIndexStats, RagAnswer, SearchHit, SearchOptions},
@@ -46,6 +45,7 @@ use super::{
     tokenizer::{JapaneseTokenizer, LinderaTantivyTokenizer, JAPANESE_TOKENIZER_NAME},
     traits::SearchEngine,
 };
+use crate::config::RagConfig;
 
 /// Schema fields for Tantivy project index
 #[derive(Debug, Clone, Copy)]
@@ -273,7 +273,10 @@ impl std::fmt::Debug for TantivySearchEngine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("TantivySearchEngine")
             .field("base_dir", &self.base_dir)
-            .field("writer_memory_budget_bytes", &self.writer_memory_budget_bytes)
+            .field(
+                "writer_memory_budget_bytes",
+                &self.writer_memory_budget_bytes,
+            )
             .finish()
     }
 }
@@ -420,13 +423,13 @@ impl TantivySearchEngine {
         {
             let read = self.projects.read();
             if let Some(idx) = read.get(project_id) {
-                return Ok(idx.clone());
+                return Ok(Arc::clone(idx));
             }
         }
 
         let mut write = self.projects.write();
         if let Some(idx) = write.get(project_id) {
-            return Ok(idx.clone());
+            return Ok(Arc::clone(idx));
         }
 
         let project_idx = Arc::new(ProjectIndex::open_or_create(
@@ -435,7 +438,7 @@ impl TantivySearchEngine {
             &self.tokenizer,
         )?);
 
-        write.insert(project_id.to_string(), project_idx.clone());
+        write.insert(project_id.to_string(), Arc::clone(&project_idx));
         Ok(project_idx)
     }
 
@@ -450,19 +453,19 @@ impl TantivySearchEngine {
         {
             let read = self.vector_indexes.read();
             if let Some(idx) = read.get(project_id) {
-                return Ok(idx.clone());
+                return Ok(Arc::clone(idx));
             }
         }
 
         let mut write = self.vector_indexes.write();
         if let Some(idx) = write.get(project_id) {
-            return Ok(idx.clone());
+            return Ok(Arc::clone(idx));
         }
 
         let vec_idx = ProjectVectorIndex::open_or_create(&self.base_dir, project_id, dim, model)?;
 
         let arc = Arc::new(tokio::sync::Mutex::new(vec_idx));
-        write.insert(project_id.to_string(), arc.clone());
+        write.insert(project_id.to_string(), Arc::clone(&arc));
         Ok(arc)
     }
 }
@@ -1000,9 +1003,8 @@ impl TantivySearchEngine {
         query_str: &str,
         opts: &SearchOptions,
     ) -> Vec<SearchHit> {
-        let embedder = match &self.embedder {
-            Some(e) => e,
-            None => return Vec::new(),
+        let Some(embedder) = &self.embedder else {
+            return Vec::new();
         };
 
         let query_embedding = match embedder.embed_query(query_str).await {
@@ -1015,9 +1017,8 @@ impl TantivySearchEngine {
 
         let dim = embedder.dimension();
         let model = embedder.model_name().to_string();
-        let vec_idx = match self.get_or_create_vector_index(project_id, dim, &model) {
-            Ok(idx) => idx,
-            Err(_) => return Vec::new(),
+        let Ok(vec_idx) = self.get_or_create_vector_index(project_id, dim, &model) else {
+            return Vec::new();
         };
 
         let mut vec_guard = vec_idx.lock().await;

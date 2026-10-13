@@ -1,6 +1,7 @@
 //! Real-time notification hub for WebSockets and live feeds
 
 use std::{collections::HashMap, sync::Arc};
+
 use cms_entity::notification::NotificationResponse;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,14 @@ pub enum NotificationEvent {
         unread_count: i64,
     },
     /// All notifications marked as read
-    AllRead {
-        unread_count: i64,
-    },
+    AllRead { unread_count: i64 },
     /// Notification archived
     Archived {
         notification_id: String,
         unread_count: i64,
     },
     /// Unread count update
-    UnreadCount {
-        unread_count: i64,
-    },
+    UnreadCount { unread_count: i64 },
     /// Heartbeat ping from server
     Ping,
 }

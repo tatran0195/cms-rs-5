@@ -3,9 +3,9 @@
 use std::sync::Arc;
 
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::StatusCode,
-    Json,
 };
 use cms_authz::Relation;
 use cms_entity::{
@@ -20,7 +20,7 @@ use cms_server_core::app_state::AppState;
 use uuid::Uuid;
 use validator::Validate;
 
-use super::auth::{authorize_project, ProjectUser};
+use super::auth::{ProjectUser, authorize_project};
 use crate::services::ProjectService;
 
 /// List all projects for the authenticated user
@@ -57,12 +57,7 @@ pub async fn list_projects_handler(
     }
 
     let total = filtered.len() as u64;
-    let paginated = PaginatedResponse::new(
-        filtered,
-        total,
-        candidates.page,
-        candidates.page_size,
-    );
+    let paginated = PaginatedResponse::new(filtered, total, candidates.page, candidates.page_size);
 
     Ok(Json(ApiResponse::from(paginated)))
 }
@@ -149,13 +144,9 @@ pub async fn update_project_settings_handler(
 ) -> Result<Json<ApiResponse<ProjectSettings>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Editor).await?;
 
-    let settings = ProjectService::update_project_settings(
-        state.db(),
-        &auth.user_id,
-        &project_id,
-        request,
-    )
-    .await?;
+    let settings =
+        ProjectService::update_project_settings(state.db(), &auth.user_id, &project_id, request)
+            .await?;
 
     Ok(Json(ApiResponse::new(settings)))
 }

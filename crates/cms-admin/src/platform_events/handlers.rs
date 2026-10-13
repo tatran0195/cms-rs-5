@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_auth::AuthExtractor;
 use cms_entity::{
@@ -150,8 +150,7 @@ pub async fn get_platform_event_handler(
     auth: AuthExtractor,
     Path(event_id): Path<Id>,
 ) -> Result<Json<PlatformEventResponse>, AppError> {
-    let event =
-        PlatformEventService::get_event(state.db(), &auth.user.id, &event_id).await?;
+    let event = PlatformEventService::get_event(state.db(), &auth.user.id, &event_id).await?;
 
     Ok(Json(event))
 }

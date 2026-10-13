@@ -4,9 +4,10 @@
 //! outbox delivery integration, and Axum HTTP route handlers.
 
 use std::sync::Arc;
+
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
 use cms_server_core::app_state::AppState;
 

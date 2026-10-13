@@ -4,11 +4,11 @@
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
 use cms_db::{
+    PgPool,
     integration::{
         IntegrationAuditEventQueries, IntegrationIdempotencyRecordQueries,
         ProjectIntegrationQueries,
     },
-    PgPool,
 };
 use cms_entity::integration::{
     CreateProjectIntegrationRequest, IntegrationProvider, ProjectIntegrationResponse,

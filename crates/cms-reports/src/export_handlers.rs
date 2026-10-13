@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     common::{Id, PaginatedResponse},
@@ -28,14 +28,9 @@ pub async fn list_export_jobs_handler(
     let page_size = query.limit.unwrap_or(20).max(1) as u64;
     let offset = query.offset.unwrap_or(0).max(0) as u64;
     let page = (offset / page_size) + 1;
-    let result = ExportService::list_export_jobs(
-        state.db(),
-        &auth.user_id,
-        snapshot_id,
-        page,
-        page_size,
-    )
-    .await?;
+    let result =
+        ExportService::list_export_jobs(state.db(), &auth.user_id, snapshot_id, page, page_size)
+            .await?;
 
     Ok(Json(PaginatedResponse::new(
         result.data.into_iter().map(Into::into).collect(),
@@ -79,8 +74,7 @@ pub async fn download_export_handler(
     auth: ReportUser,
     Path(job_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let download_url =
-        ExportService::get_download_url(state.db(), &auth.user_id, &job_id).await?;
+    let download_url = ExportService::get_download_url(state.db(), &auth.user_id, &job_id).await?;
 
     Ok(Json(serde_json::json!({"download_url": download_url})))
 }
@@ -92,8 +86,7 @@ pub async fn list_export_schedules_handler(
     Path(project_id): Path<Id>,
 ) -> Result<Json<Vec<ExportScheduleResponse>>, AppError> {
     let schedules =
-        ExportService::list_export_schedules(state.db(), &auth.user_id, &project_id)
-            .await?;
+        ExportService::list_export_schedules(state.db(), &auth.user_id, &project_id).await?;
 
     Ok(Json(schedules.into_iter().map(Into::into).collect()))
 }
@@ -127,13 +120,9 @@ pub async fn update_export_schedule_handler(
     Path(schedule_id): Path<Id>,
     Json(request): Json<UpdateExportScheduleRequest>,
 ) -> Result<Json<ExportScheduleResponse>, AppError> {
-    let schedule = ExportService::update_export_schedule(
-        state.db(),
-        &auth.user_id,
-        &schedule_id,
-        request,
-    )
-    .await?;
+    let schedule =
+        ExportService::update_export_schedule(state.db(), &auth.user_id, &schedule_id, request)
+            .await?;
 
     Ok(Json(schedule.into()))
 }

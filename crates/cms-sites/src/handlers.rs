@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Extension, Path, Query, State},
-    http::{header, HeaderMap, StatusCode},
+    http::{HeaderMap, StatusCode, header},
     response::{Html, IntoResponse, Response},
 };
 use cms_db::{deployment::DeploymentQueries, domain::DomainQueries, project::ProjectQueries};
@@ -10,6 +10,7 @@ use cms_entity::deployment::DeploymentSnapshotContent;
 use cms_error::AppError;
 
 use crate::{
+    SitesAppState,
     host_resolution::{ClientIp, HostResolutionResult, HostResolver},
     markdown_renderer::{HighlightTheme, MarkdownRenderer, MarkdownRendererConfig},
     routes::site_host,
@@ -17,7 +18,6 @@ use crate::{
     seo::{SeoGenerator, SitemapGenerator, SitemapPageMetadata},
     spa::serve_spa_file,
     static_files::StaticFileServer,
-    SitesAppState,
 };
 
 /// Record a successful HTTPS request only when it carries the secret injected by
@@ -143,9 +143,12 @@ pub async fn load_published_site_snapshot(
             .languages
             .iter()
             .find(|language| {
-                (language.code.eq_ignore_ascii_case(lang) || language.id == lang) && language.enabled
+                (language.code.eq_ignore_ascii_case(lang) || language.id == lang)
+                    && language.enabled
             })
-            .ok_or_else(|| AppError::NotFound(format!("Language '{}' not found or disabled", lang)))?
+            .ok_or_else(|| {
+                AppError::NotFound(format!("Language '{}' not found or disabled", lang))
+            })?
     } else {
         content
             .languages
@@ -243,7 +246,10 @@ pub async fn wildcard_handler(
     let requested_lang = query.get("lang").map(|s| s.as_str());
 
     // Check if the path targets the published sites viewer (/sites/{projectId}/**)
-    if let Some(sites_path) = path.strip_prefix("sites/").or_else(|| (path == "sites").then_some("")) {
+    if let Some(sites_path) = path
+        .strip_prefix("sites/")
+        .or_else(|| (path == "sites").then_some(""))
+    {
         let clean = sites_path.trim_matches('/');
         if clean.is_empty() {
             return serve_not_found().map(|html| html.into_response());
@@ -255,7 +261,9 @@ pub async fn wildcard_handler(
 
         let project = match ProjectQueries::get_by_id(&state.biz_context.pool, project_ref).await? {
             Some(p) => Some(p),
-            None => ProjectQueries::get_by_slug_global(&state.biz_context.pool, project_ref).await?,
+            None => {
+                ProjectQueries::get_by_slug_global(&state.biz_context.pool, project_ref).await?
+            }
         };
 
         let Some(project) = project else {
@@ -777,7 +785,7 @@ pub async fn asset_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file(&candidate).await
 }
 
@@ -797,7 +805,7 @@ pub async fn css_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file(&candidate).await
 }
 
@@ -817,7 +825,7 @@ pub async fn js_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file(&candidate).await
 }
 
@@ -837,7 +845,7 @@ pub async fn font_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file(&candidate).await
 }
 
@@ -857,7 +865,7 @@ pub async fn image_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file(&candidate).await
 }
 
@@ -875,7 +883,7 @@ pub async fn favicon_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file("favicon.ico").await
 }
 
@@ -893,7 +901,7 @@ pub async fn favicon_32_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file("favicon-32x32.png").await
 }
 
@@ -911,7 +919,7 @@ pub async fn favicon_16_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file("favicon-16x16.png").await
 }
 
@@ -929,7 +937,7 @@ pub async fn apple_touch_icon_handler(
     {
         return Ok(spa_res);
     }
-    let static_server = StaticFileServer::new(state.storage.clone());
+    let static_server = StaticFileServer::new(Arc::clone(&state.storage));
     static_server.serve_file("apple-touch-icon.png").await
 }
 

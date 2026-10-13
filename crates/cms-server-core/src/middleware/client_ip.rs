@@ -3,8 +3,7 @@
 //! Prevents IP spoofing by only inspecting forwarding headers (`X-Forwarded-For`, `X-Real-IP`)
 //! when the immediate socket connection is from a configured trusted proxy CIDR.
 
-use std::net::IpAddr;
-use std::sync::Arc;
+use std::{net::IpAddr, sync::Arc};
 
 use axum::{
     extract::{ConnectInfo, Request},
@@ -48,8 +47,8 @@ pub fn extract_client_ip<B>(
     };
 
     // 2. Check if direct socket is from a trusted proxy
-    let is_trusted = trusted_proxies.is_empty()
-        || trusted_proxies.iter().any(|net| net.contains(&direct));
+    let is_trusted =
+        trusted_proxies.is_empty() || trusted_proxies.iter().any(|net| net.contains(&direct));
 
     if is_trusted {
         // Trusted proxy: inspect forwarding headers

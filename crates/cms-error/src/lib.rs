@@ -18,6 +18,7 @@
 //! - addon:* - Addon errors
 //! - integration:* - Integration errors
 
+pub use anyhow;
 use axum::{
     body::Body,
     http::StatusCode,
@@ -26,8 +27,6 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use thiserror::Error;
-
-pub use anyhow;
 
 /// The root error type for the CMS application.
 ///
@@ -479,7 +478,7 @@ impl IntoResponse for AppError {
             .as_ref()
             .map(|l| l.key.clone())
             .unwrap_or_else(|| {
-                let sanitized = error_code.replace(':', "_").replace('-', "_");
+                let sanitized = error_code.replace([':', '-'], "_");
                 format!("api_error_{sanitized}")
             });
         let localized_msg = localized.as_ref().and_then(|l| l.message.clone());
@@ -494,7 +493,14 @@ impl IntoResponse for AppError {
                 if let Some(map) = m.as_object() {
                     let h: std::collections::HashMap<String, String> = map
                         .iter()
-                        .map(|(k, v)| (k.clone(), v.as_str().map(|s| s.to_string()).unwrap_or_else(|| v.to_string())))
+                        .map(|(k, v)| {
+                            (
+                                k.clone(),
+                                v.as_str()
+                                    .map(|s| s.to_string())
+                                    .unwrap_or_else(|| v.to_string()),
+                            )
+                        })
                         .collect();
                     if h.is_empty() { None } else { Some(h) }
                 } else {
@@ -508,13 +514,11 @@ impl IntoResponse for AppError {
         // Never leak raw SQL, internal paths, or unvetted infrastructure errors to clients
         let (message, details, error_id) = if status.is_server_error() {
             let error_id = uuid::Uuid::new_v4().to_string();
-            let safe_msg = localized_msg.unwrap_or_else(|| {
-                match &self {
-                    AppError::Database(_)
-                    | AppError::DatabaseConnectionFailed
-                    | AppError::TransactionFailed => "An internal database error occurred".to_string(),
-                    _ => "An internal server error occurred".to_string(),
-                }
+            let safe_msg = localized_msg.unwrap_or_else(|| match &self {
+                AppError::Database(_)
+                | AppError::DatabaseConnectionFailed
+                | AppError::TransactionFailed => "An internal database error occurred".to_string(),
+                _ => "An internal server error occurred".to_string(),
             });
             tracing::error!(
                 status = %status,
@@ -571,10 +575,9 @@ impl IntoResponse for AppError {
         }
 
         builder.body(Body::from(json_body)).unwrap_or_else(|_| {
-            Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Body::from("Internal Server Error"))
-                .unwrap()
+            let mut res = Response::new(Body::from("Internal Server Error"));
+            *res.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
+            res
         })
     }
 }

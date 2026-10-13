@@ -26,13 +26,9 @@ pub async fn next_sequence(
 ) -> Result<String, AppError> {
     // allow-raw-sql: upsert-increment pattern; no external data in query structure
     let (val, pfx, width): (i64, String, i32) = sqlx::query_as(
-        "INSERT INTO sequences (workspace_id, seq_type, prefix, pad_width, current_val) \
-         VALUES ($1, $2, $3, $4, 1) \
-         ON CONFLICT (workspace_id, seq_type) \
-         DO UPDATE SET \
-             current_val = sequences.current_val + 1, \
-             updated_at  = now() \
-         RETURNING current_val, prefix, pad_width",
+        "INSERT INTO sequences (workspace_id, seq_type, prefix, pad_width, current_val) VALUES \
+         ($1, $2, $3, $4, 1) ON CONFLICT (workspace_id, seq_type) DO UPDATE SET current_val = \
+         sequences.current_val + 1, updated_at  = now() RETURNING current_val, prefix, pad_width",
     )
     .bind(workspace_id)
     .bind(seq_type)

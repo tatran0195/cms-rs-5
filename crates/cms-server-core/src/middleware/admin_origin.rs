@@ -21,7 +21,7 @@
 use std::{collections::HashSet, sync::Arc};
 
 use axum::{
-    http::{header, request::Parts, StatusCode},
+    http::{StatusCode, header, request::Parts},
     response::{IntoResponse, Response},
 };
 
@@ -357,18 +357,14 @@ pub struct AdminOriginService<S> {
 
 impl<S, ReqBody> tower::Service<axum::http::Request<ReqBody>> for AdminOriginService<S>
 where
-    S: tower::Service<axum::http::Request<ReqBody>, Response = Response>
-        + Clone
-        + Send
-        + 'static,
+    S: tower::Service<axum::http::Request<ReqBody>, Response = Response> + Clone + Send + 'static,
     S::Future: Send + 'static,
     ReqBody: Send + 'static,
 {
     type Response = Response;
     type Error = S::Error;
-    type Future = std::pin::Pin<
-        Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>,
-    >;
+    type Future =
+        std::pin::Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(
         &mut self,
@@ -700,7 +696,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_admin_origin_layer_middleware() {
-        use axum::{routing::post, Router};
+        use axum::{Router, routing::post};
         use tower::ServiceExt;
 
         let mut origins = HashSet::new();

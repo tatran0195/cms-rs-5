@@ -3,7 +3,7 @@
 //! Provides document management, SSRF-protected remote fetching, and parsing.
 
 use chrono::Utc;
-use cms_db::{openapi::OpenApiDocumentQueries, PgPool};
+use cms_db::{PgPool, openapi::OpenApiDocumentQueries};
 use cms_entity::openapi::{
     CreateOpenApiDocumentRequest, OpenApiDocumentResponse, OpenApiParsingResult,
     ParseOpenApiDocumentRequest, UpdateOpenApiDocumentRequest,
@@ -22,8 +22,7 @@ impl OpenApiService {
         request: CreateOpenApiDocumentRequest,
     ) -> Result<OpenApiDocumentResponse, AppError> {
         let existing =
-            OpenApiDocumentQueries::get_by_url(pool, &request.url, &request.project_id)
-                .await?;
+            OpenApiDocumentQueries::get_by_url(pool, &request.url, &request.project_id).await?;
 
         if existing.is_some() {
             return Err(AppError::Conflict(
@@ -31,13 +30,9 @@ impl OpenApiService {
             ));
         }
 
-        let document = OpenApiDocumentQueries::create(
-            pool,
-            &request.project_id,
-            &request.name,
-            &request.url,
-        )
-        .await?;
+        let document =
+            OpenApiDocumentQueries::create(pool, &request.project_id, &request.name, &request.url)
+                .await?;
 
         Ok(document.into())
     }
@@ -116,8 +111,7 @@ impl OpenApiService {
             Ok(content) => content,
             Err(e) => {
                 let error_msg = format!("Failed to fetch OpenAPI document: {}", e);
-                OpenApiDocumentQueries::update_error(pool, &request.id, Some(&error_msg))
-                    .await?;
+                OpenApiDocumentQueries::update_error(pool, &request.id, Some(&error_msg)).await?;
                 return Ok(OpenApiParsingResult {
                     document_id: request.id,
                     parsed_successfully: false,

@@ -1,6 +1,7 @@
 //! Project workspace vertical slice: projects, members, settings, domains, reader access, addons.
 
 use std::sync::Arc;
+
 use axum::Router;
 use cms_server_core::app_state::AppState;
 
@@ -10,22 +11,22 @@ pub mod queries;
 pub mod services;
 
 pub use handlers::{
-    addons_router, core_router, domains_router, members_router, project_router,
-    reader_access_router, ProjectUser,
+    ProjectUser, addons_router, core_router, domains_router, members_router, project_router,
+    reader_access_router,
 };
 pub use models::{
     AddProjectDomainRequest, AddProjectMemberRequest, CreateDomainRequest, CreateProjectRequest,
     DeleteDomainResponse, DeleteProjectResponse, DnsRecord, Domain, DomainResponse,
     DomainVerificationResult, ListDomainsQuery, ListProjectsQuery, ListProjectsResponse, Project,
-    ProjectAddon, ProjectAddonResponse, ProjectAuditEvent, ProjectCountResponse,
-    ProjectMember, ProjectResponse, ProjectSettings, SpaDomainResponse,
-    UpdateDomainRequest, UpdateProjectMemberRequest, UpdateProjectRequest,
-    UpdateProjectSettingsRequest, WorkspaceInvitationItem, WorkspaceInvitationResponse,
-    WorkspaceMemberItem, WorkspaceMemberUser, WorkspaceMembersResponse,
+    ProjectAddon, ProjectAddonResponse, ProjectAuditEvent, ProjectCountResponse, ProjectMember,
+    ProjectResponse, ProjectSettings, SpaDomainResponse, UpdateDomainRequest,
+    UpdateProjectMemberRequest, UpdateProjectRequest, UpdateProjectSettingsRequest,
+    WorkspaceInvitationItem, WorkspaceInvitationResponse, WorkspaceMemberItem, WorkspaceMemberUser,
+    WorkspaceMembersResponse,
 };
 pub use queries::{
-    normalize_hostname, DomainQueries, ProjectAddonQueries, ProjectMemberQueries, ProjectQueries,
-    ProjectSettingsQueries,
+    DomainQueries, ProjectAddonQueries, ProjectMemberQueries, ProjectQueries,
+    ProjectSettingsQueries, normalize_hostname,
 };
 pub use services::{DomainService, MemberService, ProjectService, ReaderAccessService};
 

@@ -108,10 +108,12 @@ async fn test_07_version_progression_and_deployment_rollback() -> anyhow::Result
         "public read v2",
     )?;
     anyhow::ensure!(pub_v2["data"]["version"] == 2);
-    anyhow::ensure!(pub_v2["data"]["page"]["content"]
-        .as_str()
-        .unwrap()
-        .contains("Updated Version 2 Content"));
+    anyhow::ensure!(
+        pub_v2["data"]["page"]["content"]
+            .as_str()
+            .unwrap()
+            .contains("Updated Version 2 Content")
+    );
 
     let rollback = expect_status(
         request(
@@ -142,10 +144,12 @@ async fn test_07_version_progression_and_deployment_rollback() -> anyhow::Result
         "public read rollback v3",
     )?;
     anyhow::ensure!(pub_v3["data"]["version"] == 3);
-    anyhow::ensure!(pub_v3["data"]["page"]["content"]
-        .as_str()
-        .unwrap()
-        .contains("Initial Version 1 Content"));
+    anyhow::ensure!(
+        pub_v3["data"]["page"]["content"]
+            .as_str()
+            .unwrap()
+            .contains("Initial Version 1 Content")
+    );
 
     ctx.teardown().await
 }

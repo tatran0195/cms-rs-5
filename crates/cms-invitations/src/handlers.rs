@@ -1,20 +1,21 @@
 //! HTTP handlers for Workspace Invitations vertical slice.
 
 use std::sync::Arc;
+
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::{header::AUTHORIZATION, request::Parts},
-    Json,
 };
-use cms_auth::{claims::decode_jwt, AuthenticatedUser, Claims};
+use cms_auth::{AuthenticatedUser, Claims, claims::decode_jwt};
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 use uuid::Uuid;
 
 use crate::{
     models::{
-        AcceptInvitationPayload, CreateInvitationPayload, InvitationResponse,
-        InvitationTokenQuery, ListInvitationsQuery, WorkspaceInvitationRow,
+        AcceptInvitationPayload, CreateInvitationPayload, InvitationResponse, InvitationTokenQuery,
+        ListInvitationsQuery, WorkspaceInvitationRow,
     },
     service::InvitationService,
 };
@@ -75,13 +76,13 @@ pub async fn list_invitations_handler(
     Query(query): Query<ListInvitationsQuery>,
 ) -> Result<Json<Vec<WorkspaceInvitationRow>>, AppError> {
     let workspace_id = query.workspace_id.as_deref().unwrap_or("default");
-    tracing::debug!("User {} listing invitations for workspace {}", auth.user_id, workspace_id);
-    let invitations = InvitationService::list_invitations(
-        &state,
-        workspace_id,
-        query.status.as_deref(),
-    )
-    .await?;
+    tracing::debug!(
+        "User {} listing invitations for workspace {}",
+        auth.user_id,
+        workspace_id
+    );
+    let invitations =
+        InvitationService::list_invitations(&state, workspace_id, query.status.as_deref()).await?;
 
     Ok(Json(invitations))
 }
@@ -100,8 +101,16 @@ pub async fn create_invitation_handler(
     let role = payload.role.as_deref().unwrap_or("member");
     let ttl_days = payload.ttl_days.unwrap_or(7);
 
-    let scheme = if state.config.server.https { "https" } else { "http" };
-    let host = if state.config.server.host == "0.0.0.0" { "localhost" } else { &state.config.server.host };
+    let scheme = if state.config.server.https {
+        "https"
+    } else {
+        "http"
+    };
+    let host = if state.config.server.host == "0.0.0.0" {
+        "localhost"
+    } else {
+        &state.config.server.host
+    };
     let base_url = format!("{scheme}://{host}:{}", state.config.server.port);
 
     let (row, raw_token) = InvitationService::create_invitation(
@@ -135,7 +144,12 @@ pub async fn revoke_invitation_handler(
     Query(query): Query<ListInvitationsQuery>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let workspace_id = query.workspace_id.as_deref().unwrap_or("default");
-    tracing::debug!("User {} revoking invitation {} for workspace {}", auth.user_id, id, workspace_id);
+    tracing::debug!(
+        "User {} revoking invitation {} for workspace {}",
+        auth.user_id,
+        id,
+        workspace_id
+    );
     InvitationService::revoke_invitation(&state, workspace_id, id).await?;
     Ok(Json(serde_json::json!({ "revoked": true, "id": id })))
 }

@@ -152,7 +152,10 @@ impl OutboxWorker {
         );
 
         let start_time = Instant::now();
-        let dispatch_result = self.registry.dispatch(&ctx, &row.event_type, &row.payload).await;
+        let dispatch_result = self
+            .registry
+            .dispatch(&ctx, &row.event_type, &row.payload)
+            .await;
 
         match dispatch_result {
             Ok(_) => {
@@ -374,10 +377,7 @@ impl OutboxWorker {
     }
 
     /// Spawn the worker onto the Tokio runtime.
-    pub fn spawn(
-        self,
-        shutdown_rx: watch::Receiver<bool>,
-    ) -> JoinHandle<()> {
+    pub fn spawn(self, shutdown_rx: watch::Receiver<bool>) -> JoinHandle<()> {
         let worker_arc = Arc::new(self);
         tokio::spawn(async move {
             worker_arc.run(shutdown_rx).await;

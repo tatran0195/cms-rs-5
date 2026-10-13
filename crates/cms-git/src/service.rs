@@ -4,6 +4,7 @@
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
 use cms_db::{
+    PgPool,
     branch::BranchQueries,
     git::{
         GitConflictQueries, GitConnectionQueries, GitFileStateQueries, GitPreviewQueries,
@@ -11,7 +12,6 @@ use cms_db::{
     },
     page::PageQueries,
     project::ProjectQueries,
-    PgPool,
 };
 use cms_entity::{
     common::PaginatedResponse,
@@ -207,8 +207,7 @@ impl GitService {
         let limit = page_size.max(1) as i64;
         let offset = page.saturating_sub(1) as i64 * limit;
         let conflicts =
-            GitConflictQueries::get_by_project(pool, project_id, Some(limit), Some(offset))
-                .await?;
+            GitConflictQueries::get_by_project(pool, project_id, Some(limit), Some(offset)).await?;
 
         let total = GitConflictQueries::count_by_project(pool, project_id).await?;
 
@@ -361,10 +360,7 @@ fn derive_slug_and_path(git_file_path: &str) -> (String, String) {
 }
 
 /// Process a Git sync job (called by the background worker).
-pub async fn process_git_job(
-    pool: &PgPool,
-    payload: &serde_json::Value,
-) -> Result<(), AppError> {
+pub async fn process_git_job(pool: &PgPool, payload: &serde_json::Value) -> Result<(), AppError> {
     let operation_id = payload
         .get("operation_id")
         .and_then(|v| v.as_str())
@@ -457,9 +453,10 @@ async fn sync_github_repo(
         req = req.bearer_auth(&connection.access_token);
     }
 
-    let res = req.send().await.map_err(|e| {
-        AppError::GitOperationFailed(format!("GitHub API request failed: {}", e))
-    })?;
+    let res = req
+        .send()
+        .await
+        .map_err(|e| AppError::GitOperationFailed(format!("GitHub API request failed: {}", e)))?;
 
     if !res.status().is_success() {
         let status = res.status();
@@ -566,9 +563,8 @@ async fn sync_github_repo(
                         GitFileStateQueries::get_by_path(pool, &connection.project_id, &page_path)
                             .await?;
                     if let Some(state) = existing_state {
-                        let _ =
-                            GitFileStateQueries::update(pool, &state.id, commit_sha.as_deref())
-                                .await;
+                        let _ = GitFileStateQueries::update(pool, &state.id, commit_sha.as_deref())
+                            .await;
                     } else {
                         let _ = GitFileStateQueries::create(
                             pool,
@@ -603,9 +599,10 @@ async fn sync_gitlab_repo(
         req = req.header("PRIVATE-TOKEN", &connection.access_token);
     }
 
-    let res = req.send().await.map_err(|e| {
-        AppError::GitOperationFailed(format!("GitLab API request failed: {}", e))
-    })?;
+    let res = req
+        .send()
+        .await
+        .map_err(|e| AppError::GitOperationFailed(format!("GitLab API request failed: {}", e)))?;
 
     if !res.status().is_success() {
         let status = res.status();

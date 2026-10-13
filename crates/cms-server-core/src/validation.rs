@@ -3,8 +3,7 @@
 //! Provides reusable validators preventing stored XSS, weak passwords,
 //! invalid codes, and malformed inputs.
 
-use std::collections::HashMap;
-use std::sync::LazyLock;
+use std::{collections::HashMap, sync::LazyLock};
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -111,7 +110,8 @@ pub fn validate_username(errors: &mut ValidationErrors, field: &str, value: &str
     } else if !USERNAME_RE.is_match(value) {
         errors.add(
             field,
-            "Username must start with a letter and contain only lowercase letters, digits, and underscores",
+            "Username must start with a letter and contain only lowercase letters, digits, and \
+             underscores",
         );
     }
 }
@@ -173,7 +173,8 @@ pub fn validate_api_endpoint(errors: &mut ValidationErrors, field: &str, value: 
     if !API_ENDPOINT_RE.is_match(value) {
         errors.add(
             field,
-            "Endpoint must start with /api/ and contain only lowercase letters, digits, hyphens, underscores, and slashes",
+            "Endpoint must start with /api/ and contain only lowercase letters, digits, hyphens, \
+             underscores, and slashes",
         );
     }
 }
@@ -181,10 +182,10 @@ pub fn validate_api_endpoint(errors: &mut ValidationErrors, field: &str, value: 
 // ── Axum Validation Extractors ───────────────────────────────────────────────
 
 use axum::{
+    Json,
     extract::{FromRequest, FromRequestParts, Path, Query, Request},
     http::request::Parts,
     response::{IntoResponse, Response},
-    Json,
 };
 use cms_error::AppError;
 use serde::de::DeserializeOwned;

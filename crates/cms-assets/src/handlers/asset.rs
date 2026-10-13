@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Multipart, Path, Query, State},
     Json,
+    extract::{Multipart, Path, Query, State},
 };
 use cms_entity::common::PaginatedResponse;
 use cms_error::AppError;
@@ -30,14 +30,8 @@ pub async fn list_assets_handler(
     let page_size = u64::try_from(limit).unwrap_or(20);
     let page = (u64::try_from(offset).unwrap_or(0) / page_size) + 1;
 
-    let assets = AssetService::list_assets(
-        state.db(),
-        &auth.user_id,
-        project_id,
-        page,
-        page_size,
-    )
-    .await?;
+    let assets =
+        AssetService::list_assets(state.db(), &auth.user_id, project_id, page, page_size).await?;
 
     Ok(Json(assets))
 }

@@ -161,4 +161,3 @@ pub async fn dispatch_email_in_tx(
     });
     dispatch_in_tx(tx, "email.send", payload, workspace_id).await
 }
-

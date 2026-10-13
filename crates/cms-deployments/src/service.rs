@@ -5,11 +5,11 @@
 use std::sync::Arc;
 
 use cms_db::{
+    PgPool,
     branch::BranchQueries,
     deployment::{DeploymentQueries, DomainQueries},
     page::PageQueries,
     project::ProjectQueries,
-    PgPool,
 };
 use cms_entity::{
     common::PaginatedResponse,
@@ -57,6 +57,7 @@ impl DeploymentService {
     }
 
     /// Create a publish record and durably enqueue its render job.
+    #[allow(clippy::too_many_arguments)]
     pub async fn create_publish_deployment(
         pool: &PgPool,
         job_queue: &dyn cms_infra::queue::JobQueue,
@@ -85,19 +86,10 @@ impl DeploymentService {
             .await;
         }
 
-        let deployment = DeploymentQueries::create(
-            pool,
-            project_id,
-            branch_id,
-            DeploymentStatus::Pending,
-        )
-        .await?;
-        DeploymentQueries::update_build_logs(
-            pool,
-            &deployment.id,
-            commit_message,
-        )
-        .await?;
+        let deployment =
+            DeploymentQueries::create(pool, project_id, branch_id, DeploymentStatus::Pending)
+                .await?;
+        DeploymentQueries::update_build_logs(pool, &deployment.id, commit_message).await?;
         let mut payload = extra_payload.as_object().cloned().ok_or_else(|| {
             AppError::InvalidInput("Publish job payload must be a JSON object".to_string())
         })?;
@@ -190,8 +182,7 @@ impl DeploymentService {
         }
 
         let updated =
-            DeploymentQueries::update(pool, deployment_id, request.branch_id.as_deref())
-                .await?;
+            DeploymentQueries::update(pool, deployment_id, request.branch_id.as_deref()).await?;
 
         Ok(updated.into())
     }
@@ -261,8 +252,7 @@ impl DeploymentService {
         }
 
         let updated =
-            DeploymentQueries::update_status(pool, deployment_id, DeploymentStatus::Failed)
-                .await?;
+            DeploymentQueries::update_status(pool, deployment_id, DeploymentStatus::Failed).await?;
 
         Ok(updated.into())
     }
@@ -416,7 +406,7 @@ impl DeploymentService {
 
 /// Render markdown to sanitized HTML using pulldown-cmark + ammonia.
 fn render_markdown_to_html(markdown: &str, title: &str, language_code: &str) -> String {
-    use pulldown_cmark::{html, Options, Parser};
+    use pulldown_cmark::{Options, Parser, html};
 
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -723,7 +713,8 @@ pub async fn process_publish_job(
             ));
         }
         tracing::info!(
-            "Ignoring legacy in-place publish for page {}; create a new deployment to publish a release",
+            "Ignoring legacy in-place publish for page {}; create a new deployment to publish a \
+             release",
             page_id
         );
         Ok(())

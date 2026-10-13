@@ -1,6 +1,6 @@
 use chrono::{Duration, Utc};
 use cms_error::AppError;
-use cms_outbox::{queue_in_tx, OutboxRow};
+use cms_outbox::{OutboxRow, queue_in_tx};
 use cms_server_core::app_state::AppState;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
@@ -45,7 +45,9 @@ impl OnboardingService {
         // Ensure not already initialized
         let initialized = OnboardingQueries::is_initialized(state.db()).await?;
         if initialized {
-            return Err(AppError::Conflict("Platform is already initialized".to_string()));
+            return Err(AppError::Conflict(
+                "Platform is already initialized".to_string(),
+            ));
         }
 
         // Hash password using cms-auth
@@ -72,7 +74,9 @@ impl OnboardingService {
 
         // 2. Insert default Workspace
         let workspace_id = Uuid::new_v4().to_string();
-        let ws_name = payload.workspace_name.unwrap_or_else(|| "Default Workspace".to_string());
+        let ws_name = payload
+            .workspace_name
+            .unwrap_or_else(|| "Default Workspace".to_string());
         sqlx::query(
             r#"
             INSERT INTO "Workspace" ("id", "name", "slug", "createdAt", "updatedAt")
@@ -105,13 +109,22 @@ impl OnboardingService {
         // 4. Generate verification token
         let mut random_bytes = [0u8; 32];
         getrandom::getrandom(&mut random_bytes).map_err(|e| {
-            AppError::Internal(anyhow::anyhow!("Failed to generate secure random token: {e}"))
+            AppError::Internal(anyhow::anyhow!(
+                "Failed to generate secure random token: {e}"
+            ))
         })?;
         let raw_token = hex::encode(random_bytes);
         let token_hash = Self::hash_token(&raw_token);
         let expires_at = Utc::now() + Duration::hours(24);
 
-        OnboardingQueries::create_token(&mut tx, &payload.email, &token_hash, "email_verification", expires_at).await?;
+        OnboardingQueries::create_token(
+            &mut tx,
+            &payload.email,
+            &token_hash,
+            "email_verification",
+            expires_at,
+        )
+        .await?;
 
         // 5. Queue outbox verification email
         let verify_url = format!(
@@ -129,7 +142,8 @@ impl OnboardingService {
                 },
                 "locale": "en"
             }),
-        ).with_workspace(&workspace_id);
+        )
+        .with_workspace(&workspace_id);
         queue_in_tx(&mut tx, &outbox_row).await?;
 
         tx.commit().await.map_err(AppError::Database)?;
@@ -152,7 +166,9 @@ impl OnboardingService {
     ) -> Result<String, AppError> {
         let mut random_bytes = [0u8; 32];
         getrandom::getrandom(&mut random_bytes).map_err(|e| {
-            AppError::Internal(anyhow::anyhow!("Failed to generate secure random token: {e}"))
+            AppError::Internal(anyhow::anyhow!(
+                "Failed to generate secure random token: {e}"
+            ))
         })?;
         let raw_token = hex::encode(random_bytes);
         let token_hash = Self::hash_token(&raw_token);
@@ -186,17 +202,16 @@ impl OnboardingService {
     }
 
     /// Verify an email verification token, marking the token used and setting `email_verified = true`.
-    pub async fn verify_email_token(
-        state: &AppState,
-        raw_token: &str,
-    ) -> Result<String, AppError> {
+    pub async fn verify_email_token(state: &AppState, raw_token: &str) -> Result<String, AppError> {
         let token_hash = Self::hash_token(raw_token);
         let mut tx = state.db().begin().await.map_err(AppError::Database)?;
 
         let token_row = OnboardingQueries::find_valid_token(&mut tx, &token_hash)
             .await?
             .ok_or_else(|| {
-                AppError::BadRequest("Invalid, expired, or already used verification token".to_string())
+                AppError::BadRequest(
+                    "Invalid, expired, or already used verification token".to_string(),
+                )
             })?;
 
         OnboardingQueries::mark_token_used(&mut tx, token_row.id).await?;

@@ -1,16 +1,17 @@
 //! HTTP and WebSocket handlers for notification vertical slice
 
 use std::sync::Arc;
+
 use axum::{
+    Json,
     extract::{
-        ws::{Message, WebSocket, WebSocketUpgrade},
         Path, Query, State,
+        ws::{Message, WebSocket, WebSocketUpgrade},
     },
     http::{header::AUTHORIZATION, request::Parts},
     response::IntoResponse,
-    Json,
 };
-use cms_auth::{claims::decode_jwt, AuthenticatedUser, Claims};
+use cms_auth::{AuthenticatedUser, Claims, claims::decode_jwt};
 use cms_entity::{
     common::PaginatedResponse,
     notification::{
@@ -68,7 +69,7 @@ where
             });
         }
 
-// 3. Try Authorization: Bearer <jwt> header or query token if secret is available
+        // 3. Try Authorization: Bearer <jwt> header or query token if secret is available
         let secret_opt = parts
             .extensions
             .get::<Arc<AppState>>()
@@ -289,5 +290,8 @@ async fn handle_ws_socket(socket: WebSocket, state: NotificationState, user_id: 
         }
     }
 
-    tracing::debug!("WebSocket notification connection closed for user {}", user_id);
+    tracing::debug!(
+        "WebSocket notification connection closed for user {}",
+        user_id
+    );
 }

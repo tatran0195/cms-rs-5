@@ -1,20 +1,21 @@
 //! HTTP handlers for Report Runs vertical slice.
 
 use std::sync::Arc;
+
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::{header::AUTHORIZATION, request::Parts},
-    Json,
 };
-use cms_auth::{claims::decode_jwt, AuthenticatedUser, Claims};
+use cms_auth::{AuthenticatedUser, Claims, claims::decode_jwt};
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 use uuid::Uuid;
 
 use crate::{
     models::{
-        CreateReportRunPayload, DeleteReportResponse, DownloadReportResponse,
-        ListReportRunsQuery, ReportRunRow,
+        CreateReportRunPayload, DeleteReportResponse, DownloadReportResponse, ListReportRunsQuery,
+        ReportRunRow,
     },
     service::ReportService,
 };
@@ -75,14 +76,14 @@ pub async fn list_reports_handler(
     Query(query): Query<ListReportRunsQuery>,
 ) -> Result<Json<Vec<ReportRunRow>>, AppError> {
     let workspace_id = query.workspace_id.as_deref().unwrap_or("default");
-    tracing::debug!("User {} listing report runs for workspace {}", auth.user_id, workspace_id);
-    let runs = ReportService::list_report_runs(
-        &state,
-        workspace_id,
-        query.status.as_deref(),
-        query.limit,
-    )
-    .await?;
+    tracing::debug!(
+        "User {} listing report runs for workspace {}",
+        auth.user_id,
+        workspace_id
+    );
+    let runs =
+        ReportService::list_report_runs(&state, workspace_id, query.status.as_deref(), query.limit)
+            .await?;
 
     Ok(Json(runs))
 }
@@ -94,7 +95,10 @@ pub async fn create_report_handler(
     Json(payload): Json<CreateReportRunPayload>,
 ) -> Result<Json<ReportRunRow>, AppError> {
     let workspace_id = payload.workspace_id.as_deref().unwrap_or("default");
-    let report_type = payload.report_type.as_deref().unwrap_or("documentation_export");
+    let report_type = payload
+        .report_type
+        .as_deref()
+        .unwrap_or("documentation_export");
     let format = payload.format.as_deref().unwrap_or("markdown");
     let parameters = payload.parameters.unwrap_or_else(|| serde_json::json!({}));
     let ttl_days = payload.ttl_days.unwrap_or(7);

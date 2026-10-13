@@ -2,11 +2,13 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use cms_projects::models::{
-    CreateProjectRequest, DeleteProjectResponse, ListProjectsQuery, ProjectResponse,
-    ProjectSettings, UpdateProjectRequest, UpdateProjectSettingsRequest,
+use cms_projects::{
+    models::{
+        CreateProjectRequest, DeleteProjectResponse, ListProjectsQuery, ProjectResponse,
+        ProjectSettings, UpdateProjectRequest, UpdateProjectSettingsRequest,
+    },
+    services::ProjectService,
 };
-use cms_projects::services::ProjectService;
 
 #[test]
 fn test_create_project_request_serde() {

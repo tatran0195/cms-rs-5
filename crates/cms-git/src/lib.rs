@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    routing::{delete, get, post, put},
     Router,
+    routing::{delete, get, post, put},
 };
 use cms_server_core::app_state::AppState;
 
@@ -14,7 +14,7 @@ pub mod service;
 
 pub use auth::{GitAuth, GitUser};
 pub use handlers::*;
-pub use service::{process_git_job, GitService};
+pub use service::{GitService, process_git_job};
 
 /// Constructs the Axum router for Git operations.
 pub fn router(state: Arc<AppState>) -> Router {

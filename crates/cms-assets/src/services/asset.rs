@@ -107,7 +107,8 @@ impl AssetService {
             .unwrap_or(0)
             .saturating_mul(limit);
 
-        let assets = AssetQueries::get_by_project(pool, project_id, Some(limit), Some(offset)).await?;
+        let assets =
+            AssetQueries::get_by_project(pool, project_id, Some(limit), Some(offset)).await?;
         let total = AssetQueries::count_by_project(pool, project_id).await?;
 
         Ok(PaginatedResponse::new(

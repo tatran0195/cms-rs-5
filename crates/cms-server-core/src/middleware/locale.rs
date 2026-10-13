@@ -6,7 +6,7 @@ use std::{collections::HashMap, convert::Infallible};
 
 use axum::{
     extract::FromRequestParts,
-    http::{header, request::Parts, HeaderValue},
+    http::{HeaderValue, header, request::Parts},
 };
 
 /// Supported locales
@@ -210,7 +210,10 @@ pub fn extract_request_i18n_locale(parts: &Parts) -> cms_infra::i18n::Locale {
     if let Some(cookies) = parts.headers.get(header::COOKIE) {
         if let Ok(cookie_str) = cookies.to_str() {
             let cookie_map = parse_cookies(cookie_str);
-            if let Some(locale_str) = cookie_map.get("locale").or_else(|| cookie_map.get("language")) {
+            if let Some(locale_str) = cookie_map
+                .get("locale")
+                .or_else(|| cookie_map.get("language"))
+            {
                 if let Ok(locale) = cms_infra::i18n::Locale::parse(locale_str) {
                     return cms_infra::i18n::embedded_catalog().negotiate([locale.as_str()]);
                 }
@@ -269,7 +272,9 @@ impl SetLocaleMiddleware {
             "locale={}; Path=/; SameSite=Lax; Max-Age=31536000",
             locale.as_str()
         ))
-        .unwrap_or_else(|_| HeaderValue::from_static("locale=en; Path=/; SameSite=Lax; Max-Age=31536000"))
+        .unwrap_or_else(|_| {
+            HeaderValue::from_static("locale=en; Path=/; SameSite=Lax; Max-Age=31536000")
+        })
     }
 }
 

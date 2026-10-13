@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_auth::AuthExtractor;
 use cms_entity::{
@@ -26,8 +26,7 @@ pub async fn list_openapi_documents_handler(
     Query(query): Query<ListOpenApiDocumentsQuery>,
 ) -> Result<Json<PaginatedResponse<OpenApiDocumentResponse>>, AppError> {
     let project_id = query.project_id.as_deref().unwrap_or("");
-    let documents =
-        OpenApiService::list_documents(state.db(), &auth.user.id, project_id).await?;
+    let documents = OpenApiService::list_documents(state.db(), &auth.user.id, project_id).await?;
     let total = documents.len() as u64;
 
     Ok(Json(PaginatedResponse::new(documents, total, 1, 20)))
@@ -39,8 +38,7 @@ pub async fn create_openapi_document_handler(
     auth: AuthExtractor,
     Json(request): Json<CreateOpenApiDocumentRequest>,
 ) -> Result<Json<OpenApiDocumentResponse>, AppError> {
-    let document =
-        OpenApiService::create_document(state.db(), &auth.user.id, request).await?;
+    let document = OpenApiService::create_document(state.db(), &auth.user.id, request).await?;
 
     Ok(Json(document))
 }
@@ -51,8 +49,7 @@ pub async fn get_openapi_document_handler(
     auth: AuthExtractor,
     Path(document_id): Path<Id>,
 ) -> Result<Json<OpenApiDocumentResponse>, AppError> {
-    let document =
-        OpenApiService::get_document(state.db(), &auth.user.id, &document_id).await?;
+    let document = OpenApiService::get_document(state.db(), &auth.user.id, &document_id).await?;
 
     Ok(Json(document))
 }
@@ -65,8 +62,7 @@ pub async fn update_openapi_document_handler(
     Json(request): Json<UpdateOpenApiDocumentRequest>,
 ) -> Result<Json<OpenApiDocumentResponse>, AppError> {
     let document =
-        OpenApiService::update_document(state.db(), &auth.user.id, &document_id, request)
-            .await?;
+        OpenApiService::update_document(state.db(), &auth.user.id, &document_id, request).await?;
 
     Ok(Json(document))
 }

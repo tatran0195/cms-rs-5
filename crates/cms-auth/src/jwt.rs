@@ -6,7 +6,7 @@
 use chrono::{Duration, Utc};
 use cms_db::PgPool;
 use cms_error::AppError;
-use jsonwebtoken::{decode, encode, Header};
+use jsonwebtoken::{Header, decode, encode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

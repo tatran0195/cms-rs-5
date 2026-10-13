@@ -6,7 +6,7 @@
 
 use axum::{
     extract::Request,
-    http::{header::AUTHORIZATION, Method, StatusCode},
+    http::{Method, StatusCode, header::AUTHORIZATION},
     middleware::Next,
     response::{IntoResponse, Response},
 };

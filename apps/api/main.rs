@@ -5,10 +5,9 @@
 
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
-use axum::{http::StatusCode, Router};
+use axum::{Router, http::StatusCode};
 use cms_error::AppError;
 use cms_infra::config::Config;
-
 use cms_server::api_router;
 use cms_server_core::{
     app_state::AppState,
@@ -33,7 +32,7 @@ async fn shutdown_signal() {
 /// different origin) only for origins listed in `[admin_origin]`. Localhost
 /// origins are also permitted in development when `allow_localhost` is set.
 fn build_cors(config: &Config) -> tower_http::cors::CorsLayer {
-    use axum::http::{header, HeaderName, Method};
+    use axum::http::{HeaderName, Method, header};
     use tower_http::cors::{AllowOrigin, CorsLayer};
 
     let allow_localhost = config.admin_origin.allow_localhost;

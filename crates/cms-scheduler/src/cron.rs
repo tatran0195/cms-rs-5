@@ -1,4 +1,5 @@
 use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use cms_error::AppError;
 use cron::Schedule;
@@ -15,9 +16,8 @@ pub fn normalize_cron_expr(expr: &str) -> String {
 /// Parse a cron expression into a compiled Schedule instance.
 pub fn parse_schedule(expr: &str) -> Result<Schedule, AppError> {
     let normalized = normalize_cron_expr(expr.trim());
-    Schedule::from_str(&normalized).map_err(|e| {
-        AppError::InvalidInput(format!("Invalid cron expression '{expr}': {e}"))
-    })
+    Schedule::from_str(&normalized)
+        .map_err(|e| AppError::InvalidInput(format!("Invalid cron expression '{expr}': {e}")))
 }
 
 /// Calculate the next scheduled execution timestamp after a given point in time.

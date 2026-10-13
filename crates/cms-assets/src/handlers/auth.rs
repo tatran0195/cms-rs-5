@@ -1,8 +1,9 @@
 //! Auth extractor for assets vertical slice.
 
 use std::sync::Arc;
+
 use axum::http::{header::AUTHORIZATION, request::Parts};
-use cms_auth::{claims::decode_jwt, AuthenticatedUser, Claims};
+use cms_auth::{AuthenticatedUser, Claims, claims::decode_jwt};
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 

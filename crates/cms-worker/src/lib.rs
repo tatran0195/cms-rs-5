@@ -20,6 +20,7 @@ pub async fn start_consumers(
 }
 
 /// Start job consumers with graceful shutdown support
+#[allow(clippy::unused_async)]
 pub async fn start_consumers_with_shutdown(
     job_queue: Arc<dyn JobQueue>,
     state: Arc<WorkerState>,
@@ -32,12 +33,12 @@ pub async fn start_consumers_with_shutdown(
     let mut handles = Vec::with_capacity(num_workers);
 
     for i in 0..num_workers {
-        let queue = job_queue.clone();
-        let state = state.clone();
+        let queue = Arc::clone(&job_queue);
+        let state = Arc::clone(&state);
         let mut worker_shutdown = shutdown_rx.clone();
 
         let handle = tokio::spawn(async move {
-            let consumer_name = format!("worker-{}", i);
+            let consumer_name = format!("worker-{i}");
             if let Err(e) = run_consumer(queue, state, consumer_name, &mut worker_shutdown).await {
                 error!("Consumer {} failed: {}", i, e);
             }
@@ -79,7 +80,7 @@ pub async fn run_consumer(
                         );
 
                         // Process the job — nack on failure so it can be retried
-                        match process_job(&job, state.clone()).await {
+                        match process_job(&job, Arc::clone(&state)).await {
                             Ok(()) => {
                                 if let Err(e) = job_queue.ack(&job.id).await {
                                     error!("Failed to acknowledge job {}: {}", job.id.0, e);
@@ -124,31 +125,27 @@ pub async fn process_job(
         }
         JobType::Email => {
             cms_infra::mailer::process_email_job_with_renderer(
-                state.mailer.clone(),
+                Arc::clone(&state.mailer),
                 &state.email_renderer,
                 &job.payload,
             )
             .await
         }
         JobType::Export => {
-            cms_reports::process_export_job(&state.db, state.storage.clone(), &job.payload)
-                .await
+            cms_reports::process_export_job(&state.db, Arc::clone(&state.storage), &job.payload).await
         }
         JobType::Git => cms_git::process_git_job(&state.db, &job.payload).await,
         JobType::Publish => {
-            cms_deployments::process_deployment_job(
-                &state.db,
-                state.storage.clone(),
-                &job.payload,
-            )
-            .await
+            cms_deployments::process_deployment_job(&state.db, Arc::clone(&state.storage), &job.payload)
+                .await
         }
         JobType::Search => {
-            cms_infra::search::process_search_job(&state.db, state.search.clone(), &job.payload).await
+            cms_infra::search::process_search_job(&state.db, Arc::clone(&state.search), &job.payload)
+                .await
         }
         JobType::Usage => Ok(()),
         JobType::Reaper => {
-            cms_infra::queue::process_reaper_job(&state.db, state.job_queue.clone(), &job.payload)
+            cms_infra::queue::process_reaper_job(&state.db, Arc::clone(&state.job_queue), &job.payload)
                 .await
         }
     }
@@ -160,15 +157,17 @@ pub mod app_state {
 
     use cms_db::PgPool;
     use cms_error::AppError;
-    use cms_infra::analytics::{create_analytics_store, AnalyticsStore};
-    use cms_infra::config::Config;
     pub use cms_infra::mailer::{
-        create_mailer_with_noop_fallback as create_mailer, Email, EmailRenderer, Mailer,
-        NoopMailer, SmtpMailer,
+        Email, EmailRenderer, Mailer, NoopMailer, SmtpMailer,
+        create_mailer_with_noop_fallback as create_mailer,
     };
-    use cms_infra::queue::JobQueue;
-    use cms_infra::search::{create_search_engine, SearchEngine};
-    use cms_infra::storage::{create_storage, Storage};
+    use cms_infra::{
+        analytics::{AnalyticsStore, create_analytics_store},
+        config::Config,
+        queue::JobQueue,
+        search::{SearchEngine, create_search_engine},
+        storage::{Storage, create_storage},
+    };
 
     #[derive(Clone)]
     pub struct WorkerState {
@@ -201,14 +200,11 @@ pub mod app_state {
             job_queue: Arc<dyn JobQueue>,
             db: PgPool,
         ) -> Result<Self, AppError> {
-            let storage: Arc<dyn Storage> =
-                create_storage(&config.storage).await?.into();
+            let storage: Arc<dyn Storage> = create_storage(&config.storage).await?.into();
             let search = create_search_engine(&config.search)?;
-            let analytics =
-                create_analytics_store(&config.analytics, db.clone()).await?;
+            let analytics = create_analytics_store(&config.analytics, db.clone()).await?;
             let mailer = create_mailer(config.mailer.as_ref())?;
-            let email_renderer =
-                EmailRenderer::embedded().map_err(AppError::internal)?;
+            let email_renderer = EmailRenderer::embedded().map_err(AppError::internal)?;
 
             Ok(Self {
                 config: Arc::new(config.clone()),
@@ -227,20 +223,17 @@ pub mod app_state {
         pub async fn from_app_state(
             app: &cms_server_core::app_state::AppState,
         ) -> Result<Self, AppError> {
-            let analytics = create_analytics_store(
-                &app.config.analytics,
-                app.biz_context.pool.clone(),
-            )
-            .await?;
+            let analytics =
+                create_analytics_store(&app.config.analytics, app.biz_context.pool.clone()).await?;
             Ok(Self {
-                config: app.config.clone(),
+                config: Arc::clone(&app.config),
                 db: app.biz_context.pool.clone(),
-                storage: app.storage.clone(),
-                search: app.search_engine.clone(),
+                storage: Arc::clone(&app.storage),
+                search: Arc::clone(&app.search_engine),
                 analytics,
-                mailer: app.mailer.clone(),
+                mailer: Arc::clone(&app.mailer),
                 email_renderer: app.email_renderer.clone(),
-                job_queue: app.job_queue.clone(),
+                job_queue: Arc::clone(&app.job_queue),
             })
         }
     }
@@ -248,8 +241,7 @@ pub mod app_state {
 
 #[cfg(test)]
 mod tests {
-    use cms_infra::config::MailerConfig;
-    use cms_infra::mailer::Mailer;
+    use cms_infra::{config::MailerConfig, mailer::Mailer};
 
     use crate::app_state::*;
 
@@ -277,7 +269,7 @@ mod tests {
             logo_url: None,
         };
 
-        let result = SmtpMailer::new(config);
+        let result = SmtpMailer::new(&config);
         assert!(result.is_err());
 
         // Valid configuration should construct correctly
@@ -293,7 +285,7 @@ mod tests {
             logo_url: None,
         };
 
-        let valid_result = SmtpMailer::new(valid_config);
+        let valid_result = SmtpMailer::new(&valid_config);
         assert!(valid_result.is_ok());
     }
 }

@@ -1,4 +1,5 @@
 use std::{collections::HashMap, sync::Arc};
+
 use parking_lot::RwLock;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -112,7 +113,9 @@ impl Registry {
         payload: &serde_json::Value,
     ) -> Result<serde_json::Value, HandlerError> {
         let handler = self.get(event_type).ok_or_else(|| {
-            HandlerError::Permanent(format!("No handler registered for event type: '{event_type}'"))
+            HandlerError::Permanent(format!(
+                "No handler registered for event type: '{event_type}'"
+            ))
         })?;
 
         handler.handle(ctx, payload).await

@@ -5,8 +5,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     common::Id,
@@ -18,7 +18,7 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{auth::IntegrationAuth, IntegrationService};
+use crate::{IntegrationService, auth::IntegrationAuth};
 
 /// List integrations for a project.
 pub async fn list_integrations_handler(

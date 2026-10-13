@@ -15,12 +15,11 @@ use std::{str::FromStr, time::Duration};
 
 use cms_error::AppError;
 use log::LevelFilter;
-use sqlx::{
-    ConnectOptions, Executor,
-    postgres::{PgConnectOptions, PgPoolOptions},
-};
-
 pub use sqlx::PgPool;
+use sqlx::{
+    postgres::{PgConnectOptions, PgPoolOptions},
+    ConnectOptions, Executor,
+};
 
 /// Tunable connection pool parameters.
 /// Use `PoolConfig::default()` for sensible production settings,

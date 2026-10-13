@@ -111,9 +111,11 @@ async fn test_13_translation_linking_and_alternate_language_navigation() -> anyh
     let en_alt_langs = en_public["data"]["languages"]
         .as_array()
         .ok_or_else(|| anyhow::anyhow!("languages missing"))?;
-    anyhow::ensure!(en_alt_langs
-        .iter()
-        .any(|item| item["code"] == "he-IL" && item["path"] == "mivne"));
+    anyhow::ensure!(
+        en_alt_langs
+            .iter()
+            .any(|item| item["code"] == "he-IL" && item["path"] == "mivne")
+    );
 
     let rtl_public = expect_status(
         request(
@@ -131,9 +133,11 @@ async fn test_13_translation_linking_and_alternate_language_navigation() -> anyh
     let rtl_alt_langs = rtl_public["data"]["languages"]
         .as_array()
         .ok_or_else(|| anyhow::anyhow!("languages missing"))?;
-    anyhow::ensure!(rtl_alt_langs
-        .iter()
-        .any(|item| item["code"] == "en" && item["path"] == "architecture"));
+    anyhow::ensure!(
+        rtl_alt_langs
+            .iter()
+            .any(|item| item["code"] == "en" && item["path"] == "architecture")
+    );
 
     ctx.teardown().await
 }

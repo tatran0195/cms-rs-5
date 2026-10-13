@@ -35,11 +35,11 @@ mod embedded {
 
 pub use email::Email;
 pub use error::RenderError;
-pub use i18n::{Catalog, Locale, accept_language_tags};
-pub use render::{EmailRenderer, embedded_catalog_builder};
+pub use i18n::{accept_language_tags, Catalog, Locale};
+pub use render::{embedded_catalog_builder, EmailRenderer};
 pub use templates::TemplateEngine;
 pub use transport::{
-    Mailer, MockMailer, NoopMailer, SentEmail, SmtpMailer, UnconfiguredMailer, create_mailer,
-    create_mailer_with_noop_fallback,
+    create_mailer, create_mailer_with_noop_fallback, Mailer, MockMailer, NoopMailer, SentEmail,
+    SmtpMailer, UnconfiguredMailer,
 };
 pub use types::*;

@@ -2,7 +2,10 @@ use chrono::Utc;
 use cms_error::AppError;
 use sqlx::{Postgres, Transaction};
 
-use crate::{projects::SeedProject, users::{deterministic_uuid, SeedUser}};
+use crate::{
+    projects::SeedProject,
+    users::{SeedUser, deterministic_uuid},
+};
 
 /// Link seed users to projects with designated roles.
 pub async fn seed_members(

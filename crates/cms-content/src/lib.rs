@@ -1,7 +1,8 @@
 //! Content core vertical slice: Pages, Branches, Languages, Comments.
 
 use std::sync::Arc;
-use axum::{routing::get, Router};
+
+use axum::{Router, routing::get};
 use cms_server_core::app_state::AppState;
 
 pub mod handlers;
@@ -10,18 +11,9 @@ pub mod queries;
 pub mod services;
 
 pub use handlers::ContentUser;
-pub use models::branch::*;
-pub use models::comment::*;
-pub use models::language::*;
-pub use models::page::*;
-pub use queries::branch::*;
-pub use queries::comment::*;
-pub use queries::language::*;
-pub use queries::page::*;
-pub use services::BranchService;
-pub use services::CommentService;
-pub use services::LanguageService;
-pub use services::PageService;
+pub use models::{branch::*, comment::*, language::*, page::*};
+pub use queries::{branch::*, comment::*, language::*, page::*};
+pub use services::{BranchService, CommentService, LanguageService, PageService};
 
 /// Exposes the Axum router for pages.
 pub fn page_router(state: Arc<AppState>) -> Router {

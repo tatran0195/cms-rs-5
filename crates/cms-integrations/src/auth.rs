@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use axum::http::{header::AUTHORIZATION, request::Parts};
-use cms_auth::{claims::decode_jwt, AuthenticatedUser, Claims};
+use cms_auth::{AuthenticatedUser, Claims, claims::decode_jwt};
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 use uuid::Uuid;
@@ -44,9 +44,8 @@ where
     #[allow(clippy::unused_async_trait_impl)]
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         if let Some(claims) = parts.extensions.get::<Claims>() {
-            let is_bypass = claims.role == "super_admin"
-                || claims.role == "owner"
-                || claims.role == "admin";
+            let is_bypass =
+                claims.role == "super_admin" || claims.role == "owner" || claims.role == "admin";
             return Ok(Self {
                 user: IntegrationUser {
                     id: claims.sub.to_string(),

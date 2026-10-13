@@ -131,14 +131,13 @@ impl ProjectMemberQueries {
 
     /// Remove a member from a project
     pub async fn remove(pool: &PgPool, project_id: &str, user_id: &str) -> Result<bool, AppError> {
-        let res = sqlx::query(
-            r#"DELETE FROM "ProjectMember" WHERE project_id = $1 AND user_id = $2"#,
-        )
-        .bind(project_id)
-        .bind(user_id)
-        .execute(pool)
-        .await
-        .map_err(AppError::Database)?;
+        let res =
+            sqlx::query(r#"DELETE FROM "ProjectMember" WHERE project_id = $1 AND user_id = $2"#)
+                .bind(project_id)
+                .bind(user_id)
+                .execute(pool)
+                .await
+                .map_err(AppError::Database)?;
 
         Ok(res.rows_affected() > 0)
     }

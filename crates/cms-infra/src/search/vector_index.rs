@@ -266,7 +266,7 @@ impl ProjectVectorIndex {
             .or_default()
             .push(idx);
         self.entries.push(meta);
-        self.vectors.extend_from_slice(&embedding);
+        self.vectors.extend(embedding);
         self.dirty = true;
     }
 

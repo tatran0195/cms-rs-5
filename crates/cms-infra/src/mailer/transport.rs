@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use cms_error::AppError;
-use crate::config::MailerConfig;
 use lettre::{
     message::{header::ContentType, Attachment, Mailbox, MultiPart, SinglePart},
     transport::smtp::authentication::Credentials,
@@ -11,6 +10,7 @@ use lettre::{
 use tokio::sync::Mutex;
 
 use super::types::RenderedEmail;
+use crate::config::MailerConfig;
 
 /// Email sender trait — implementations can be SMTP, SES, SendGrid, in-memory mock, etc.
 #[async_trait]
@@ -26,11 +26,9 @@ pub trait Mailer: Send + Sync {
 
 /// Build the configured mail adapter. Missing SMTP is represented explicitly and
 /// fails closed on a send request; it never silently discards security mail.
-pub fn create_mailer(
-    config: Option<&MailerConfig>,
-) -> Result<Arc<dyn Mailer>, AppError> {
+pub fn create_mailer(config: Option<&MailerConfig>) -> Result<Arc<dyn Mailer>, AppError> {
     match config.and_then(|cfg| cfg.smtp_host.as_deref().map(|_| cfg)) {
-        Some(cfg) => Ok(Arc::new(SmtpMailer::new(cfg.clone())?)),
+        Some(cfg) => Ok(Arc::new(SmtpMailer::new(cfg)?)),
         None => Ok(Arc::new(UnconfiguredMailer)),
     }
 }
@@ -42,7 +40,7 @@ pub fn create_mailer_with_noop_fallback(
     if let Some(cfg) = config {
         if let Some(ref host) = cfg.smtp_host {
             tracing::info!("Using SMTP mailer: {}:{}", host, cfg.smtp_port);
-            return Ok(Arc::new(SmtpMailer::new(cfg.clone())?));
+            return Ok(Arc::new(SmtpMailer::new(cfg)?));
         }
     }
 
@@ -66,7 +64,7 @@ pub struct SmtpMailer {
 }
 
 impl SmtpMailer {
-    pub fn new(config: MailerConfig) -> Result<Self, AppError> {
+    pub fn new(config: &MailerConfig) -> Result<Self, AppError> {
         let host = config
             .smtp_host
             .as_deref()
@@ -147,14 +145,13 @@ impl SmtpMailer {
             .subject(&email.subject);
 
         if html.contains("cid:technostar-logo") {
+            let content_type = ContentType::parse("image/png; name=\"technostar-logo.png\"")
+                .map_err(|e| AppError::Internal(anyhow::anyhow!("Invalid content type: {e}")))?;
             let logo_attachment = Attachment::new_inline_with_name(
                 "technostar-logo".to_string(),
                 "technostar-logo.png".to_string(),
             )
-            .body(
-                TECHNOSTAR_LOGO_EMAIL_BYTES.to_vec(),
-                ContentType::parse("image/png; name=\"technostar-logo.png\"").unwrap(),
-            );
+            .body(TECHNOSTAR_LOGO_EMAIL_BYTES.to_vec(), content_type);
 
             let related = MultiPart::related()
                 .multipart(alternative)
@@ -318,7 +315,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_smtp_mailer_builds_inline_logo_cid_attachment() {
-        let mailer = SmtpMailer::new(MailerConfig {
+        let mailer = SmtpMailer::new(&MailerConfig {
             smtp_host: Some("localhost".to_string()),
             smtp_port: 1025,
             smtp_username: None,
@@ -350,7 +347,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_smtp_mailer_normalizes_relative_logo_path() {
-        let mailer = SmtpMailer::new(MailerConfig {
+        let mailer = SmtpMailer::new(&MailerConfig {
             smtp_host: Some("localhost".to_string()),
             smtp_port: 1025,
             smtp_username: None,
@@ -381,7 +378,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_smtp_mailer_respects_custom_logo_url() {
-        let mailer = SmtpMailer::new(MailerConfig {
+        let mailer = SmtpMailer::new(&MailerConfig {
             smtp_host: Some("localhost".to_string()),
             smtp_port: 1025,
             smtp_username: None,

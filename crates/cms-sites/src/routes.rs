@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use axum::{extract::Extension, routing::get, Router};
+use axum::{Router, extract::Extension, routing::get};
 
 use crate::{
+    SitesAppState,
     handlers::{
         apple_touch_icon_handler, asset_handler, css_handler, favicon_16_handler,
         favicon_32_handler, favicon_handler, font_handler, image_handler, js_handler,
@@ -10,7 +11,6 @@ use crate::{
         sitemap_xml_handler, wildcard_handler,
     },
     host_resolution::HostResolver,
-    SitesAppState,
 };
 
 /// Derive the site base host from config.

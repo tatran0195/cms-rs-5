@@ -65,7 +65,8 @@ This platform is structured as a **high-performance modular monolith** built in 
                 title: "REST API Overview & Authentication",
                 slug: "overview",
                 path: "/overview",
-                description: "API design conventions, authentication headers, and standard schemas.",
+                description: "API design conventions, authentication headers, and standard \
+                              schemas.",
                 position: 0,
                 content: r#"# REST API Overview
 

@@ -248,7 +248,6 @@ pub struct ReaderJwtClaims {
     pub jti: String, // JWT ID for replay protection
 }
 
-
 /// Project API key response matching SPA ApiKey shape
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -383,7 +382,12 @@ pub struct ChangeEmailPayload {
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema, ts_rs::TS)]
 pub struct SignInSocialPayload {
     pub provider: String,
-    #[serde(rename = "callbackURL", alias = "callbackUrl", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "callbackURL",
+        alias = "callbackUrl",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     #[ts(optional)]
     pub callback_url: Option<String>,
 }
@@ -453,7 +457,6 @@ pub struct MfaChallengePayload {
     #[serde(default)]
     pub is_recovery_code: bool,
 }
-
 
 #[cfg(test)]
 mod tests {

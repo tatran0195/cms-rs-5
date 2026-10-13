@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
 use cms_server_core::{
     app_state::AppState,
@@ -16,8 +16,8 @@ use crate::{handlers::*, parity};
 /// Create the admin router
 pub fn router(state: Arc<AppState>) -> Router {
     let admin_origin_config = AdminOriginConfig::from(&state.config.admin_origin);
-    let admin_origin_layer = AdminOriginLayer::new(admin_origin_config)
-        .expect("Invalid admin origin configuration");
+    let admin_origin_layer =
+        AdminOriginLayer::new(admin_origin_config).expect("Invalid admin origin configuration");
 
     let mutation_routes = Router::new()
         .route("/users/{id}/role", post(parity::set_user_role_handler))

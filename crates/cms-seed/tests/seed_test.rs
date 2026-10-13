@@ -1,8 +1,9 @@
-use cms_seed::{
-    deterministic_uuid, hash_password, verify_password, pages::SeedPage, projects::SeedProject,
-    users::SeedUser,
-};
 use std::collections::HashSet;
+
+use cms_seed::{
+    deterministic_uuid, hash_password, pages::SeedPage, projects::SeedProject, users::SeedUser,
+    verify_password,
+};
 
 #[test]
 fn test_deterministic_uuid_stability() {

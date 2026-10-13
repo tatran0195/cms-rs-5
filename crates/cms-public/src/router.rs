@@ -5,8 +5,8 @@
 use std::sync::Arc;
 
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
 use cms_server_core::app_state::AppState;
 
@@ -16,8 +16,14 @@ use crate::handlers::*;
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/meta", get(get_public_meta_handler))
-        .route("/setup/status", get(cms_onboarding::handlers::get_setup_status_handler))
-        .route("/setup/complete", post(cms_onboarding::handlers::complete_setup_handler))
+        .route(
+            "/setup/status",
+            get(cms_onboarding::handlers::get_setup_status_handler),
+        )
+        .route(
+            "/setup/complete",
+            post(cms_onboarding::handlers::complete_setup_handler),
+        )
         .route(
             "/marketing-events",
             post(post_public_marketing_events_handler),

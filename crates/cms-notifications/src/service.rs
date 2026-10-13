@@ -1,6 +1,7 @@
 //! Notification service layer coordinating DB and real-time hub
 
 use std::sync::Arc;
+
 use cms_entity::{
     common::PaginatedResponse,
     notification::{
@@ -29,15 +30,9 @@ impl NotificationService {
         message: &str,
         data: serde_json::Value,
     ) -> Result<NotificationResponse, AppError> {
-        let notification = NotificationQueries::create(
-            pool,
-            user_id,
-            notification_type,
-            title,
-            message,
-            data,
-        )
-        .await?;
+        let notification =
+            NotificationQueries::create(pool, user_id, notification_type, title, message, data)
+                .await?;
 
         let response: NotificationResponse = notification.into();
         let unread_count = NotificationQueries::count_unread_by_user(pool, user_id).await?;

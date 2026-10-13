@@ -198,8 +198,8 @@ impl Clone for MemoryJobQueue {
     fn clone(&self) -> Self {
         Self {
             sender: self.sender.clone(),
-            receiver: self.receiver.clone(),
-            jobs: self.jobs.clone(),
+            receiver: Arc::clone(&self.receiver),
+            jobs: Arc::clone(&self.jobs),
             num_workers: self.num_workers,
         }
     }

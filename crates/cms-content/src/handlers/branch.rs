@@ -1,9 +1,10 @@
 //! Branch HTTP handlers for content vertical slice.
 
 use std::sync::Arc;
+
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     branch::{BranchResponse, CreateBranchRequest, ListBranchesQuery, UpdateBranchRequest},
@@ -20,8 +21,7 @@ pub async fn list_branches_handler(
     auth: ContentUser,
     Query(query): Query<ListBranchesQuery>,
 ) -> Result<Json<PaginatedResponse<BranchResponse>>, AppError> {
-    let result =
-        BranchService::list_branches(state.db(), &auth.user_id, query, 1, 20).await?;
+    let result = BranchService::list_branches(state.db(), &auth.user_id, query, 1, 20).await?;
 
     Ok(Json(result))
 }

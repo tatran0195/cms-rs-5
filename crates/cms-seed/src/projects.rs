@@ -38,7 +38,9 @@ impl SeedProject {
 }
 
 /// Seed demo projects, default branches, and project settings within a transaction.
-pub async fn seed_projects(tx: &mut Transaction<'_, Postgres>) -> Result<Vec<SeedProject>, AppError> {
+pub async fn seed_projects(
+    tx: &mut Transaction<'_, Postgres>,
+) -> Result<Vec<SeedProject>, AppError> {
     let projects = SeedProject::defaults();
     let now = Utc::now();
 

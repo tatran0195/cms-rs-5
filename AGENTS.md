@@ -88,18 +88,13 @@ cms-rs-4/
 │   ├── cms-entity/               # Pure domain types, models, DTOs (Zero internal deps)
 │   ├── cms-db/                   # PostgreSQL repositories, queries, migrations
 │   │
-│   ├── cms-auth/                 # Session, JWT, password, cookie security, auth router
-│   ├── cms-authz/                # Role & permission checks (Zanzibar-style ReBAC)
-│   ├── cms-authz-gate/           # Middleware authorization gates
-│   ├── cms-api-keys/             # API key lifecycle and validation
-│   ├── cms-mfa/                  # Multi-factor authentication
-│   ├── cms-oauth/                # OAuth identity providers
-│   ├── cms-infra/                # Consolidated infrastructure (config, storage, search, queue, mailer, analytics, i18n)
+│   ├── cms-auth/                 # Auth system — JWT, sessions, API keys, MFA, OAuth
+│   ├── cms-authz/                # ReBAC engine + route authorization gates
+│   ├── cms-infra/                # Consolidated infrastructure (config with validation, storage with StorageService, search, queue, mailer, analytics, i18n)
 │   ├── cms-worker/               # Background task processor
 │   ├── cms-mcp/                  # MCP server endpoints for AI tools
 │   ├── cms-error/                # AppError and HTTP error responses
 │   ├── cms-server-core/          # Server foundation (pagination, validation, http_trace, app_state, enterprise middleware)
-│   ├── cms-server-services/      # Shared cross-domain services (auth audit hash-chain, storage URLs, tenant context, outbox dispatch)
 │   ├── cms-sites/                # Static documentation site generator & SPA server
 │   │
 │   ├── cms-content/              # Vertical Slice: Page hierarchy, branches, BCP-47 languages, comments
@@ -114,10 +109,9 @@ cms-rs-4/
 │   ├── cms-onboarding/           # Vertical Slice: Setup status, initial admin creation, cryptographic email verification, router
 │   ├── cms-reports/              # Vertical Slice: Report runs lifecycle, sequence generation, background export orchestration, router
 │   ├── cms-workspaces/           # Vertical Slice: Workspace configuration, workspace-level member lifecycle, router
-│   ├── cms-admin/                # Vertical Slice: Platform-level administrative parity router and operations
+│   ├── cms-admin/                # Vertical Slice: Platform-level administrative parity router and operations (including platform telemetry events)
 │   ├── cms-public/               # Vertical Slice: Unauthenticated reader-facing JSON API, SEO, RSS, sitemaps, changelog
-│   ├── cms-openapi/              # Vertical Slice: OpenAPI v3 schema generation, Swagger UI, ReDoc
-│   ├── cms-platform-events/      # Vertical Slice: Platform health checks and system telemetry
+│   ├── cms-api-specs/            # Vertical Slice: Stored OpenAPI document CRUD (user-uploaded API specs)
 │   │
 │   ├── cms-outbox/               # Subsystem 1: Transactional Outbox with jittered backoff, worker, DLQ
 │   ├── cms-seed/                 # Subsystem 2: Deterministic UUID v5 dev fixtures & CLI runner
@@ -133,8 +127,7 @@ cms-rs-4/
 2. `cms-db` depends only on `cms-entity` and database drivers.
 3. `cms-biz` and `cms-api` are **completely eliminated**; all business logic and routes live within cohesive vertical slices.
 4. **Vertical Slices** (e.g. `cms-content`, `cms-projects`, `cms-deployments`, `cms-admin`, `cms-public`): High-cohesion autonomous domain modules encapsulating domain queries, models, services, and Axum routers directly.
-5. `cms-server-services`: Shared cross-domain services foundation breaking cyclic dependencies across vertical slices.
-6. `apps/api` (`cms-server`): The composition root assembling all vertical slices directly into the Axum HTTP router (`router.rs`, `lib.rs`, `main.rs`).
+5. `apps/api` (`cms-server`): The composition root assembling all vertical slices directly into the Axum HTTP router (`router.rs`, `lib.rs`, `main.rs`).
 
 ---
 
@@ -170,11 +163,6 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
 - **BCP-47 & Translations**: Canonical BCP-47 validation, direction detection, project translations, and default-branch coverage calculation.
 - **Self-Contained Routers**: Exposes subrouters `page_router`, `branch_router`, `language_router`, `comment_router`, and composite `router` mounted at `/pages`, `/branches`, `/languages`, `/comments`.
 
-### 6. Shared Foundation: `cms-server-services`
-- **Audit Logging**: `AuthAuditService` guarantees tamper-evident SHA-256 hash-chain audit logging.
-- **Storage URL Resolution**: `StorageUrlService` resolves download and upload targets (presigned S3 URLs or local server-mediated endpoints).
-- **Tenant Context**: `TenantContextService` validates workspace access, active membership, and role authorization.
-- **Event Dispatcher**: `EventDispatcherService` enqueues atomic outbox notifications within database transactions.
 
 ### 7. Subsystem 1: Transactional Outbox (`cms-outbox`)
 - **At-Least-Once Delivery**: Atomic `queue_in_tx(&mut tx, &OutboxRow)` enqueues events within the same PostgreSQL transaction as domain mutations (`0020_outbox.sql`).

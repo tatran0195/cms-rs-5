@@ -1,10 +1,11 @@
 //! HTTP handlers for Onboarding and Setup vertical slice.
 
 use std::sync::Arc;
+
 use axum::{
+    Json,
     extract::{Query, State},
     http::HeaderMap,
-    Json,
 };
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
@@ -42,11 +43,21 @@ pub async fn complete_setup_handler(
     Json(payload): Json<CompleteSetupRequest>,
 ) -> Result<(HeaderMap, Json<CompleteSetupResponse>), AppError> {
     if payload.email.trim().is_empty() || payload.password.trim().is_empty() {
-        return Err(AppError::BadRequest("Email and password are required".to_string()));
+        return Err(AppError::BadRequest(
+            "Email and password are required".to_string(),
+        ));
     }
 
-    let scheme = if state.config.server.https { "https" } else { "http" };
-    let host = if state.config.server.host == "0.0.0.0" { "localhost" } else { &state.config.server.host };
+    let scheme = if state.config.server.https {
+        "https"
+    } else {
+        "http"
+    };
+    let host = if state.config.server.host == "0.0.0.0" {
+        "localhost"
+    } else {
+        &state.config.server.host
+    };
     let base_url = format!("{scheme}://{host}:{}", state.config.server.port);
 
     let res = OnboardingService::complete_setup(&state, payload, &base_url).await?;
@@ -88,8 +99,16 @@ pub async fn resend_verification_handler(
         return Err(AppError::BadRequest("Email cannot be empty".to_string()));
     }
 
-    let scheme = if state.config.server.https { "https" } else { "http" };
-    let host = if state.config.server.host == "0.0.0.0" { "localhost" } else { &state.config.server.host };
+    let scheme = if state.config.server.https {
+        "https"
+    } else {
+        "http"
+    };
+    let host = if state.config.server.host == "0.0.0.0" {
+        "localhost"
+    } else {
+        &state.config.server.host
+    };
     let base_url = format!("{scheme}://{host}:{}", state.config.server.port);
 
     OnboardingService::generate_verification_token(

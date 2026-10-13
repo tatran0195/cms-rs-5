@@ -45,7 +45,8 @@ fn main() {
 
     for path in &files {
         let locale = path.file_stem().and_then(|s| s.to_str()).expect("utf-8");
-        let raw = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        let raw =
+            fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
         let doc: serde_json::Map<String, serde_json::Value> = serde_json::from_str(&raw)
             .unwrap_or_else(|e| panic!("{}: invalid JSON: {e}", path.display()));
 
@@ -62,9 +63,15 @@ fn main() {
 
         if !i18n_subset.is_empty() {
             let target = out_dir.join(format!("{locale}_i18n.json"));
-            fs::write(&target, serde_json::to_string(&i18n_subset).expect("serialize")).expect("write");
+            fs::write(
+                &target,
+                serde_json::to_string(&i18n_subset).expect("serialize"),
+            )
+            .expect("write");
             let safe_target = target.to_string_lossy().replace('\\', "/");
-            i18n_gen.push_str(&format!("    ({locale:?}, include_str!({safe_target:?})),\n"));
+            i18n_gen.push_str(&format!(
+                "    ({locale:?}, include_str!({safe_target:?})),\n"
+            ));
         }
 
         // email subset (email_)
@@ -76,15 +83,25 @@ fn main() {
 
         if !email_subset.is_empty() {
             let target = out_dir.join(format!("{locale}_email.json"));
-            fs::write(&target, serde_json::to_string(&email_subset).expect("serialize")).expect("write");
+            fs::write(
+                &target,
+                serde_json::to_string(&email_subset).expect("serialize"),
+            )
+            .expect("write");
             let safe_target = target.to_string_lossy().replace('\\', "/");
-            email_gen.push_str(&format!("    ({locale:?}, include_str!({safe_target:?})),\n"));
+            email_gen.push_str(&format!(
+                "    ({locale:?}, include_str!({safe_target:?})),\n"
+            ));
         }
     }
     i18n_gen.push_str("];\n");
     email_gen.push_str("];\n");
 
-    assert!(saw_base, "Base locale `{BASE_LOCALE}.json` missing in `{}`", dir.display());
+    assert!(
+        saw_base,
+        "Base locale `{BASE_LOCALE}.json` missing in `{}`",
+        dir.display()
+    );
     fs::write(
         Path::new(&env::var("OUT_DIR").unwrap()).join("i18n_embedded_messages.rs"),
         i18n_gen,

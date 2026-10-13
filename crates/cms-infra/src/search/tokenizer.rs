@@ -192,6 +192,7 @@ impl Default for JapaneseTokenizer {
     }
 }
 
+#[allow(clippy::expect_used)]
 fn load_embedded_sudachidict() -> Dictionary {
     load_dictionary("embedded://sudachidict").expect(
         "embedded SudachiDict dictionary should always be present with feature embed-sudachidict",

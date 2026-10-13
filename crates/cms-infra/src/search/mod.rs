@@ -13,20 +13,21 @@
 
 use std::sync::Arc;
 
-use crate::config::SearchConfig;
 use cms_error::AppError;
+
+use crate::config::SearchConfig;
 
 #[cfg(feature = "vector")]
 pub mod embedder;
 pub mod markdown;
 #[cfg(feature = "vector")]
 pub mod rag;
+pub mod services;
 pub mod tantivy_engine;
 pub mod tokenizer;
 pub mod traits;
 #[cfg(feature = "vector")]
 pub mod vector_index;
-pub mod services;
 
 #[cfg(feature = "vector")]
 pub use embedder::Embedder;

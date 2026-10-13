@@ -7,16 +7,16 @@ pub mod domains;
 pub mod members;
 pub mod reader_access;
 
+pub use core::*;
 use std::sync::Arc;
-use axum::{
-    routing::{delete, get, patch, post, put},
-    Router,
-};
-use cms_server_core::app_state::AppState;
 
 pub use addons::*;
 pub use auth::*;
-pub use core::*;
+use axum::{
+    Router,
+    routing::{delete, get, patch, post, put},
+};
+use cms_server_core::app_state::AppState;
 pub use domains::*;
 pub use members::*;
 pub use reader_access::*;

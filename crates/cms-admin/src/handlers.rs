@@ -2,8 +2,7 @@
 
 use std::sync::Arc;
 
-use axum::extract::State;
-use axum::Json;
+use axum::{Json, extract::State};
 use cms_auth::AuthExtractor;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
@@ -74,8 +73,7 @@ pub async fn get_system_health_handler(
     require_system_admin(&state, &auth).await?;
 
     let health =
-        crate::platform_events::PlatformEventService::get_system_health(state.db())
-            .await?;
+        crate::platform_events::PlatformEventService::get_system_health(state.db()).await?;
 
     Ok(Json(serde_json::json!(health)))
 }
@@ -107,12 +105,12 @@ pub async fn get_system_metrics_handler(
 
     let body = format!(
         "# HELP cms_users_total Total registered users\n# TYPE cms_users_total \
-         gauge\ncms_users_total {}\n# HELP cms_projects_total \
-         Total projects\n# TYPE cms_projects_total gauge\ncms_projects_total {}\n# HELP \
-         cms_db_connections_active Number of active PostgreSQL pool connections\n# TYPE \
-         cms_db_connections_active gauge\ncms_db_connections_active {}\n# HELP \
-         cms_db_connections_idle Number of idle PostgreSQL pool connections\n# TYPE \
-         cms_db_connections_idle gauge\ncms_db_connections_idle {}\n",
+         gauge\ncms_users_total {}\n# HELP cms_projects_total Total projects\n# TYPE \
+         cms_projects_total gauge\ncms_projects_total {}\n# HELP cms_db_connections_active Number \
+         of active PostgreSQL pool connections\n# TYPE cms_db_connections_active \
+         gauge\ncms_db_connections_active {}\n# HELP cms_db_connections_idle Number of idle \
+         PostgreSQL pool connections\n# TYPE cms_db_connections_idle \
+         gauge\ncms_db_connections_idle {}\n",
         users, projects, active_db_connections, idle_db_connections
     );
 

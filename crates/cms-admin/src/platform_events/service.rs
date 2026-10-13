@@ -3,7 +3,7 @@
 //! Provides event logging, funnel tracking, and database health probes.
 
 use chrono::Utc;
-use cms_db::{platform_event::PlatformEventQueries, PgPool};
+use cms_db::{PgPool, platform_event::PlatformEventQueries};
 use cms_entity::{
     common::PaginatedResponse,
     platform_event::{CreatePlatformEventRequest, PlatformEventResponse},
@@ -50,13 +50,9 @@ impl PlatformEventService {
         user_id: Option<&str>,
         request: CreatePlatformEventRequest,
     ) -> Result<PlatformEventResponse, AppError> {
-        let event = PlatformEventQueries::create(
-            pool,
-            user_id,
-            &request.event_type,
-            request.metadata,
-        )
-        .await?;
+        let event =
+            PlatformEventQueries::create(pool, user_id, &request.event_type, request.metadata)
+                .await?;
 
         Ok(event.into())
     }
@@ -70,13 +66,8 @@ impl PlatformEventService {
         event_type: FunnelEventType,
         metadata: serde_json::Value,
     ) {
-        if let Err(error) = PlatformEventQueries::create(
-            pool,
-            Some(user_id),
-            event_type.as_str(),
-            metadata,
-        )
-        .await
+        if let Err(error) =
+            PlatformEventQueries::create(pool, Some(user_id), event_type.as_str(), metadata).await
         {
             tracing::warn!(
                 user_id,
@@ -97,14 +88,8 @@ impl PlatformEventService {
     ) -> Result<PaginatedResponse<PlatformEventResponse>, AppError> {
         let limit = page_size.max(1) as i64;
         let offset = page.saturating_sub(1) as i64 * limit;
-        let events = PlatformEventQueries::list(
-            pool,
-            None,
-            event_type,
-            Some(limit),
-            Some(offset),
-        )
-        .await?;
+        let events =
+            PlatformEventQueries::list(pool, None, event_type, Some(limit), Some(offset)).await?;
 
         let total = PlatformEventQueries::count(pool, None, event_type).await?;
 
@@ -129,7 +114,9 @@ impl PlatformEventService {
     }
 
     /// Get system health
-    pub async fn get_system_health(pool: &PgPool) -> Result<cms_entity::common::SystemHealthResponse, AppError> {
+    pub async fn get_system_health(
+        pool: &PgPool,
+    ) -> Result<cms_entity::common::SystemHealthResponse, AppError> {
         let start = std::time::Instant::now();
         let db_status = match sqlx::query("SELECT 1").execute(pool).await {
             Ok(_) => "connected",

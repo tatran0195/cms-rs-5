@@ -198,8 +198,7 @@ impl SearchService {
         _user_id: &str,
         project_id: &str,
     ) -> Result<serde_json::Value, AppError> {
-        let latest_run =
-            SearchIndexRunQueries::get_latest_by_project(pool, project_id).await?;
+        let latest_run = SearchIndexRunQueries::get_latest_by_project(pool, project_id).await?;
         let total_runs = SearchIndexRunQueries::count_by_project(pool, project_id).await?;
 
         Ok(serde_json::json!({
@@ -293,7 +292,7 @@ impl SearchService {
                 }
                 Ok(Some(_)) => {}
                 Ok(None) => {
-                    failures.push(format!("{}: page disappeared during reindex", page_item.id))
+                    failures.push(format!("{}: page disappeared during reindex", page_item.id));
                 }
                 Err(error) => failures.push(format!("{}: {error}", page_item.id)),
             }
@@ -309,8 +308,7 @@ impl SearchService {
                 .collect::<Vec<_>>()
                 .join("; ");
             let error_message = error_message.chars().take(4_000).collect::<String>();
-            SearchIndexRunQueries::mark_failed(pool, &run.id, indexed_count, &error_message)
-                .await?
+            SearchIndexRunQueries::mark_failed(pool, &run.id, indexed_count, &error_message).await?
         };
 
         tracing::info!(

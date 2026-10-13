@@ -1,9 +1,10 @@
 //! Deployments & Site Generation Vertical Slice.
 
 use std::sync::Arc;
+
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
 use cms_server_core::app_state::AppState;
 
@@ -15,7 +16,7 @@ pub mod service;
 pub use auth::DeploymentUser;
 pub use handlers::*;
 pub use queries::{DeploymentQueries, DomainQueries};
-pub use service::{process_deployment_job, process_publish_job, DeploymentService};
+pub use service::{DeploymentService, process_deployment_job, process_publish_job};
 
 /// Constructs the Axum router for deployment operations.
 pub fn router(state: Arc<AppState>) -> Router {

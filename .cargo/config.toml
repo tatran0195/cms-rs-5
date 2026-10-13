@@ -1,3 +1,6 @@
+[build]
+jobs = 2
+
 [env]
 SQLX_OFFLINE = "true"
 OPENSSL_DIR = "C:\\Program Files\\PostgreSQL\\18"

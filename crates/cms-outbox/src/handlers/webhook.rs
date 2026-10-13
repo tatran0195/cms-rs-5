@@ -59,25 +59,26 @@ impl Handler for WebhookHandler {
         ctx: &HandlerCtx,
         payload: &serde_json::Value,
     ) -> Result<serde_json::Value, HandlerError> {
-        let webhook_payload: WebhookPayload =
-            serde_json::from_value(payload.clone()).map_err(|e| {
-                HandlerError::Permanent(format!("Malformed WebhookPayload: {e}"))
-            })?;
+        let webhook_payload: WebhookPayload = serde_json::from_value(payload.clone())
+            .map_err(|e| HandlerError::Permanent(format!("Malformed WebhookPayload: {e}")))?;
 
         let parsed_url = Url::parse(&webhook_payload.url).map_err(|e| {
-            HandlerError::Permanent(format!("Invalid webhook URL '{}': {e}", webhook_payload.url))
+            HandlerError::Permanent(format!(
+                "Invalid webhook URL '{}': {e}",
+                webhook_payload.url
+            ))
         })?;
 
         let method = webhook_payload.method.parse::<Method>().map_err(|e| {
-            HandlerError::Permanent(format!("Invalid HTTP method '{}': {e}", webhook_payload.method))
+            HandlerError::Permanent(format!(
+                "Invalid HTTP method '{}': {e}",
+                webhook_payload.method
+            ))
         })?;
 
         let timeout = Duration::from_secs(webhook_payload.timeout_seconds.unwrap_or(30));
 
-        let mut request_builder = ctx
-            .http_client
-            .request(method, parsed_url)
-            .timeout(timeout);
+        let mut request_builder = ctx.http_client.request(method, parsed_url).timeout(timeout);
 
         let mut has_content_type = false;
         for (key, val) in &webhook_payload.headers {

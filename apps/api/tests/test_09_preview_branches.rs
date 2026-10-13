@@ -111,10 +111,12 @@ async fn test_09_preview_branches_and_isolation() -> anyhow::Result<()> {
         StatusCode::OK,
         "read preview page explicitly",
     )?;
-    anyhow::ensure!(preview_read["data"]["page"]["content"]
-        .as_str()
-        .unwrap()
-        .contains("Secret preview content"));
+    anyhow::ensure!(
+        preview_read["data"]["page"]["content"]
+            .as_str()
+            .unwrap()
+            .contains("Secret preview content")
+    );
 
     expect_status(
         request(

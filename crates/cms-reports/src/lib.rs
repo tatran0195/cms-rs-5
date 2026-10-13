@@ -1,7 +1,8 @@
 //! Report Runs & Background Export Vertical Slice.
 
 use std::sync::Arc;
-use axum::{routing::get, Router};
+
+use axum::{Router, routing::get};
 use cms_server_core::app_state::AppState;
 
 pub mod export;
@@ -11,7 +12,7 @@ pub mod models;
 pub mod queries;
 pub mod service;
 
-pub use export::{process_export_job, ExportService};
+pub use export::{ExportService, process_export_job};
 pub use models::*;
 pub use queries::ReportQueries;
 pub use service::ReportService;

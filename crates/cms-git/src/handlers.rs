@@ -5,8 +5,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     common::{Id, PaginatedResponse},
@@ -18,7 +18,7 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{auth::GitAuth, GitService};
+use crate::{GitService, auth::GitAuth};
 
 /// Create a new Git connection.
 pub async fn create_git_connection_handler(
@@ -53,8 +53,7 @@ pub async fn list_git_connections_handler(
     auth: GitAuth,
     Path(project_id): Path<Id>,
 ) -> Result<Json<Vec<GitConnectionResponse>>, AppError> {
-    let connections =
-        GitService::list_connections(state.db(), &auth.user.id, &project_id).await?;
+    let connections = GitService::list_connections(state.db(), &auth.user.id, &project_id).await?;
 
     Ok(Json(connections))
 }
@@ -142,8 +141,7 @@ pub async fn get_git_sync_status_handler(
     auth: GitAuth,
     Path(connection_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let status =
-        GitService::get_sync_status(state.db(), &auth.user.id, &connection_id).await?;
+    let status = GitService::get_sync_status(state.db(), &auth.user.id, &connection_id).await?;
 
     Ok(Json(status))
 }

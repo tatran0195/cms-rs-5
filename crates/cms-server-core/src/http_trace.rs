@@ -10,11 +10,12 @@
 //!
 //! Color is decided once, honoring `NO_COLOR`, `FORCE_COLOR`, and terminal detection.
 
-use std::sync::OnceLock;
-use std::time::Duration;
+use std::{sync::OnceLock, time::Duration};
 
-use axum::body::Body;
-use axum::http::{Response, StatusCode};
+use axum::{
+    body::Body,
+    http::{Response, StatusCode},
+};
 use tracing::Span;
 
 static COLOUR: OnceLock<bool> = OnceLock::new();

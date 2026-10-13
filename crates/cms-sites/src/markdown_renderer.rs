@@ -10,7 +10,7 @@ use std::{collections::HashSet, sync::LazyLock};
 
 use ammonia::Builder;
 use cms_entity::{page::Page, project::Project};
-use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
+use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd, html};
 use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing::SyntaxSet};
 
 // ---------------------------------------------------------------------------
@@ -292,11 +292,7 @@ impl MarkdownRenderer {
                     current_lang = match kind {
                         CodeBlockKind::Fenced(lang) => {
                             let s = lang.as_ref().trim().to_owned();
-                            if s.is_empty() {
-                                None
-                            } else {
-                                Some(s)
-                            }
+                            if s.is_empty() { None } else { Some(s) }
                         }
                         CodeBlockKind::Indented => None,
                     };
@@ -725,11 +721,7 @@ impl MarkdownRenderer {
             toc.push_str("</ul>\n");
         }
 
-        if toc.is_empty() {
-            None
-        } else {
-            Some(toc)
-        }
+        if toc.is_empty() { None } else { Some(toc) }
     }
 
     /// Generate anchor from text

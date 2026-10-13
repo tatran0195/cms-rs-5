@@ -7,8 +7,9 @@
 //! The trait is designed so that cms-biz can be tested against a fake
 //! implementation without a live storage backend.
 
-use crate::config::StorageConfig;
 use cms_error::AppError;
+
+use crate::config::StorageConfig;
 
 pub mod local;
 #[cfg(feature = "s3")]
@@ -123,8 +124,15 @@ impl StorageService {
 
     /// Format standard storage key for export/report runs.
     #[must_use]
-    pub fn format_report_storage_key(workspace_id: &str, run_id: &uuid::Uuid, extension: &str) -> String {
-        format!("reports/{workspace_id}/{run_id}.{}", extension.trim_start_matches('.'))
+    pub fn format_report_storage_key(
+        workspace_id: &str,
+        run_id: &uuid::Uuid,
+        extension: &str,
+    ) -> String {
+        format!(
+            "reports/{workspace_id}/{run_id}.{}",
+            extension.trim_start_matches('.')
+        )
     }
 
     /// Format the canonical storage key for an export/report run artifact.
@@ -135,7 +143,11 @@ impl StorageService {
 
     /// Format standard storage key for asset uploads.
     #[must_use]
-    pub fn format_asset_storage_key(workspace_id: &str, asset_id: &uuid::Uuid, filename: &str) -> String {
+    pub fn format_asset_storage_key(
+        workspace_id: &str,
+        asset_id: &uuid::Uuid,
+        filename: &str,
+    ) -> String {
         format!("assets/{workspace_id}/{asset_id}/{filename}")
     }
 
@@ -145,4 +157,3 @@ impl StorageService {
         Self::format_asset_storage_key(workspace_id, asset_id, filename)
     }
 }
-

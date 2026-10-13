@@ -1,10 +1,9 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use cms_outbox::{
-    calculate_backoff,
+    BackoffConfig, OutboxRow, calculate_backoff,
     handler::{Handler, HandlerCtx, HandlerError, Registry},
     handlers::{email::EmailPayload, webhook::WebhookPayload},
-    BackoffConfig, OutboxRow,
 };
 use serde_json::json;
 use uuid::Uuid;
@@ -27,10 +26,14 @@ impl Handler for DummyHandler {
         payload: &serde_json::Value,
     ) -> Result<serde_json::Value, HandlerError> {
         if self.should_fail_permanent {
-            return Err(HandlerError::Permanent("test permanent failure".to_string()));
+            return Err(HandlerError::Permanent(
+                "test permanent failure".to_string(),
+            ));
         }
         if self.should_fail_transient {
-            return Err(HandlerError::Transient("test transient failure".to_string()));
+            return Err(HandlerError::Transient(
+                "test transient failure".to_string(),
+            ));
         }
         Ok(json!({ "processed": true, "input": payload }))
     }
@@ -117,9 +120,8 @@ async fn test_registry_dispatch_flow() {
         event_id: Uuid::new_v4(),
         workspace_id: Some("ws_test".to_string()),
         attempts: 1,
-        pool: sqlx::PgPool::connect_lazy("postgres://localhost/dummy").unwrap_or_else(|_| {
-            panic!("connect_lazy should construct pool without connecting")
-        }),
+        pool: sqlx::PgPool::connect_lazy("postgres://localhost/dummy")
+            .unwrap_or_else(|_| panic!("connect_lazy should construct pool without connecting")),
         http_client: reqwest::Client::new(),
         mailer: None,
         renderer: None,

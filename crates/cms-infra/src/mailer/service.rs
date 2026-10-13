@@ -5,12 +5,7 @@ use std::sync::Arc;
 use cms_entity::email::{EmailRequest, EmailTemplate};
 use cms_error::AppError;
 
-use super::{
-    email::Email,
-    render::EmailRenderer,
-    transport::Mailer,
-    types::RenderedEmail,
-};
+use super::{email::Email, render::EmailRenderer, transport::Mailer, types::RenderedEmail};
 use crate::i18n::Locale;
 
 /// Email service
@@ -61,7 +56,7 @@ impl EmailService {
         to: &str,
         variables: serde_json::Value,
     ) -> Result<(), AppError> {
-        let (subject, body, html_body) = Self::render_template(template, variables)?;
+        let (subject, body, html_body) = Self::render_template(&template, &variables)?;
         if let Some(html) = html_body {
             let rendered = RenderedEmail {
                 subject,
@@ -76,8 +71,8 @@ impl EmailService {
 
     /// Render an email template
     fn render_template(
-        template: EmailTemplate,
-        variables: serde_json::Value,
+        template: &EmailTemplate,
+        variables: &serde_json::Value,
     ) -> Result<(String, String, Option<String>), AppError> {
         let mut subject = template.subject.clone();
         let mut body = template.body.clone();
@@ -157,7 +152,8 @@ pub async fn process_email_job(
     mailer: Arc<dyn Mailer>,
     payload: &serde_json::Value,
 ) -> Result<(), AppError> {
-    let renderer = EmailRenderer::embedded()
-        .map_err(|e| AppError::Internal(anyhow::anyhow!("Failed to initialize email renderer: {e}")))?;
+    let renderer = EmailRenderer::embedded().map_err(|e| {
+        AppError::Internal(anyhow::anyhow!("Failed to initialize email renderer: {e}"))
+    })?;
     process_email_job_with_renderer(mailer, &renderer, payload).await
 }

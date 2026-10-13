@@ -1,9 +1,10 @@
 //! Page HTTP handlers for content vertical slice.
 
 use std::sync::Arc;
+
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     common::{Id, PaginatedResponse},
@@ -32,14 +33,9 @@ pub async fn create_page_handler(
 ) -> Result<Json<PageResponse>, AppError> {
     let project_id = request.project_id.clone();
     let branch_id = request.branch_id.clone();
-    let page = PageService::create_page(
-        state.db(),
-        &auth.user_id,
-        &project_id,
-        &branch_id,
-        request,
-    )
-    .await?;
+    let page =
+        PageService::create_page(state.db(), &auth.user_id, &project_id, &branch_id, request)
+            .await?;
 
     Ok(Json(page))
 }

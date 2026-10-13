@@ -8,13 +8,17 @@ use cms_entity::auth::{
 fn test_mfa_payload_serialization_camel_case() {
     let setup_resp = MfaSetupResponse {
         secret: "JBSWY3DPEHPK3PXP".to_string(),
-        otpauth_uri: "otpauth://totp/Company%20CMS:test%40example.com?secret=JBSWY3DPEHPK3PXP".to_string(),
+        otpauth_uri: "otpauth://totp/Company%20CMS:test%40example.com?secret=JBSWY3DPEHPK3PXP"
+            .to_string(),
         qr_png_base64: "iVBORw0KGgoAAAANSUhEUgAA...".to_string(),
         recovery_codes: vec!["abcd-1234".to_string(), "ef01-5678".to_string()],
     };
 
     let json = serde_json::to_value(&setup_resp).expect("serialize setup response");
-    assert_eq!(json["otpauthUri"], "otpauth://totp/Company%20CMS:test%40example.com?secret=JBSWY3DPEHPK3PXP");
+    assert_eq!(
+        json["otpauthUri"],
+        "otpauth://totp/Company%20CMS:test%40example.com?secret=JBSWY3DPEHPK3PXP"
+    );
     assert_eq!(json["qrPngBase64"], "iVBORw0KGgoAAAANSUhEUgAA...");
     assert_eq!(json["recoveryCodes"].as_array().unwrap().len(), 2);
 
@@ -47,12 +51,16 @@ fn test_mfa_totp_and_recovery_verification_logic() {
     assert!(enrollment.otpauth_uri.starts_with("otpauth://totp/"));
 
     // Build TOTP to generate current code
-    let totp = cms_auth::mfa::build_totp(&enrollment.secret, "user@company.internal", "Company CMS")
-        .expect("totp build");
+    let totp =
+        cms_auth::mfa::build_totp(&enrollment.secret, "user@company.internal", "Company CMS")
+            .expect("totp build");
     let current_code = totp.generate_current().expect("generate code");
 
     // Verification check
-    assert!(cms_auth::mfa::verify_totp(&enrollment.secret, &current_code));
+    assert!(cms_auth::mfa::verify_totp(
+        &enrollment.secret,
+        &current_code
+    ));
     assert!(!cms_auth::mfa::verify_totp(&enrollment.secret, "999999"));
     assert!(!cms_auth::mfa::verify_totp(&enrollment.secret, "abc"));
 
@@ -71,7 +79,10 @@ fn test_mfa_totp_and_recovery_verification_logic() {
     remaining_hashes.remove(0);
 
     // Now first code fails
-    assert_eq!(cms_auth::mfa::verify_recovery_code(first_code, &remaining_hashes), None);
+    assert_eq!(
+        cms_auth::mfa::verify_recovery_code(first_code, &remaining_hashes),
+        None
+    );
 
     // Next code still succeeds
     let second_code = &plain_codes[1];

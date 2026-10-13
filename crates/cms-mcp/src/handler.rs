@@ -1,15 +1,25 @@
 //! MCP ServerHandler implementation powered by rmcp.
 
 use std::sync::Arc;
+
 use rmcp::{
+    ErrorData, ServerHandler,
     handler::server::wrapper::Parameters,
-    model::*,
+    model::{
+        CallToolResult, ContentBlock, ErrorCode, GetPromptRequestParams, GetPromptResponse,
+        GetPromptResult, Implementation, ListPromptsResult, ListResourcesResult,
+        PaginatedRequestParams, Prompt, PromptArgument, PromptMessage, ReadResourceRequestParams,
+        ReadResourceResponse, ReadResourceResult, Resource, ResourceContents, Role,
+        ServerCapabilities, ServerConfig,
+    },
     service::{RequestContext, RoleServer},
-    tool, tool_handler, tool_router, ErrorData, ServerHandler,
+    tool, tool_handler, tool_router,
 };
 
-use crate::services::{McpContext, McpService};
-use crate::types::*;
+use crate::{
+    services::{McpContext, McpService},
+    types::{GetPageParams, GetProjectParams, ListPagesParams, McpSecurityContext, SearchParams},
+};
 
 #[inline]
 fn mcp_err(code: ErrorCode, msg: impl Into<String>) -> ErrorData {
@@ -174,13 +184,10 @@ impl ServerHandler for CmsMcpHandler {
     ) -> Result<ReadResourceResponse, ErrorData> {
         self.check_scope("pages:read")?;
 
-        let text = McpService::read_resource(
-            &self.ctx,
-            self.security.user_id.as_deref(),
-            &params.uri,
-        )
-        .await
-        .map_err(|e| mcp_err(ErrorCode::INTERNAL_ERROR, e.to_string()))?;
+        let text =
+            McpService::read_resource(&self.ctx, self.security.user_id.as_deref(), &params.uri)
+                .await
+                .map_err(|e| mcp_err(ErrorCode::INTERNAL_ERROR, e.to_string()))?;
 
         Ok(ReadResourceResult::new(vec![ResourceContents::text(text, params.uri)]).into())
     }
@@ -206,9 +213,11 @@ impl ServerHandler for CmsMcpHandler {
             Prompt::new(
                 "explain_architecture",
                 Some("Summarize project structure and key components from documentation"),
-                Some(vec![PromptArgument::new("project_id")
-                    .with_description("Target project ID")
-                    .with_required(true)]),
+                Some(vec![
+                    PromptArgument::new("project_id")
+                        .with_description("Target project ID")
+                        .with_required(true),
+                ]),
             ),
         ];
 
@@ -226,7 +235,9 @@ impl ServerHandler for CmsMcpHandler {
                 let project_id = args.get("project_id").cloned().unwrap_or_default();
                 let topic = args.get("topic").cloned().unwrap_or_default();
                 let prompt_text = format!(
-                    "Please search the project documentation for project '{project_id}' regarding '{topic}'. Identify root causes and output a concise, step-by-step resolution."
+                    "Please search the project documentation for project '{project_id}' regarding \
+                     '{topic}'. Identify root causes and output a concise, step-by-step \
+                     resolution."
                 );
 
                 let res =
@@ -237,7 +248,8 @@ impl ServerHandler for CmsMcpHandler {
             "explain_architecture" => {
                 let project_id = args.get("project_id").cloned().unwrap_or_default();
                 let prompt_text = format!(
-                    "Please list the pages and structure for project '{project_id}' and synthesize a comprehensive architecture overview."
+                    "Please list the pages and structure for project '{project_id}' and \
+                     synthesize a comprehensive architecture overview."
                 );
 
                 let res =

@@ -7,15 +7,15 @@
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicU64, Ordering},
     },
     time::Duration,
 };
 
 use axum::{
     extract::{ConnectInfo, FromRequestParts},
-    http::{header, request::Parts, HeaderMap},
+    http::{HeaderMap, header, request::Parts},
 };
 use cms_db::{deployment::DeploymentQueries, domain::DomainQueries, project::ProjectQueries};
 use cms_entity::common::Id;

@@ -11,8 +11,7 @@
 use std::sync::Arc;
 
 use cms_error::AppError;
-use cms_infra::config::Config;
-use cms_infra::queue::create_job_queue_with_pool;
+use cms_infra::{config::Config, queue::create_job_queue_with_pool};
 use cms_worker::app_state::WorkerState;
 use tracing::info;
 
@@ -36,7 +35,7 @@ async fn main() -> Result<(), AppError> {
     let job_queue = create_job_queue_with_pool(&config.queue, db.clone()).await?;
 
     // Build worker adapters over that same pool.
-    let state = Arc::new(WorkerState::with_pool(&config, job_queue.clone(), db).await?);
+    let state = Arc::new(WorkerState::with_pool(&config, Arc::clone(&job_queue), db).await?);
 
     // Create graceful shutdown signal channel
     let (shutdown_tx, shutdown_rx) = tokio::sync::watch::channel(false);

@@ -1,7 +1,8 @@
 //! Branch domain business logic.
 
 use std::collections::HashMap;
-use cms_db::{branch::BranchQueries, page::PageQueries, project::ProjectQueries, PgPool};
+
+use cms_db::{PgPool, branch::BranchQueries, page::PageQueries, project::ProjectQueries};
 use cms_entity::{
     branch::{
         BranchResponse, BranchWithProjectResponse, CreateBranchRequest, ListBranchesQuery,
@@ -29,7 +30,8 @@ impl BranchService {
 
         if let Some(ref from_branch_id) = request.from_branch_id {
             if !from_branch_id.trim().is_empty() {
-                return Self::duplicate_branch(pool, user_id, from_branch_id.trim(), &request.name).await;
+                return Self::duplicate_branch(pool, user_id, from_branch_id.trim(), &request.name)
+                    .await;
             }
         }
 

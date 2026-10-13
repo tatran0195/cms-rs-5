@@ -68,17 +68,20 @@ impl Handler for EmailHandler {
             HandlerError::Transient("No Mailer configured in HandlerCtx".to_string())
         })?;
 
-        let email_payload: EmailPayload = serde_json::from_value(payload.clone()).map_err(|e| {
-            HandlerError::Permanent(format!("Malformed EmailPayload: {e}"))
-        })?;
+        let email_payload: EmailPayload = serde_json::from_value(payload.clone())
+            .map_err(|e| HandlerError::Permanent(format!("Malformed EmailPayload: {e}")))?;
 
         if email_payload.to.trim().is_empty() {
-            return Err(HandlerError::Permanent("Recipient address is empty".to_string()));
+            return Err(HandlerError::Permanent(
+                "Recipient address is empty".to_string(),
+            ));
         }
 
         let rendered: RenderedEmail = if let Some(ref email_variant) = email_payload.email {
             let renderer = ctx.renderer.as_ref().ok_or_else(|| {
-                HandlerError::Permanent("EmailRenderer is required to render typed Email variant".to_string())
+                HandlerError::Permanent(
+                    "EmailRenderer is required to render typed Email variant".to_string(),
+                )
             })?;
 
             let locale = match email_payload.locale.as_deref() {
@@ -103,23 +106,34 @@ impl Handler for EmailHandler {
 
             if subject.is_empty() && text.is_empty() {
                 return Err(HandlerError::Permanent(
-                    "Email must provide either a typed 'email' variant or 'subject' and 'text'".to_string()
+                    "Email must provide either a typed 'email' variant or 'subject' and 'text'"
+                        .to_string(),
                 ));
             }
 
-            RenderedEmail { subject, html, text }
+            RenderedEmail {
+                subject,
+                html,
+                text,
+            }
         };
 
-        mailer.send_rendered_email(&email_payload.to, &rendered).await.map_err(|e| {
-            // Categorize transport errors: connection/timeout errors are transient,
-            // recipient or authentication rejections may be permanent.
-            let err_str = e.to_string();
-            if err_str.contains("timeout") || err_str.contains("connection") || err_str.contains("temporarily") {
-                HandlerError::Transient(err_str)
-            } else {
-                HandlerError::Permanent(err_str)
-            }
-        })?;
+        mailer
+            .send_rendered_email(&email_payload.to, &rendered)
+            .await
+            .map_err(|e| {
+                // Categorize transport errors: connection/timeout errors are transient,
+                // recipient or authentication rejections may be permanent.
+                let err_str = e.to_string();
+                if err_str.contains("timeout")
+                    || err_str.contains("connection")
+                    || err_str.contains("temporarily")
+                {
+                    HandlerError::Transient(err_str)
+                } else {
+                    HandlerError::Permanent(err_str)
+                }
+            })?;
 
         Ok(serde_json::json!({
             "status": "sent",

@@ -3,8 +3,10 @@
 use cms_error::AppError;
 use sqlx::PgPool;
 
-use crate::models::{Domain, SpaDomainResponse};
-use crate::queries::DomainQueries;
+use crate::{
+    models::{Domain, SpaDomainResponse},
+    queries::DomainQueries,
+};
 
 /// Domain service
 #[derive(Debug)]
@@ -21,9 +23,10 @@ impl DomainService {
             .await?
             .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
 
-        let deployment = cms_db::deployment::DeploymentQueries::get_by_id(pool, &domain.deployment_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+        let deployment =
+            cms_db::deployment::DeploymentQueries::get_by_id(pool, &domain.deployment_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         if deployment.project_id != project_id {
             return Err(AppError::Forbidden);
@@ -65,17 +68,13 @@ impl DomainService {
             return Err(AppError::InvalidInput("domain is required".to_string()));
         }
 
-        let deployments = cms_db::deployment::DeploymentQueries::get_by_project(
-            pool,
-            project_id,
-            Some(1),
-            None,
-        )
-        .await?;
+        let deployments =
+            cms_db::deployment::DeploymentQueries::get_by_project(pool, project_id, Some(1), None)
+                .await?;
 
-        let deployment = deployments
-            .first()
-            .ok_or_else(|| AppError::NotFound("No deployment exists for this project".to_string()))?;
+        let deployment = deployments.first().ok_or_else(|| {
+            AppError::NotFound("No deployment exists for this project".to_string())
+        })?;
 
         let has_primary = DomainQueries::get_primary_by_deployment(pool, &deployment.id)
             .await?
@@ -111,10 +110,7 @@ impl DomainService {
     }
 
     /// Check if a domain is verified and eligible for on-demand TLS issuance (Caddy on-demand TLS)
-    pub async fn is_domain_allowed_for_tls(
-        pool: &PgPool,
-        domain: &str,
-    ) -> Result<bool, AppError> {
+    pub async fn is_domain_allowed_for_tls(pool: &PgPool, domain: &str) -> Result<bool, AppError> {
         let Ok(normalized) = cms_db::domain::normalize_hostname(domain) else {
             return Ok(false);
         };

@@ -1,9 +1,10 @@
 //! Language HTTP handlers for content vertical slice.
 
 use std::sync::Arc;
+
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     common::{Id, PaginatedResponse},
@@ -23,8 +24,7 @@ pub async fn list_languages_handler(
     auth: ContentUser,
     Query(query): Query<ListLanguagesQuery>,
 ) -> Result<Json<PaginatedResponse<LanguageResponse>>, AppError> {
-    let result =
-        LanguageService::list_languages(state.db(), &auth.user_id, query, 1, 20).await?;
+    let result = LanguageService::list_languages(state.db(), &auth.user_id, query, 1, 20).await?;
 
     Ok(Json(result))
 }
@@ -35,8 +35,7 @@ pub async fn create_language_handler(
     auth: ContentUser,
     Json(request): Json<CreateLanguageRequest>,
 ) -> Result<Json<LanguageResponse>, AppError> {
-    let language =
-        LanguageService::create_language(state.db(), &auth.user_id, request).await?;
+    let language = LanguageService::create_language(state.db(), &auth.user_id, request).await?;
 
     Ok(Json(language))
 }
@@ -47,8 +46,7 @@ pub async fn get_language_handler(
     auth: ContentUser,
     Path(language_id): Path<Id>,
 ) -> Result<Json<LanguageResponse>, AppError> {
-    let language =
-        LanguageService::get_language(state.db(), &auth.user_id, &language_id).await?;
+    let language = LanguageService::get_language(state.db(), &auth.user_id, &language_id).await?;
 
     Ok(Json(language))
 }
@@ -61,8 +59,7 @@ pub async fn update_language_handler(
     Json(request): Json<UpdateLanguageRequest>,
 ) -> Result<Json<LanguageResponse>, AppError> {
     let language =
-        LanguageService::update_language(state.db(), &auth.user_id, &language_id, request)
-            .await?;
+        LanguageService::update_language(state.db(), &auth.user_id, &language_id, request).await?;
 
     Ok(Json(language))
 }
@@ -75,7 +72,9 @@ pub async fn delete_language_handler(
 ) -> Result<Json<serde_json::Value>, AppError> {
     LanguageService::delete_language(state.db(), &auth.user_id, &language_id).await?;
 
-    Ok(Json(serde_json::json!({"success": true, "id": language_id})))
+    Ok(Json(
+        serde_json::json!({"success": true, "id": language_id}),
+    ))
 }
 
 /// Set the default language for a project

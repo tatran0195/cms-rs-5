@@ -11,21 +11,21 @@ use std::{
     collections::HashMap,
     net::{IpAddr, SocketAddr},
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc, Mutex,
+        atomic::{AtomicU64, Ordering},
     },
     time::{Duration, Instant},
 };
 
 use axum::{
     extract::{ConnectInfo, Request, State},
-    http::{header, HeaderValue, StatusCode},
+    http::{HeaderValue, StatusCode, header},
     middleware::Next,
     response::{IntoResponse, Response},
 };
 use governor::{
-    clock::{Clock, DefaultClock},
     Quota, RateLimiter as GovernorInternalLimiter,
+    clock::{Clock, DefaultClock},
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -57,7 +57,12 @@ impl SlidingRateLimiter {
     /// Record an attempt and return whether the request is allowed under default budget.
     #[must_use]
     pub fn check_and_record(&self, ip: IpAddr) -> bool {
-        self.check_and_record_class(ip, "default", DEFAULT_SLIDING_MAX, DEFAULT_SLIDING_WINDOW_SECS)
+        self.check_and_record_class(
+            ip,
+            "default",
+            DEFAULT_SLIDING_MAX,
+            DEFAULT_SLIDING_WINDOW_SECS,
+        )
     }
 
     /// Record an attempt under a specific class sliding window.
@@ -225,8 +230,7 @@ impl RateLimitConfig {
     pub fn to_quota(&self) -> Quota {
         let rps = std::num::NonZeroU32::new(self.requests_per_second)
             .unwrap_or(std::num::NonZeroU32::MIN);
-        let burst = std::num::NonZeroU32::new(self.burst_size)
-            .unwrap_or(std::num::NonZeroU32::MIN);
+        let burst = std::num::NonZeroU32::new(self.burst_size).unwrap_or(std::num::NonZeroU32::MIN);
         Quota::per_second(rps).allow_burst(burst)
     }
 }
@@ -265,7 +269,8 @@ impl RateLimitClient {
                         }
                     }
                 }
-                if let Some(real_ip) = parts.headers.get("x-real-ip").and_then(|h| h.to_str().ok()) {
+                if let Some(real_ip) = parts.headers.get("x-real-ip").and_then(|h| h.to_str().ok())
+                {
                     if let Ok(client_ip) = real_ip.trim().parse::<IpAddr>() {
                         return Self::Ip(client_ip);
                     }
@@ -457,10 +462,7 @@ pub fn create_per_client_rate_limit_layer(
 pub type RateLimitLayer = tower_http::limit::RequestBodyLimitLayer;
 
 fn extract_socket_or_forwarded_ip(request: &Request) -> Option<IpAddr> {
-    if let Some(ci) = request
-        .extensions()
-        .get::<ConnectInfo<SocketAddr>>()
-    {
+    if let Some(ci) = request.extensions().get::<ConnectInfo<SocketAddr>>() {
         return Some(ci.0.ip());
     }
 

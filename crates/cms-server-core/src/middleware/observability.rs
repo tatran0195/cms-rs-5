@@ -31,14 +31,14 @@ use std::{
 
 use axum::{
     extract::FromRequestParts,
-    http::{request::Parts, HeaderMap, HeaderValue, Request, StatusCode},
+    http::{HeaderMap, HeaderValue, Request, StatusCode, request::Parts},
     response::Response,
 };
 use metrics::{counter, histogram};
 use metrics_exporter_prometheus::{PrometheusBuilder, PrometheusHandle};
 use tower::Service;
-use tracing::{debug, error, info, warn, Instrument, Span};
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing::{Instrument, Span, debug, error, info, warn};
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 static PROMETHEUS_HANDLE: OnceLock<PrometheusHandle> = OnceLock::new();
 
@@ -304,9 +304,8 @@ where
 {
     type Response = Response<B>;
     type Error = S::Error;
-    type Future = std::pin::Pin<
-        Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>,
-    >;
+    type Future =
+        std::pin::Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(
         &mut self,
@@ -444,11 +443,7 @@ pub fn init_tracing() {
 
 /// Initialize tracing with JSON output
 pub fn init_tracing_json() {
-    fmt()
-        .json()
-        .with_env_filter("cms=debug")
-        .try_init()
-        .ok();
+    fmt().json().with_env_filter("cms=debug").try_init().ok();
 }
 
 /// Add request ID to error response
@@ -471,9 +466,10 @@ pub fn render_prometheus_metrics() -> String {
     // Ensure initialized
     init_observability();
 
-    PROMETHEUS_HANDLE
-        .get()
-        .map_or_else(|| "# Prometheus recorder not initialized\n".to_string(), PrometheusHandle::render)
+    PROMETHEUS_HANDLE.get().map_or_else(
+        || "# Prometheus recorder not initialized\n".to_string(),
+        PrometheusHandle::render,
+    )
 }
 
 /// Axum HTTP handler for GET /metrics endpoint.

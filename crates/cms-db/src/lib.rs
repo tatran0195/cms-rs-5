@@ -22,28 +22,28 @@ pub mod domain;
 pub mod export;
 pub mod git;
 pub mod integration;
+pub mod invitation;
 pub mod language;
 pub mod mcp;
 pub mod notification;
 pub mod openapi;
-pub mod invitation;
-pub use invitation::{WorkspaceInvitationRow, InvitationQueries};
+pub use invitation::{InvitationQueries, WorkspaceInvitationRow};
 pub mod onboarding;
 pub use onboarding::{EmailVerificationTokenRow, OnboardingQueries};
 pub mod report;
-pub use report::{ReportRunRow, ReportQueries};
+pub use report::{ReportQueries, ReportRunRow};
 pub mod page;
 pub mod platform_event;
+pub mod pool;
 pub mod project;
 pub mod reader_access;
 pub mod search_index;
 pub mod setup;
 pub mod theme;
-pub mod pool;
-pub use pool::{PoolConfig, PgPool, create_pool, create_pool_with_config, health_check};
+pub use pool::{create_pool, create_pool_with_config, health_check, PgPool, PoolConfig};
 pub mod context;
 pub use context::{
-    set_write_context, set_read_context, workspace_conn, set_extended_audit_context,
+    set_extended_audit_context, set_read_context, set_write_context, workspace_conn,
 };
 pub mod sequence;
 pub use sequence::next_sequence;
@@ -51,10 +51,9 @@ pub mod tenant_context;
 pub use tenant_context::{TenantContext, TenantContextService};
 pub mod authz_queries;
 pub use authz_queries::{
-    resolve_api_key_project, resolve_branch_project,
-    resolve_deployment_project, resolve_page_project,
+    resolve_api_key_project, resolve_branch_project, resolve_deployment_project,
+    resolve_page_project,
 };
-
 use cms_error::AppError;
 pub use setup::SetupQueries;
 pub use sqlx;
@@ -118,11 +117,9 @@ mod tests {
             if test_connection(&pool).await.is_err() {
                 return;
             }
-            let res = notification::NotificationQueries::count_unread_by_user(
-                &pool,
-                "nonexistent-user",
-            )
-            .await;
+            let res =
+                notification::NotificationQueries::count_unread_by_user(&pool, "nonexistent-user")
+                    .await;
             assert!(
                 res.is_ok(),
                 "Notification count should succeed: {:?}",

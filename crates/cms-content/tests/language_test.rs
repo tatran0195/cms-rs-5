@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use cms_content::{
-    services::language::canonical_language_tag, CreateLanguageRequest, UpdateLanguageRequest,
+    CreateLanguageRequest, UpdateLanguageRequest, services::language::canonical_language_tag,
 };
 
 #[test]

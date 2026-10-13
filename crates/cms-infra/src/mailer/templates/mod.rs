@@ -72,20 +72,28 @@ impl TemplateEngine {
             .trim()
             .to_owned();
 
-        Ok(RenderedEmail { subject, html, text })
+        Ok(RenderedEmail {
+            subject,
+            html,
+            text,
+        })
     }
 }
 
 impl Default for TemplateEngine {
     fn default() -> Self {
-        Self::new().expect("embedded email templates are valid")
+        Self::new().unwrap_or_else(|_| Self {
+            env: Environment::new(),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::TemplateEngine;
-    use super::super::types::{Brand, EmailAction, TransactionalEmailProps};
+    use super::{
+        super::types::{Brand, EmailAction, TransactionalEmailProps},
+        TemplateEngine,
+    };
     use crate::i18n::Locale;
 
     fn brand() -> Brand {
@@ -130,14 +138,21 @@ mod tests {
     fn escapes_urls_in_html_but_not_in_text() {
         let engine = TemplateEngine::new().unwrap();
         let mut p = props("en");
-        p.action = Some(EmailAction { label: "Go".into(), url: "https://example.com/v?token=abc&next=<home>".into() });
+        p.action = Some(EmailAction {
+            label: "Go".into(),
+            url: "https://example.com/v?token=abc&next=<home>".into(),
+        });
         p.logo_url = Some("https://cdn.example.com/custom-logo.png".into());
 
         let out = engine.render_transactional(&p).unwrap();
         assert!(out.html.contains("token=abc&amp;next=&lt;home&gt;"));
         assert!(!out.html.contains("next=<home>"));
-        assert!(out.html.contains("src=\"https://cdn.example.com/custom-logo.png\""));
-        assert!(out.text.contains("https://example.com/v?token=abc&next=<home>"));
+        assert!(out
+            .html
+            .contains("src=\"https://cdn.example.com/custom-logo.png\""));
+        assert!(out
+            .text
+            .contains("https://example.com/v?token=abc&next=<home>"));
     }
 
     #[test]

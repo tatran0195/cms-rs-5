@@ -22,7 +22,7 @@
 //! context for read-only queries that do not run inside a transaction.
 
 use cms_error::AppError;
-use sqlx::{PgPool, Postgres, Transaction, pool::PoolConnection};
+use sqlx::{pool::PoolConnection, PgPool, Postgres, Transaction};
 
 /// Set the minimum write context required for any mutating query:
 /// workspace isolation (`app.workspace_id`) and audit attribution
@@ -35,7 +35,16 @@ pub async fn set_write_context(
     user_id: &str,
     ip_address: Option<&str>,
 ) -> Result<(), AppError> {
-    apply_context(tx, Some(workspace_id), Some(user_id), ip_address, None, None, None).await
+    apply_context(
+        tx,
+        Some(workspace_id),
+        Some(user_id),
+        ip_address,
+        None,
+        None,
+        None,
+    )
+    .await
 }
 
 /// Set read context: workspace isolation only.
@@ -81,7 +90,10 @@ pub async fn workspace_conn(
     pool: &PgPool,
     workspace_id: &str,
 ) -> Result<PoolConnection<Postgres>, AppError> {
-    let mut conn = pool.acquire().await.map_err(|e| AppError::Database(e.into()))?;
+    let mut conn = pool
+        .acquire()
+        .await
+        .map_err(|e| AppError::Database(e.into()))?;
     // Session-level (false) — stays set for the life of this connection.
     sqlx::query("SELECT set_config('app.workspace_id', $1, false)")
         .bind(workspace_id)
@@ -108,19 +120,13 @@ async fn apply_context(
     // parameters, cannot use sqlx::query! (CASE expr with dynamic set_config
     // cannot be offline-checked).
     sqlx::query(
-        "SELECT \
-            CASE WHEN $1::text IS NOT NULL \
-                THEN set_config('app.workspace_id', $1, true) ELSE NULL END, \
-            CASE WHEN $2::text IS NOT NULL \
-                THEN set_config('app.user_id', $2, true) ELSE NULL END, \
-            CASE WHEN $3::text IS NOT NULL \
-                THEN set_config('app.ip_address', $3, true) ELSE NULL END, \
-            CASE WHEN $4::text IS NOT NULL \
-                THEN set_config('app.user_agent', $4, true) ELSE NULL END, \
-            CASE WHEN $5::text IS NOT NULL \
-                THEN set_config('app.session_id', $5, true) ELSE NULL END, \
-            CASE WHEN $6::text IS NOT NULL \
-                THEN set_config('app.correlation_id', $6, true) ELSE NULL END",
+        "SELECT CASE WHEN $1::text IS NOT NULL THEN set_config('app.workspace_id', $1, true) ELSE \
+         NULL END, CASE WHEN $2::text IS NOT NULL THEN set_config('app.user_id', $2, true) ELSE \
+         NULL END, CASE WHEN $3::text IS NOT NULL THEN set_config('app.ip_address', $3, true) \
+         ELSE NULL END, CASE WHEN $4::text IS NOT NULL THEN set_config('app.user_agent', $4, \
+         true) ELSE NULL END, CASE WHEN $5::text IS NOT NULL THEN set_config('app.session_id', \
+         $5, true) ELSE NULL END, CASE WHEN $6::text IS NOT NULL THEN \
+         set_config('app.correlation_id', $6, true) ELSE NULL END",
     )
     .bind(workspace_id)
     .bind(user_id)

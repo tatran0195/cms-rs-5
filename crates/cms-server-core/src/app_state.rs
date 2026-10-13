@@ -9,8 +9,8 @@
 //! - Class-scoped sliding window rate limiter
 
 use std::sync::{
-    atomic::{AtomicU64, Ordering},
     Arc,
+    atomic::{AtomicU64, Ordering},
 };
 
 use cms_error::AppError;
@@ -119,7 +119,8 @@ impl AppState {
         cms_db::run_migrations(&pool).await?;
         let storage_box = cms_infra::storage::create_storage(&config.storage).await?;
         let storage: Arc<dyn Storage> = Arc::from(storage_box);
-        let job_queue = cms_infra::queue::create_job_queue_with_pool(&config.queue, pool.clone()).await?;
+        let job_queue =
+            cms_infra::queue::create_job_queue_with_pool(&config.queue, pool.clone()).await?;
         let search_engine = cms_infra::search::create_search_engine(&config.search)?;
         let authz = Arc::new(cms_authz::AuthzState::new(
             pool.clone(),
@@ -173,8 +174,7 @@ impl AppState {
         search_engine: Arc<dyn SearchEngine>,
         mailer: Arc<dyn Mailer>,
     ) -> Result<Self, AppError> {
-        let email_renderer =
-            EmailRenderer::embedded().map_err(AppError::internal)?;
+        let email_renderer = EmailRenderer::embedded().map_err(AppError::internal)?;
         Ok(Self::new_with_mailer_and_renderer(
             config,
             biz_context,
@@ -225,8 +225,10 @@ impl std::fmt::Debug for AppState {
             .field("config", &"Config")
             .field("biz_context", &"BizContext")
             .field("trusted_proxies", &self.trusted_proxies.len())
-            .field("host_resolution_generation", &self.host_resolution_generation.load(Ordering::Relaxed))
+            .field(
+                "host_resolution_generation",
+                &self.host_resolution_generation.load(Ordering::Relaxed),
+            )
             .finish_non_exhaustive()
     }
 }
-

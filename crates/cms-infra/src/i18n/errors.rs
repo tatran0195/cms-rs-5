@@ -1,4 +1,5 @@
 use std::sync::OnceLock;
+
 use super::{
     catalog::{Catalog, CatalogBuilder},
     locale::Locale,
@@ -20,11 +21,14 @@ pub fn embedded_catalog() -> &'static Catalog {
             }
         }
         builder.build().unwrap_or_else(|_| {
-            CatalogBuilder::new(Locale::default())
-                .add_json("en", r#"{"api_error_internal_error":"An internal error occurred"}"#)
-                .expect("fallback en catalog")
+            let mut fallback_builder = CatalogBuilder::new(Locale::default());
+            let _ = fallback_builder.append_json(
+                "en",
+                r#"{"api_error_internal_error":"An internal error occurred"}"#,
+            );
+            fallback_builder
                 .build()
-                .expect("fallback catalog must build")
+                .unwrap_or_else(|_| Catalog::empty(Locale::default()))
         })
     })
 }

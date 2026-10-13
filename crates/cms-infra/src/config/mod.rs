@@ -10,9 +10,9 @@
 //! - Environment profile config (`config/dev.toml`, `config/deploy.toml`, etc.)
 //! - Custom config path (`CMS_CONFIG_PATH`)
 
+use cms_error::AppError;
 use config::{Config as ConfigLib, Environment, File};
 use serde::Deserialize;
-use cms_error::AppError;
 
 pub mod analytics;
 pub mod auth;
@@ -304,7 +304,6 @@ fn extract_db_password(url_str: &str) -> Option<String> {
     Some(password.to_string())
 }
 
-
 #[cfg(test)]
 mod tests {
     use std::{env, sync::Mutex};
@@ -434,8 +433,8 @@ mod tests {
             requests_per_second = 500
         "#;
 
-        let builder = ConfigLib::builder()
-            .add_source(File::from_str(toml_data, config::FileFormat::Toml));
+        let builder =
+            ConfigLib::builder().add_source(File::from_str(toml_data, config::FileFormat::Toml));
         let settings = builder.build().expect("should parse toml data");
         let config: Config = settings
             .try_deserialize()
@@ -617,4 +616,3 @@ mod tests {
             .contains("Queue backend cannot be in-memory"));
     }
 }
-

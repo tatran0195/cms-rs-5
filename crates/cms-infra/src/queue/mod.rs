@@ -10,8 +10,9 @@
 
 use std::sync::Arc;
 
-use crate::config::QueueConfig;
 use cms_error::AppError;
+
+use crate::config::QueueConfig;
 
 pub mod in_memory;
 pub mod postgres;

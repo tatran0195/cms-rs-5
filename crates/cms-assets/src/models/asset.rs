@@ -1,13 +1,12 @@
 //! Asset domain models and DTOs.
 
 use chrono::{DateTime, Utc};
-use sqlx::FromRow;
-
 pub use cms_entity::asset::{
     Asset, AssetResponse, AssetUploadResponse, ConfirmAssetRequest, ConfirmAssetResponse,
     CreateAssetRequest, DeleteAssetResponse, ListAssetsQuery, PresignAssetRequest,
     PresignAssetResponse, UpdateAssetRequest, UploadAssetRequest,
 };
+use sqlx::FromRow;
 
 /// Database representation of an asset row
 #[derive(Debug, Clone, FromRow)]

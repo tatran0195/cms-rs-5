@@ -1,8 +1,6 @@
 use chrono::{Timelike, Utc};
 use cms_infra::queue::JobType;
-use cms_scheduler::{
-    next_run_time, normalize_cron_expr, parse_schedule, CronJobSpec, JobRegistry,
-};
+use cms_scheduler::{CronJobSpec, JobRegistry, next_run_time, normalize_cron_expr, parse_schedule};
 
 #[test]
 fn test_normalize_5_part_cron_expr() {

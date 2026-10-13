@@ -1,11 +1,14 @@
 //! Business service for Report Runs and asynchronous export background jobs.
 
 use std::time::Duration as StdDuration;
+
 use chrono::{Duration, Utc};
 use cms_error::AppError;
-use cms_infra::queue::{JobEnvelope, JobType};
+use cms_infra::{
+    queue::{JobEnvelope, JobType},
+    storage::StorageUrlService,
+};
 use cms_server_core::app_state::AppState;
-use cms_infra::storage::StorageUrlService;
 use uuid::Uuid;
 
 use crate::{
@@ -81,7 +84,8 @@ impl ReportService {
         status: Option<&str>,
         limit: Option<i64>,
     ) -> Result<Vec<ReportRunRow>, AppError> {
-        ReportQueries::list_by_workspace(state.db(), workspace_id, status, limit.unwrap_or(50)).await
+        ReportQueries::list_by_workspace(state.db(), workspace_id, status, limit.unwrap_or(50))
+            .await
     }
 
     /// Retrieve presigned/direct download URL for a completed report run artifact.
@@ -102,7 +106,10 @@ impl ReportService {
         }
 
         let artifact_key = row.artifact_key.clone().ok_or_else(|| {
-            AppError::NotFound(format!("Artifact key not found for report {}", row.report_number))
+            AppError::NotFound(format!(
+                "Artifact key not found for report {}",
+                row.report_number
+            ))
         })?;
 
         let storage_service = StorageUrlService::new(std::sync::Arc::clone(&state.storage));

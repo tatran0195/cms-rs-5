@@ -4,11 +4,13 @@ use cms_entity::common::PaginatedResponse;
 use cms_error::AppError;
 use sqlx::PgPool;
 
-use crate::models::{
-    CreateProjectRequest, ListProjectsQuery, ListProjectsResponse, ProjectAddonResponse,
-    ProjectResponse, ProjectSettings, UpdateProjectRequest, UpdateProjectSettingsRequest,
+use crate::{
+    models::{
+        CreateProjectRequest, ListProjectsQuery, ListProjectsResponse, ProjectAddonResponse,
+        ProjectResponse, ProjectSettings, UpdateProjectRequest, UpdateProjectSettingsRequest,
+    },
+    queries::{ProjectAddonQueries, ProjectQueries, ProjectSettingsQueries},
 };
-use crate::queries::{ProjectAddonQueries, ProjectQueries, ProjectSettingsQueries};
 
 /// Project service
 #[derive(Debug)]
@@ -176,12 +178,7 @@ impl ProjectService {
         )
         .await?;
 
-        let total = ProjectQueries::count(
-            pool,
-            query.is_public,
-            query.search.as_deref(),
-        )
-        .await?;
+        let total = ProjectQueries::count(pool, query.is_public, query.search.as_deref()).await?;
 
         Ok(PaginatedResponse::new(
             projects.into_iter().map(Into::into).collect(),
@@ -292,8 +289,7 @@ impl ProjectService {
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
         let addon =
-            ProjectAddonQueries::create(pool, project_id, addon_type, config, is_enabled)
-                .await?;
+            ProjectAddonQueries::create(pool, project_id, addon_type, config, is_enabled).await?;
 
         Ok(addon.into())
     }

@@ -5,14 +5,14 @@ pub mod auth;
 pub mod project_asset;
 
 use std::sync::Arc;
-use axum::{
-    routing::{delete, get, post, put},
-    Router,
-};
-use cms_server_core::app_state::AppState;
 
 pub use asset::*;
 pub use auth::AssetUser;
+use axum::{
+    Router,
+    routing::{delete, get, post, put},
+};
+use cms_server_core::app_state::AppState;
 pub use project_asset::*;
 
 /// Router for /assets endpoints.

@@ -5,17 +5,16 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use chrono::{DateTime, Utc};
+use cms_auth::AuthExtractor;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use sqlx::{FromRow, Postgres, QueryBuilder};
-
-use cms_auth::AuthExtractor;
 
 async fn require_admin(state: &AppState, user_id: &str) -> Result<(), AppError> {
     if cms_db::auth::UserQueries::is_system_admin(state.db(), user_id)
@@ -25,8 +24,7 @@ async fn require_admin(state: &AppState, user_id: &str) -> Result<(), AppError> 
         return Ok(());
     }
 
-    let user_uuid = uuid::Uuid::parse_str(user_id)
-        .map_err(|_| AppError::Unauthorized)?;
+    let user_uuid = uuid::Uuid::parse_str(user_id).map_err(|_| AppError::Unauthorized)?;
     let ctx = cms_authz::AuthzContext::new(user_uuid, "member".to_string(), false);
 
     cms_authz::gate::require_workspace_access(
@@ -581,10 +579,7 @@ pub async fn site_handler(
     let git = git_rows(&state, Some(&project_id), 10).await?;
     let (readers, audiences, jwt_provider) = tokio::try_join!(
         cms_db::reader_access::ReaderQueries::get_by_project(state.db(), &project_id),
-        cms_db::reader_access::AudienceQueries::get_by_project(
-            state.db(),
-            &project_id
-        ),
+        cms_db::reader_access::AudienceQueries::get_by_project(state.db(), &project_id),
         cms_db::reader_access::JwtAccessProviderQueries::get_by_issuer_and_audience(
             state.db(),
             &project_id,
@@ -876,8 +871,6 @@ pub async fn operations_handler(
     } })))
 }
 
-
-
 #[derive(Deserialize)]
 pub struct TakedownBody {
     reason: String,
@@ -896,8 +889,7 @@ pub async fn takedown_site_handler(
             "reason must be between 1 and 500 characters".to_string(),
         ));
     }
-    cms_db::project::ProjectQueries::set_takedown(state.db(), &project_id, reason)
-        .await?;
+    cms_db::project::ProjectQueries::set_takedown(state.db(), &project_id, reason).await?;
     Ok(Json(json!({ "data": { "ok": true } })))
 }
 

@@ -116,7 +116,7 @@ impl Embedder {
             return Ok(Vec::new());
         }
 
-        let model = self.model.clone();
+        let model = Arc::clone(&self.model);
         let texts = texts.to_vec();
 
         tokio::task::spawn_blocking(move || {

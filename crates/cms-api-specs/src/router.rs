@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    routing::{delete, get, post, put},
     Router,
+    routing::{delete, get, post, put},
 };
 use cms_server_core::app_state::AppState;
 

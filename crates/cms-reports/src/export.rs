@@ -20,9 +20,8 @@ use cms_entity::{
         ExportSnapshot, ExportStatus,
     },
 };
-use cms_infra::storage::Storage;
-
 use cms_error::AppError;
+use cms_infra::storage::Storage;
 use sqlx::PgPool;
 
 /// Export service
@@ -104,7 +103,6 @@ impl ExportService {
             .await?
             .ok_or_else(|| AppError::NotFound("Export snapshot not found".to_string()))?;
 
-
         let job =
             ExportJobQueries::create(pool, snapshot_id, format, ExportStatus::Pending).await?;
 
@@ -143,8 +141,7 @@ impl ExportService {
         let limit = page_size.max(1) as i64;
         let offset = page.saturating_sub(1) as i64 * limit;
         let jobs =
-            ExportJobQueries::get_by_project(pool, project_id, Some(limit), Some(offset))
-                .await?;
+            ExportJobQueries::get_by_project(pool, project_id, Some(limit), Some(offset)).await?;
 
         let total = ExportJobQueries::count_by_project(pool, project_id).await?;
 
@@ -399,7 +396,7 @@ pub async fn process_export_job(
 
 /// Helper: Render markdown to sanitized HTML
 fn render_markdown(markdown: &str) -> String {
-    use pulldown_cmark::{html, Options, Parser};
+    use pulldown_cmark::{Options, Parser, html};
 
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -507,7 +504,7 @@ async fn generate_pdf_export(
     pages: &[cms_entity::page::PageListItem],
     project_id: &str,
 ) -> Result<Bytes, AppError> {
-    use printpdf::*;
+    use printpdf::{BuiltinFont, Mm, PdfDocument};
 
     let (doc, page1, layer1) = PdfDocument::new(
         format!("Documentation - {}", project_id),

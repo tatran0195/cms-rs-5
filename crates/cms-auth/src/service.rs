@@ -3,7 +3,9 @@
 //! Decoupled from `BizContext`, all functions accept `&PgPool` directly.
 
 use chrono::Utc;
-use cms_db::auth::{AccountQueries, ApiKeyQueries, SessionQueries, UserQueries, VerificationTokenQueries};
+use cms_db::auth::{
+    AccountQueries, ApiKeyQueries, SessionQueries, UserQueries, VerificationTokenQueries,
+};
 use cms_entity::auth::{ApiKeyResponse, CreateUserRequest, UserResponse};
 use cms_error::AppError;
 use sqlx::PgPool;

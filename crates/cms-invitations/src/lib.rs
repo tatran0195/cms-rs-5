@@ -4,9 +4,10 @@
 //! acceptance lifecycle, and Axum HTTP route handlers.
 
 use std::sync::Arc;
+
 use axum::{
-    routing::{delete, get, post},
     Router,
+    routing::{delete, get, post},
 };
 use cms_server_core::app_state::AppState;
 

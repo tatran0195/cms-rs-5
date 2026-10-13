@@ -1,15 +1,17 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use std::time::Duration;
-use axum::http::StatusCode;
-use uuid::Uuid;
 
-use cms_server_core::http_trace::{format_duration, init_colour, painted};
-use cms_server_core::pagination::{CursorPage, Pagination, DEFAULT_LIMIT, MAX_LIMIT};
-use cms_server_core::validation::{
-    validate_api_endpoint, validate_code, validate_hex_color, validate_name, validate_no_html,
-    validate_password, validate_slug, validate_username, ValidationErrors,
+use axum::http::StatusCode;
+use cms_server_core::{
+    http_trace::{format_duration, init_colour, painted},
+    pagination::{CursorPage, DEFAULT_LIMIT, MAX_LIMIT, Pagination},
+    validation::{
+        ValidationErrors, validate_api_endpoint, validate_code, validate_hex_color, validate_name,
+        validate_no_html, validate_password, validate_slug, validate_username,
+    },
 };
+use uuid::Uuid;
 
 #[test]
 fn test_pagination_defaults_and_clamping() {
@@ -109,7 +111,10 @@ fn test_validation_rules() {
     validate_api_endpoint(&mut errors, "endpoint", "/api/v1/pages/search");
     validate_password(&mut errors, "password", "SecureP@ssw0rd!2026");
 
-    assert!(!errors.has_errors(), "Expected no errors on valid inputs: {errors:?}");
+    assert!(
+        !errors.has_errors(),
+        "Expected no errors on valid inputs: {errors:?}"
+    );
 
     // Invalid inputs
     let mut err_collect = ValidationErrors::new();
@@ -118,7 +123,11 @@ fn test_validation_rules() {
     validate_name(&mut err_collect, "name", " ");
     validate_username(&mut err_collect, "username", "123_invalid");
     validate_hex_color(&mut err_collect, "color", "#xyz123");
-    validate_no_html(&mut err_collect, "content", "Dangerous <script>alert(1)</script>");
+    validate_no_html(
+        &mut err_collect,
+        "content",
+        "Dangerous <script>alert(1)</script>",
+    );
     validate_api_endpoint(&mut err_collect, "endpoint", "/invalid/path");
     validate_password(&mut err_collect, "weak_pass", "simple");
 

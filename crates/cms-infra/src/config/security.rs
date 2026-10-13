@@ -237,4 +237,3 @@ impl AdminOriginConfig {
         Ok(())
     }
 }
-

@@ -3,8 +3,8 @@
 //! Password hashing and verification using Argon2id.
 
 use argon2::{
-    password_hash::{phc::PasswordHash, PasswordHasher, PasswordVerifier},
     Argon2,
+    password_hash::{PasswordHasher, PasswordVerifier, phc::PasswordHash},
 };
 use cms_error::AppError;
 

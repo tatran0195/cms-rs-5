@@ -13,7 +13,10 @@ pub use locale::{accept_language_tags, Direction, Locale, LocaleError};
 pub use message::{Args, Message, ParseError};
 
 /// Localize an AppError code and details using the task-local locale and embedded catalog
-pub fn localize_app_error(error_code: &str, details_arg: Option<&str>) -> cms_error::LocalizedErrorInfo {
+pub fn localize_app_error(
+    error_code: &str,
+    details_arg: Option<&str>,
+) -> cms_error::LocalizedErrorInfo {
     let req_locale = current_locale();
     let served_locale = embedded_catalog().negotiate([req_locale.as_str()]);
     let mut args = Args::new();

@@ -12,16 +12,15 @@ pub mod projects;
 pub mod users;
 pub mod workspace;
 
+use cms_error::AppError;
 pub use members::seed_members;
-pub use pages::{seed_pages, SeedPage};
-pub use projects::{seed_projects, SeedProject};
+pub use pages::{SeedPage, seed_pages};
+pub use projects::{SeedProject, seed_projects};
+use sqlx::PgPool;
 pub use users::{
-    deterministic_uuid, hash_password, seed_users, verify_password, SeedUser, CMS_SEED_NAMESPACE,
+    CMS_SEED_NAMESPACE, SeedUser, deterministic_uuid, hash_password, seed_users, verify_password,
 };
 pub use workspace::seed_workspace;
-
-use cms_error::AppError;
-use sqlx::PgPool;
 
 /// Summary metrics returned upon seed execution.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -34,12 +33,11 @@ pub struct SeedResult {
 
 /// Check if the database has already been initialized and populated.
 pub async fn is_seeded(pool: &PgPool) -> Result<bool, AppError> {
-    let initialized: Option<bool> = sqlx::query_scalar(
-        r#"SELECT is_initialized FROM "SystemSettings" WHERE id = 'default'"#,
-    )
-    .fetch_optional(pool)
-    .await
-    .map_err(AppError::Database)?;
+    let initialized: Option<bool> =
+        sqlx::query_scalar(r#"SELECT is_initialized FROM "SystemSettings" WHERE id = 'default'"#)
+            .fetch_optional(pool)
+            .await
+            .map_err(AppError::Database)?;
 
     if initialized != Some(true) {
         return Ok(false);

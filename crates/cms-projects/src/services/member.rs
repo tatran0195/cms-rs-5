@@ -4,15 +4,13 @@ use std::collections::HashMap;
 
 use chrono::{Duration, Utc};
 use cms_entity::workspace::{
-    WorkspaceInvitationResponse, WorkspaceMemberItem, WorkspaceMemberUser,
-    WorkspaceMembersResponse,
+    WorkspaceInvitationResponse, WorkspaceMemberItem, WorkspaceMemberUser, WorkspaceMembersResponse,
 };
 use cms_error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::models::ProjectMember;
-use crate::queries::ProjectMemberQueries;
+use crate::{models::ProjectMember, queries::ProjectMemberQueries};
 
 /// Member service
 #[derive(Debug)]
@@ -73,15 +71,11 @@ impl MemberService {
         role: &str,
         role_id: Option<&str>,
     ) -> Result<WorkspaceInvitationResponse, AppError> {
-        if let Ok(Some(existing_user)) = cms_db::auth::UserQueries::get_by_email(pool, email).await {
-            let _ = ProjectMemberQueries::create(
-                pool,
-                project_id,
-                &existing_user.id,
-                role,
-                role_id,
-            )
-            .await;
+        if let Ok(Some(existing_user)) = cms_db::auth::UserQueries::get_by_email(pool, email).await
+        {
+            let _ =
+                ProjectMemberQueries::create(pool, project_id, &existing_user.id, role, role_id)
+                    .await;
         }
 
         let invitation_id = Uuid::new_v4().to_string();
@@ -125,6 +119,7 @@ impl MemberService {
         current_owner_id: &str,
         new_owner_id: &str,
     ) -> Result<(), AppError> {
-        ProjectMemberQueries::transfer_ownership(pool, project_id, current_owner_id, new_owner_id).await
+        ProjectMemberQueries::transfer_ownership(pool, project_id, current_owner_id, new_owner_id)
+            .await
     }
 }

@@ -1,10 +1,12 @@
 //! Member domain models and row representations.
 
 use chrono::{DateTime, Utc};
-pub use cms_entity::authz::{AddProjectMemberRequest, ProjectMember, UpdateProjectMemberRequest};
-pub use cms_entity::workspace::{
-    WorkspaceInvitationItem, WorkspaceInvitationResponse, WorkspaceMemberItem,
-    WorkspaceMemberUser, WorkspaceMembersResponse,
+pub use cms_entity::{
+    authz::{AddProjectMemberRequest, ProjectMember, UpdateProjectMemberRequest},
+    workspace::{
+        WorkspaceInvitationItem, WorkspaceInvitationResponse, WorkspaceMemberItem,
+        WorkspaceMemberUser, WorkspaceMembersResponse,
+    },
 };
 use sqlx::FromRow;
 

@@ -7,7 +7,18 @@ use validator::Validate;
 use crate::common::Id;
 
 /// Git provider types
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, ts_rs::TS)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    sqlx::Type,
+    utoipa::ToSchema,
+    ts_rs::TS,
+)]
 #[serde(rename_all = "lowercase")]
 #[sqlx(type_name = "\"GitProvider\"", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum GitProvider {
@@ -18,7 +29,9 @@ pub enum GitProvider {
 }
 
 /// Git sync operation type
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, utoipa::ToSchema, ts_rs::TS)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, utoipa::ToSchema, ts_rs::TS,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum GitSyncOperationType {
     Full,

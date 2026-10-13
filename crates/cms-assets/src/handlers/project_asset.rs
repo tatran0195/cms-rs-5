@@ -1,17 +1,16 @@
 //! Handlers for `/projects/{project_id}/assets` routes.
 
-use std::sync::Arc;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use axum::{
-    extract::{Path, State},
     Json,
+    extract::{Path, State},
 };
 use cms_db::project::ProjectQueries;
 use cms_entity::common::ApiResponse;
 use cms_error::AppError;
-use cms_server_core::app_state::AppState;
 use cms_infra::storage::UploadTarget;
+use cms_server_core::app_state::AppState;
 
 use crate::{
     handlers::auth::AssetUser,
@@ -28,14 +27,7 @@ pub async fn list_project_assets_handler(
     auth: AssetUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<Vec<AssetResponse>>>, AppError> {
-    let result = AssetService::list_assets(
-        state.db(),
-        &auth.user_id,
-        &project_id,
-        1,
-        50,
-    )
-    .await?;
+    let result = AssetService::list_assets(state.db(), &auth.user_id, &project_id, 1, 50).await?;
 
     Ok(Json(ApiResponse::new(result.data)))
 }

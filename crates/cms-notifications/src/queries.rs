@@ -1,6 +1,7 @@
 //! Database queries for notification vertical slice
 
 use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use cms_entity::notification::{
     Notification, NotificationResponse, NotificationStatus, NotificationType,
@@ -160,7 +161,8 @@ impl NotificationQueries {
         user_id: &str,
     ) -> Result<HashMap<String, i64>, AppError> {
         let rows = sqlx::query(
-            "SELECT notification_type, COUNT(*) as count FROM \"Notification\" WHERE user_id = $1 GROUP BY notification_type",
+            "SELECT notification_type, COUNT(*) as count FROM \"Notification\" WHERE user_id = $1 \
+             GROUP BY notification_type",
         )
         .bind(user_id)
         .fetch_all(pool)

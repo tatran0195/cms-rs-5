@@ -6,13 +6,10 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, State},
     Json,
+    extract::{Path, State},
 };
 use chrono::Utc;
-use sqlx::Row;
-use uuid::Uuid;
-
 use cms_auth::AuthExtractor;
 use cms_entity::{
     common::ApiResponse,
@@ -25,6 +22,8 @@ use cms_entity::{
 };
 use cms_error::AppError;
 use cms_server_core::{app_state::AppState, validation::ValidatedJson};
+use sqlx::Row;
+use uuid::Uuid;
 
 /// Verify caller has administrative authority (operator, system admin, or workspace owner)
 async fn ensure_admin_or_owner(state: &AppState, auth: &AuthExtractor) -> Result<(), AppError> {
@@ -49,12 +48,11 @@ async fn ensure_admin_or_owner(state: &AppState, auth: &AuthExtractor) -> Result
     }
 
     // 3. Fallback: First registered user is implicit owner
-    let first_user_id: Option<String> = sqlx::query_scalar(
-        r#"SELECT id FROM "User" ORDER BY created_at ASC LIMIT 1"#
-    )
-    .fetch_optional(state.db())
-    .await
-    .unwrap_or(None);
+    let first_user_id: Option<String> =
+        sqlx::query_scalar(r#"SELECT id FROM "User" ORDER BY created_at ASC LIMIT 1"#)
+            .fetch_optional(state.db())
+            .await
+            .unwrap_or(None);
 
     if let Some(first_id) = first_user_id {
         if first_id == auth.user.id {
@@ -79,18 +77,14 @@ pub async fn get_workspace_settings_handler(
         .await
         .unwrap_or(1);
 
-    let row = sqlx::query(
-        r#"SELECT name, slug FROM "WorkspaceSettings" WHERE id = 'default' LIMIT 1"#
-    )
-    .fetch_optional(state.db())
-    .await
-    .unwrap_or(None);
+    let row =
+        sqlx::query(r#"SELECT name, slug FROM "WorkspaceSettings" WHERE id = 'default' LIMIT 1"#)
+            .fetch_optional(state.db())
+            .await
+            .unwrap_or(None);
 
     let (name, slug) = if let Some(r) = row {
-        (
-            r.get::<String, _>("name"),
-            r.get::<String, _>("slug"),
-        )
+        (r.get::<String, _>("name"), r.get::<String, _>("slug"))
     } else {
         ("Company Workspace".to_string(), "workspace".to_string())
     };
@@ -125,7 +119,7 @@ pub async fn update_workspace_settings_handler(
             description = COALESCE($3, description),
             updated_at = NOW()
         WHERE id = 'default'
-        "#
+        "#,
     )
     .bind(body.name.as_deref().map(str::trim))
     .bind(logo_url)
@@ -199,7 +193,7 @@ pub async fn list_workspace_members_handler(
 ) -> Result<Json<ApiResponse<WorkspaceMembersResponse>>, AppError> {
     // 1. Query all users from "User"
     let rows = sqlx::query(
-        r#"SELECT id, email, name, image, role, created_at FROM "User" ORDER BY created_at ASC"#
+        r#"SELECT id, email, name, image, role, created_at FROM "User" ORDER BY created_at ASC"#,
     )
     .fetch_all(state.db())
     .await
@@ -271,12 +265,17 @@ pub async fn invite_workspace_member_handler(
     let email = body.email.trim().to_lowercase();
     let role = body.role.as_deref().unwrap_or("member");
     if role != "admin" && role != "member" {
-        return Err(AppError::InvalidInput("Invalid role: must be 'admin' or 'member'".to_string()));
+        return Err(AppError::InvalidInput(
+            "Invalid role: must be 'admin' or 'member'".to_string(),
+        ));
     }
 
     // Check if user is already a registered member
     if let Some(_existing) = cms_db::auth::UserQueries::get_by_email(state.db(), &email).await? {
-        return Err(AppError::Conflict(format!("User {} is already a member of this workspace", email)));
+        return Err(AppError::Conflict(format!(
+            "User {} is already a member of this workspace",
+            email
+        )));
     }
 
     let invitation_id = Uuid::new_v4().to_string();
@@ -309,7 +308,10 @@ pub async fn invite_workspace_member_handler(
     .map_err(|e| AppError::Database(e.into()))?;
 
     // Attempt delivering invitation email if mailer is configured
-    let base_url = format!("http://{}:{}", state.config.server.host, state.config.server.port);
+    let base_url = format!(
+        "http://{}:{}",
+        state.config.server.host, state.config.server.port
+    );
     let invite_url = format!("{base_url}/accept-invitation?token={token}");
     let inviter_name = auth
         .user
@@ -329,7 +331,11 @@ pub async fn invite_workspace_member_handler(
         let _ = state.mailer.send_rendered_email(&email, &rendered).await;
     } else {
         let subject = "You've been invited to join the Documentation Workspace";
-        let body_text = format!("Hello,\n\nYou have been invited to join the company documentation workspace as a {role}.\n\nAccept your invitation here:\n{invite_url}\n\nThis invitation link expires in 7 days.");
+        let body_text = format!(
+            "Hello,\n\nYou have been invited to join the company documentation workspace as a \
+             {role}.\n\nAccept your invitation here:\n{invite_url}\n\nThis invitation link \
+             expires in 7 days."
+        );
         let _ = state.mailer.send_email(&email, subject, &body_text).await;
     }
 
@@ -356,7 +362,9 @@ pub async fn update_workspace_member_role_handler(
 
     let new_role = body.role.as_deref().unwrap_or("member");
     if new_role != "admin" && new_role != "member" {
-        return Err(AppError::InvalidInput("Invalid role: must be 'admin' or 'member'".to_string()));
+        return Err(AppError::InvalidInput(
+            "Invalid role: must be 'admin' or 'member'".to_string(),
+        ));
     }
 
     let _target_user = cms_db::auth::UserQueries::get_by_id(state.db(), &id)
@@ -364,15 +372,16 @@ pub async fn update_workspace_member_role_handler(
         .ok_or_else(|| AppError::NotFound("Member not found".to_string()))?;
 
     // Protect workspace owner
-    let first_user_id: Option<String> = sqlx::query_scalar(
-        r#"SELECT id FROM "User" ORDER BY created_at ASC LIMIT 1"#
-    )
-    .fetch_optional(state.db())
-    .await
-    .unwrap_or(None);
+    let first_user_id: Option<String> =
+        sqlx::query_scalar(r#"SELECT id FROM "User" ORDER BY created_at ASC LIMIT 1"#)
+            .fetch_optional(state.db())
+            .await
+            .unwrap_or(None);
 
     if Some(&id) == first_user_id.as_ref() {
-        return Err(AppError::InvalidInput("Cannot change role of the workspace owner".to_string()));
+        return Err(AppError::InvalidInput(
+            "Cannot change role of the workspace owner".to_string(),
+        ));
     }
 
     let db_role = if new_role == "admin" { "admin" } else { "user" };
@@ -390,7 +399,9 @@ pub async fn update_workspace_member_role_handler(
         .await
         .unwrap_or(0);
         if admin_count <= 1 {
-            return Err(AppError::InvalidInput("Cannot demote the last remaining workspace admin".to_string()));
+            return Err(AppError::InvalidInput(
+                "Cannot demote the last remaining workspace admin".to_string(),
+            ));
         }
     }
 
@@ -416,7 +427,9 @@ pub async fn remove_workspace_member_handler(
     ensure_admin_or_owner(&state, &auth).await?;
 
     if auth.user.id == id {
-        return Err(AppError::InvalidInput("You cannot remove yourself from the workspace".to_string()));
+        return Err(AppError::InvalidInput(
+            "You cannot remove yourself from the workspace".to_string(),
+        ));
     }
 
     let _target_user = cms_db::auth::UserQueries::get_by_id(state.db(), &id)
@@ -424,15 +437,16 @@ pub async fn remove_workspace_member_handler(
         .ok_or_else(|| AppError::NotFound("Member not found".to_string()))?;
 
     // Protect workspace owner
-    let first_user_id: Option<String> = sqlx::query_scalar(
-        r#"SELECT id FROM "User" ORDER BY created_at ASC LIMIT 1"#
-    )
-    .fetch_optional(state.db())
-    .await
-    .unwrap_or(None);
+    let first_user_id: Option<String> =
+        sqlx::query_scalar(r#"SELECT id FROM "User" ORDER BY created_at ASC LIMIT 1"#)
+            .fetch_optional(state.db())
+            .await
+            .unwrap_or(None);
 
     if Some(&id) == first_user_id.as_ref() {
-        return Err(AppError::InvalidInput("Cannot remove the workspace owner".to_string()));
+        return Err(AppError::InvalidInput(
+            "Cannot remove the workspace owner".to_string(),
+        ));
     }
 
     let is_admin = cms_db::auth::UserQueries::is_system_admin(state.db(), &id)
@@ -448,7 +462,9 @@ pub async fn remove_workspace_member_handler(
         .await
         .unwrap_or(0);
         if admin_count <= 1 {
-            return Err(AppError::InvalidInput("Cannot remove the last remaining workspace admin".to_string()));
+            return Err(AppError::InvalidInput(
+                "Cannot remove the last remaining workspace admin".to_string(),
+            ));
         }
     }
 
@@ -472,11 +488,13 @@ pub async fn cancel_workspace_invitation_handler(
 ) -> Result<Json<ApiResponse<WorkspaceMutationResponse>>, AppError> {
     ensure_admin_or_owner(&state, &auth).await?;
 
-    let result = sqlx::query(r#"DELETE FROM "WorkspaceInvitation" WHERE id = $1 OR email = $1 OR token = $1"#)
-        .bind(&id)
-        .execute(state.db())
-        .await
-        .map_err(|e| AppError::Database(e.into()))?;
+    let result = sqlx::query(
+        r#"DELETE FROM "WorkspaceInvitation" WHERE id = $1 OR email = $1 OR token = $1"#,
+    )
+    .bind(&id)
+    .execute(state.db())
+    .await
+    .map_err(|e| AppError::Database(e.into()))?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound("Invitation not found".to_string()));
@@ -503,7 +521,9 @@ pub async fn transfer_workspace_ownership_handler(
         .to_string();
 
     if target_member_id == auth.user.id {
-        return Err(AppError::InvalidInput("Cannot transfer ownership to yourself".to_string()));
+        return Err(AppError::InvalidInput(
+            "Cannot transfer ownership to yourself".to_string(),
+        ));
     }
 
     let _target_user = cms_db::auth::UserQueries::get_by_id(state.db(), &target_member_id)

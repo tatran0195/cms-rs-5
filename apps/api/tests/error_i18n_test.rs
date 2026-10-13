@@ -1,8 +1,8 @@
 use axum::{
-    body::{to_bytes, Body},
+    Router,
+    body::{Body, to_bytes},
     http::{Request, StatusCode},
     routing::get,
-    Router,
 };
 use cms_error::AppError;
 use tower::ServiceExt;

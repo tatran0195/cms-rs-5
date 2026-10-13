@@ -7,11 +7,11 @@
 use std::collections::{HashMap, HashSet};
 
 use cms_db::{
+    PgPool,
     branch::BranchQueries,
     language::{LanguageQueries, ProjectTranslationQueries},
     page::PageQueries,
     project::ProjectQueries,
-    PgPool,
 };
 use cms_entity::{
     common::PaginatedResponse,
@@ -63,8 +63,7 @@ impl LanguageService {
             ));
         }
 
-        let existing_count =
-            LanguageQueries::count_by_project(pool, &request.project_id).await?;
+        let existing_count = LanguageQueries::count_by_project(pool, &request.project_id).await?;
         let is_default = request.is_default.unwrap_or(false) || existing_count == 0;
         let enabled = request.enabled.unwrap_or(true) || is_default;
         let language = LanguageQueries::create_with_metadata(
@@ -170,13 +169,9 @@ impl LanguageService {
         let offset = i64::try_from(page.saturating_sub(1))
             .unwrap_or(0)
             .saturating_mul(limit);
-        let languages = LanguageQueries::get_by_project(
-            pool,
-            &query.project_id,
-            Some(limit),
-            Some(offset),
-        )
-        .await?;
+        let languages =
+            LanguageQueries::get_by_project(pool, &query.project_id, Some(limit), Some(offset))
+                .await?;
         let total = LanguageQueries::count_by_project(pool, &query.project_id).await?;
 
         let mut responses: Vec<LanguageResponse> = languages.into_iter().map(Into::into).collect();
@@ -226,11 +221,9 @@ impl LanguageService {
         let _language = LanguageQueries::get_by_id(pool, &request.language_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Language not found".to_string()))?;
-        Ok(
-            LanguageQueries::set_default(pool, &request.language_id)
-                .await?
-                .into(),
-        )
+        Ok(LanguageQueries::set_default(pool, &request.language_id)
+            .await?
+            .into())
     }
 
     /// Get project translations.
@@ -242,13 +235,11 @@ impl LanguageService {
         ProjectQueries::get_by_id(pool, project_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-        Ok(
-            ProjectTranslationQueries::get_by_project(pool, project_id)
-                .await?
-                .into_iter()
-                .map(Into::into)
-                .collect(),
-        )
+        Ok(ProjectTranslationQueries::get_by_project(pool, project_id)
+            .await?
+            .into_iter()
+            .map(Into::into)
+            .collect())
     }
 
     /// Create or update the localized name/description for a language.
@@ -280,15 +271,9 @@ impl LanguageService {
         }
 
         Ok(
-            ProjectTranslationQueries::upsert(
-                pool,
-                project_id,
-                language_id,
-                name,
-                description,
-            )
-            .await?
-            .into(),
+            ProjectTranslationQueries::upsert(pool, project_id, language_id, name, description)
+                .await?
+                .into(),
         )
     }
 

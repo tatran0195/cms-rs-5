@@ -24,7 +24,8 @@ impl ReportQueries {
         parameters: &serde_json::Value,
         expires_at: Option<DateTime<Utc>>,
     ) -> Result<ReportRunRow, AppError> {
-        let report_number = cms_db::next_sequence(tx, workspace_id, "report", "RPT-2026-", 5).await?;
+        let report_number =
+            cms_db::next_sequence(tx, workspace_id, "report", "RPT-2026-", 5).await?;
         let id = Uuid::new_v4();
 
         let row = sqlx::query_as::<_, ReportRunRow>(

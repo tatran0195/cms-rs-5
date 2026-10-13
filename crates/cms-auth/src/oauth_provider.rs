@@ -6,7 +6,7 @@
 //! - Known OAuth/OIDC provider specifications and endpoint mappings.
 //! - State encoding & verification helpers.
 
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD as B64URL, Engine};
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD as B64URL};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -86,7 +86,8 @@ fn random_url_safe(bytes_len: usize) -> Result<String, OAuthError> {
 
 /// Generate an RFC 7636 PKCE S256 code verifier and challenge.
 pub fn generate_pkce() -> PkceChallenge {
-    let verifier = random_url_safe(32).unwrap_or_else(|_| "fallback_verifier_32_bytes_entropy".to_string());
+    let verifier =
+        random_url_safe(32).unwrap_or_else(|_| "fallback_verifier_32_bytes_entropy".to_string());
     let mut hasher = Sha256::new();
     hasher.update(verifier.as_bytes());
     let challenge = B64URL.encode(hasher.finalize());
@@ -99,15 +100,16 @@ pub fn generate_pkce() -> PkceChallenge {
 
 /// Generate cryptographically secure state and nonce for OAuth authorization requests.
 pub fn generate_state_nonce() -> (String, String) {
-    let state = random_url_safe(32).unwrap_or_else(|_| "fallback_state_32_bytes_entropy".to_string());
-    let nonce = random_url_safe(32).unwrap_or_else(|_| "fallback_nonce_32_bytes_entropy".to_string());
+    let state =
+        random_url_safe(32).unwrap_or_else(|_| "fallback_state_32_bytes_entropy".to_string());
+    let nonce =
+        random_url_safe(32).unwrap_or_else(|_| "fallback_nonce_32_bytes_entropy".to_string());
     (state, nonce)
 }
 
 /// Encode callback state containing an arbitrary payload and CSRF token.
 pub fn encode_callback_state<T: Serialize>(payload: &T) -> Result<String, OAuthError> {
-    let json = serde_json::to_vec(payload)
-        .map_err(|e| OAuthError::InvalidState(e.to_string()))?;
+    let json = serde_json::to_vec(payload).map_err(|e| OAuthError::InvalidState(e.to_string()))?;
     Ok(B64URL.encode(&json))
 }
 

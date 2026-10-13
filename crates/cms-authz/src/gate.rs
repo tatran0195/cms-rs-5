@@ -7,10 +7,11 @@
 //! - `require_parent_access`: Single-hop traversal resolving child resources (pages, branches,
 //!   deployments) to their parent project and evaluating project access.
 
-use crate::{AuthzBackend, AuthzContext, Relation, SYSTEM_WORKSPACE_ID};
 use cms_error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
+
+use crate::{AuthzBackend, AuthzContext, Relation, SYSTEM_WORKSPACE_ID};
 
 /// Which parent resource a child entity hangs from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -22,7 +23,10 @@ pub enum ParentLink {
 }
 
 /// Resolve a child resource to its parent project ID in a single indexed query.
-pub async fn resolve_parent_project(pool: &PgPool, link: ParentLink) -> Result<Option<Uuid>, AppError> {
+pub async fn resolve_parent_project(
+    pool: &PgPool,
+    link: ParentLink,
+) -> Result<Option<Uuid>, AppError> {
     match link {
         ParentLink::Page(id) => cms_db::resolve_page_project(pool, id).await,
         ParentLink::Branch(id) => cms_db::resolve_branch_project(pool, id).await,

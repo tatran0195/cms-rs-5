@@ -5,20 +5,20 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_entity::{
     common::{ApiResponse, Id},
     theme::{
-        CreateThemeRequest, DeleteThemeResponse, ListThemesQuery, ThemeCssVariables,
-        ThemeResponse, UpdateThemeRequest,
+        CreateThemeRequest, DeleteThemeResponse, ListThemesQuery, ThemeCssVariables, ThemeResponse,
+        UpdateThemeRequest,
     },
 };
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{auth::ThemeAuth, ThemeService};
+use crate::{ThemeService, auth::ThemeAuth};
 
 /// List themes for a project.
 pub async fn list_themes_handler(
@@ -39,8 +39,7 @@ pub async fn create_theme_handler(
     Json(request): Json<CreateThemeRequest>,
 ) -> Result<Json<ThemeResponse>, AppError> {
     let project_id = request.project_id.clone();
-    let theme =
-        ThemeService::create_theme(state.db(), &auth.user.id, &project_id, request).await?;
+    let theme = ThemeService::create_theme(state.db(), &auth.user.id, &project_id, request).await?;
 
     Ok(Json(theme))
 }
@@ -63,8 +62,7 @@ pub async fn update_theme_handler(
     Path(theme_id): Path<Id>,
     Json(request): Json<UpdateThemeRequest>,
 ) -> Result<Json<ThemeResponse>, AppError> {
-    let theme =
-        ThemeService::update_theme(state.db(), &auth.user.id, &theme_id, request).await?;
+    let theme = ThemeService::update_theme(state.db(), &auth.user.id, &theme_id, request).await?;
 
     Ok(Json(theme))
 }

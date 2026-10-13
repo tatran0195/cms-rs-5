@@ -25,14 +25,14 @@ pub async fn record_failed_login(pool: &PgPool, user_id: &str) -> Result<bool, A
                THEN now() + make_interval(mins => $3)
                ELSE locked_until END
            WHERE id = $1
-           RETURNING failed_login_attempts >= $2"#
+           RETURNING failed_login_attempts >= $2"#,
     )
     .bind(user_id)
     .bind(MAX_FAILED_LOGINS)
     .bind(LOCKOUT_MINUTES)
     .fetch_one(pool)
     .await
-    .map_err(|e| AppError::Database(e.into()))?;
+    .map_err(AppError::Database)?;
 
     if now_locked {
         tracing::warn!(user_id = %user_id, "Account locked after repeated failed logins");
@@ -47,12 +47,12 @@ pub async fn reset_failed_logins(pool: &PgPool, user_id: &str) -> Result<(), App
         r#"UPDATE "User" SET
              failed_login_attempts = 0,
              locked_until = NULL
-           WHERE id = $1 AND (failed_login_attempts > 0 OR locked_until IS NOT NULL)"#
+           WHERE id = $1 AND (failed_login_attempts > 0 OR locked_until IS NOT NULL)"#,
     )
     .bind(user_id)
     .execute(pool)
     .await
-    .map_err(|e| AppError::Database(e.into()))?;
+    .map_err(AppError::Database)?;
 
     Ok(())
 }
@@ -61,12 +61,12 @@ pub async fn reset_failed_logins(pool: &PgPool, user_id: &str) -> Result<(), App
 pub async fn is_account_locked(pool: &PgPool, user_id: &str) -> Result<bool, AppError> {
     let locked: Option<bool> = sqlx::query_scalar(
         r#"SELECT locked_until IS NOT NULL AND locked_until > now()
-           FROM "User" WHERE id = $1"#
+           FROM "User" WHERE id = $1"#,
     )
     .bind(user_id)
     .fetch_optional(pool)
     .await
-    .map_err(|e| AppError::Database(e.into()))?;
+    .map_err(AppError::Database)?;
 
     Ok(locked.unwrap_or(false))
 }

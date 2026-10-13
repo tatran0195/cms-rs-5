@@ -2,9 +2,9 @@
 
 use chrono::{DateTime, Utc};
 pub use cms_entity::project::{
-    CreateProjectRequest, DeleteProjectResponse, ListProjectsQuery, ListProjectsResponse,
-    Project, ProjectAddon, ProjectAddonResponse, ProjectAuditEvent, ProjectCountResponse,
-    ProjectResponse, ProjectSettings, UpdateProjectRequest, UpdateProjectSettingsRequest,
+    CreateProjectRequest, DeleteProjectResponse, ListProjectsQuery, ListProjectsResponse, Project,
+    ProjectAddon, ProjectAddonResponse, ProjectAuditEvent, ProjectCountResponse, ProjectResponse,
+    ProjectSettings, UpdateProjectRequest, UpdateProjectSettingsRequest,
 };
 use sqlx::FromRow;
 

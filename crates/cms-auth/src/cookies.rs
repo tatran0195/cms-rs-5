@@ -20,7 +20,10 @@ pub fn build_access_cookie(token: &str, secure: bool) -> String {
 #[must_use]
 pub fn build_refresh_cookie(token: &str, secure: bool) -> String {
     let secure_flag = if secure { "; Secure" } else { "" };
-    format!("refresh_token={token}; Path=/api/auth; HttpOnly; SameSite=Lax; Max-Age=604800{secure_flag}")
+    format!(
+        "refresh_token={token}; Path=/api/auth; HttpOnly; SameSite=Lax; \
+         Max-Age=604800{secure_flag}"
+    )
 }
 
 /// Build the `csrf_token` Set-Cookie header value (readable by JavaScript).
@@ -56,10 +59,11 @@ pub fn clear_csrf_cookie(secure: bool) -> String {
 pub fn parse_cookie_value<'a>(header: &'a str, name: &str) -> Option<&'a str> {
     for pair in header.split(';') {
         let trimmed = pair.trim();
-        if let Some(val) = trimmed.strip_prefix(name) {
-            if let Some(val) = val.strip_prefix('=') {
-                return Some(val.trim());
-            }
+        if let Some(val) = trimmed
+            .strip_prefix(name)
+            .and_then(|val| val.strip_prefix('='))
+        {
+            return Some(val.trim());
         }
     }
     None

@@ -16,11 +16,11 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Path, Query, State},
-    http::{header, HeaderMap, HeaderValue, StatusCode},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
 };
+use cms_error::AppError;
 // funnel tracking directly via queries
 use cms_infra::config::OAuthProviderConfig;
-use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 use serde::Deserialize;
 use serde_json::json;
@@ -69,7 +69,7 @@ async fn exchange_code(
             return Err(AppError::custom(
                 StatusCode::BAD_REQUEST,
                 format!("Unsupported OAuth provider: {}", other),
-            ))
+            ));
         }
     };
 
@@ -196,7 +196,7 @@ async fn fetch_profile(provider: &str, token: &TokenResponse) -> Result<Provider
             return Err(AppError::custom(
                 StatusCode::BAD_REQUEST,
                 format!("Unsupported OAuth provider: {}", other),
-            ))
+            ));
         }
     };
 
@@ -251,8 +251,10 @@ pub(crate) async fn oauth_callback_handler(
             .and_then(decode_callback_state)
             .unwrap_or_else(|| "/".to_string());
         let target = redirect_with_error(&cb, &format!("{err}: {:#?}", query.error_description));
+        let location = HeaderValue::try_from(&target)
+            .map_err(|e| AppError::Internal(anyhow::anyhow!("Invalid location header: {e}")))?;
         let mut headers = HeaderMap::new();
-        headers.insert(header::LOCATION, HeaderValue::from_str(&target).unwrap());
+        headers.insert(header::LOCATION, location);
         return Ok((StatusCode::FOUND, headers, "").into_response());
     }
 
@@ -279,7 +281,7 @@ pub(crate) async fn oauth_callback_handler(
             return Err(AppError::custom(
                 StatusCode::BAD_REQUEST,
                 format!("Unsupported OAuth provider: {}", other),
-            ))
+            ));
         }
     }
     .ok_or_else(|| {
@@ -324,12 +326,9 @@ pub(crate) async fn oauth_callback_handler(
     };
 
     // Upsert the OAuth account. If it already exists, update the tokens.
-    let existing = AccountQueries::get_by_provider(
-        state.db(),
-        &provider,
-        &profile.provider_account_id,
-    )
-    .await?;
+    let existing =
+        AccountQueries::get_by_provider(state.db(), &provider, &profile.provider_account_id)
+            .await?;
 
     if existing.is_none() {
         AccountQueries::create(
@@ -351,13 +350,7 @@ pub(crate) async fn oauth_callback_handler(
     // Create a fresh session and set the session cookie.
     let session_token = uuid::Uuid::new_v4().to_string();
     let expires_at = chrono::Utc::now() + chrono::Duration::days(30);
-    let _session = SessionQueries::create(
-        state.db(),
-        &user.id,
-        &session_token,
-        expires_at,
-    )
-    .await?;
+    let _session = SessionQueries::create(state.db(), &user.id, &session_token, expires_at).await?;
 
     let cookie_val = state.config.auth.session_cookie_value(
         &session_token,

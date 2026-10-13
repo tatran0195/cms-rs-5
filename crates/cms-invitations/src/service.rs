@@ -2,15 +2,12 @@
 
 use chrono::{Duration, Utc};
 use cms_error::AppError;
-use cms_outbox::{queue_in_tx, OutboxRow};
+use cms_outbox::{OutboxRow, queue_in_tx};
 use cms_server_core::app_state::AppState;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
-use crate::{
-    models::WorkspaceInvitationRow,
-    queries::InvitationQueries,
-};
+use crate::{models::WorkspaceInvitationRow, queries::InvitationQueries};
 
 /// Business service managing workspace invitations, token generation, and acceptance workflows.
 #[derive(Debug, Clone, Copy, Default)]
@@ -37,7 +34,9 @@ impl InvitationService {
     ) -> Result<(WorkspaceInvitationRow, String), AppError> {
         let mut random_bytes = [0u8; 32];
         getrandom::getrandom(&mut random_bytes).map_err(|e| {
-            AppError::Internal(anyhow::anyhow!("Failed to generate secure random token: {e}"))
+            AppError::Internal(anyhow::anyhow!(
+                "Failed to generate secure random token: {e}"
+            ))
         })?;
         let raw_token = hex::encode(random_bytes);
         let token_hash = Self::hash_token(&raw_token);
@@ -74,7 +73,8 @@ impl InvitationService {
                 },
                 "locale": "en"
             }),
-        ).with_workspace(workspace_id);
+        )
+        .with_workspace(workspace_id);
 
         queue_in_tx(&mut tx, &outbox_row).await?;
 
@@ -103,7 +103,9 @@ impl InvitationService {
 
         let invitation = InvitationQueries::find_valid_by_token_hash_tx(&mut tx, &token_hash)
             .await?
-            .ok_or_else(|| AppError::NotFound("Invitation is invalid, expired, or already used".to_string()))?;
+            .ok_or_else(|| {
+                AppError::NotFound("Invitation is invalid, expired, or already used".to_string())
+            })?;
 
         // Link user to workspace as member if not already linked
         let now = Utc::now();
@@ -134,7 +136,8 @@ impl InvitationService {
                 "user_id": user_id,
                 "role": invitation.role,
             }),
-        ).with_workspace(&invitation.workspace_id);
+        )
+        .with_workspace(&invitation.workspace_id);
         queue_in_tx(&mut tx, &outbox_row).await?;
 
         tx.commit().await.map_err(AppError::Database)?;

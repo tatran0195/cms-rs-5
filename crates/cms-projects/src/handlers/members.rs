@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, State},
     Json,
+    extract::{Path, State},
 };
 use cms_authz::Relation;
 use cms_entity::{
@@ -17,7 +17,7 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use super::auth::{authorize_project, ProjectUser};
+use super::auth::{ProjectUser, authorize_project};
 use crate::services::MemberService;
 
 /// List project members
