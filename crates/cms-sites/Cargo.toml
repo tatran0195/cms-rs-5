@@ -11,6 +11,7 @@ cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
 cms-infra = { path = "../cms-infra" }
 cms-server-core = { path = "../cms-server-core" }
+cms-projects = { path = "../cms-projects" }
 
 # External dependencies
 axum = { workspace = true, features = ["json", "multipart"] }

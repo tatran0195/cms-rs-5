@@ -11,13 +11,14 @@ use cms_entity::{common::ApiResponse, project::ProjectAddonResponse};
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use super::auth::{ProjectUser, authorize_project};
+use super::auth::authorize_project;
+use cms_auth::AuthUser;
 use crate::services::ProjectService;
 
 /// Update a project addon
 pub async fn update_project_addon_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, addon_id)): Path<(String, String)>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<ProjectAddonResponse>>, AppError> {
@@ -39,7 +40,7 @@ pub async fn update_project_addon_handler(
 /// Activate a project addon
 pub async fn activate_project_addon_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, addon_id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<ProjectAddonResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Editor).await?;
@@ -60,7 +61,7 @@ pub async fn activate_project_addon_handler(
 /// Deactivate a project addon
 pub async fn deactivate_project_addon_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, addon_id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<ProjectAddonResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Editor).await?;

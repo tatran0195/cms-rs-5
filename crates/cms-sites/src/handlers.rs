@@ -5,7 +5,8 @@ use axum::{
     http::{HeaderMap, StatusCode, header},
     response::{Html, IntoResponse, Response},
 };
-use cms_db::{deployment::DeploymentQueries, domain::DomainQueries, project::ProjectQueries};
+use cms_db::deployment::DeploymentQueries;
+use cms_projects::{DomainQueries, ProjectQueries};
 use cms_entity::deployment::DeploymentSnapshotContent;
 use cms_error::AppError;
 

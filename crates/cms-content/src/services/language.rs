@@ -11,8 +11,8 @@ use cms_db::{
     branch::BranchQueries,
     language::{LanguageQueries, ProjectTranslationQueries},
     page::PageQueries,
-    project::ProjectQueries,
 };
+use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
     language::{

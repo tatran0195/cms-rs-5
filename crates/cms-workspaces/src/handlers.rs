@@ -68,7 +68,7 @@ pub async fn get_workspace_settings_handler(
     State(state): State<Arc<AppState>>,
     _auth: AuthExtractor,
 ) -> Result<Json<ApiResponse<WorkspaceSettingsResponse>>, AppError> {
-    let project_count = cms_db::project::ProjectQueries::count(state.db(), None, None)
+    let project_count = cms_projects::ProjectQueries::count(state.db(), None, None)
         .await
         .unwrap_or(0);
 

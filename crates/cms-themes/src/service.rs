@@ -3,7 +3,8 @@
 //! Domain service for theme management.
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
-use cms_db::{PgPool, project::ProjectQueries, theme::ThemeQueries};
+use cms_db::{PgPool, theme::ThemeQueries};
+use cms_projects::ProjectQueries;
 use cms_entity::theme::{CreateThemeRequest, ThemeCssVariables, ThemeResponse, UpdateThemeRequest};
 use cms_error::AppError;
 
@@ -129,7 +130,7 @@ impl ThemeService {
     ) -> Result<ThemeResponse, AppError> {
         let theme = Self::get_theme(pool, user_id, theme_id).await?;
 
-        cms_db::project::ProjectSettingsQueries::upsert(
+        cms_projects::ProjectSettingsQueries::upsert(
             pool,
             project_id,
             Some(theme_id),

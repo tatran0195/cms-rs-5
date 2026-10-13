@@ -17,13 +17,14 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use super::auth::{ProjectUser, authorize_project};
+use super::auth::authorize_project;
+use cms_auth::AuthUser;
 use crate::services::MemberService;
 
 /// List project members
 pub async fn list_project_members_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<WorkspaceMembersResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;
@@ -36,7 +37,7 @@ pub async fn list_project_members_handler(
 /// Invite project member
 pub async fn invite_project_member_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<WorkspaceInvitationResponse>>, AppError> {
@@ -64,7 +65,7 @@ pub async fn invite_project_member_handler(
 /// Remove project member
 pub async fn remove_project_member_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<WorkspaceMutationResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Admin).await?;
@@ -80,7 +81,7 @@ pub async fn remove_project_member_handler(
 /// Update project member role
 pub async fn update_project_member_role_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, id)): Path<(String, String)>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<WorkspaceMemberItem>>, AppError> {
@@ -126,7 +127,7 @@ pub async fn update_project_member_role_handler(
 /// Transfer project ownership
 pub async fn transfer_project_ownership_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<SuccessResponse>>, AppError> {
@@ -145,7 +146,7 @@ pub async fn transfer_project_ownership_handler(
 /// Cancel project invitation
 pub async fn cancel_project_invitation_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<WorkspaceMutationResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Admin).await?;

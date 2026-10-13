@@ -381,11 +381,11 @@ async fn resolve_public_site(
 ) -> Result<ResolvedPublicSite, AppError> {
     // Visibility remains immediately revocable even though content itself is
     // frozen in a release snapshot.
-    let live_project = cms_db::project::ProjectQueries::get_by_id(state.db(), project_id)
+    let live_project = cms_projects::ProjectQueries::get_by_id(state.db(), project_id)
         .await?
         .ok_or_else(|| AppError::NotFound("Site not found".to_string()))?;
     if !live_project.is_public
-        || cms_db::project::ProjectQueries::is_taken_down(state.db(), project_id)
+        || cms_projects::ProjectQueries::is_taken_down(state.db(), project_id)
             .await?
             .unwrap_or(false)
     {
@@ -491,7 +491,7 @@ async fn resolve_public_site(
         language_config = None;
     }
 
-    let primary_domain = cms_db::domain::DomainQueries::get_primary_for_project_branch(
+    let primary_domain = cms_projects::DomainQueries::get_primary_for_project_branch(
         state.db(),
         project_id,
         &snapshot.branch.id,
@@ -885,7 +885,7 @@ pub async fn get_public_site_changelog_handler(
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let project = cms_db::project::ProjectQueries::get_by_id(state.db(), &id)
+    let project = cms_projects::ProjectQueries::get_by_id(state.db(), &id)
         .await?
         .ok_or_else(|| AppError::NotFound("Site not found".to_string()))?;
     if !project.is_public {
@@ -929,7 +929,7 @@ pub async fn post_public_site_events_handler(
 ) -> Result<Json<serde_json::Value>, AppError> {
     use cms_analytics::AnalyticsService;
 
-    let project = cms_db::project::ProjectQueries::get_by_id(state.db(), &id)
+    let project = cms_projects::ProjectQueries::get_by_id(state.db(), &id)
         .await?
         .ok_or_else(|| AppError::NotFound("Site not found".to_string()))?;
     if !project.is_public {
@@ -1306,7 +1306,7 @@ pub async fn get_public_git_preview_handler(
                         if !has_snapshot {
                             serde_json::Value::Null
                         } else {
-                            let project = cms_db::project::ProjectQueries::get_by_id(
+                            let project = cms_projects::ProjectQueries::get_by_id(
                                 state.db(),
                                 &deployment.project_id,
                             )
@@ -1346,7 +1346,7 @@ pub async fn authorize_custom_domain_tls_handler(
     Query(query): Query<TlsAuthorizationQuery>,
 ) -> Result<StatusCode, AppError> {
     let pool = state.db();
-    let domain = cms_db::domain::DomainQueries::get_verified_by_hostname(pool, &query.domain)
+    let domain = cms_projects::DomainQueries::get_verified_by_hostname(pool, &query.domain)
         .await?
         .ok_or_else(|| AppError::NotFound("TLS authorization denied".to_string()))?;
     let deployment = cms_db::deployment::DeploymentQueries::get_by_id(pool, &domain.deployment_id)
@@ -1358,11 +1358,11 @@ pub async fn authorize_custom_domain_tls_handler(
             )
         })
         .ok_or_else(|| AppError::NotFound("TLS authorization denied".to_string()))?;
-    let project = cms_db::project::ProjectQueries::get_by_id(pool, &deployment.project_id)
+    let project = cms_projects::ProjectQueries::get_by_id(pool, &deployment.project_id)
         .await?
         .filter(|project| project.is_public)
         .ok_or_else(|| AppError::NotFound("TLS authorization denied".to_string()))?;
-    if cms_db::project::ProjectQueries::is_taken_down(pool, &project.id)
+    if cms_projects::ProjectQueries::is_taken_down(pool, &project.id)
         .await?
         .unwrap_or(true)
     {
@@ -1397,7 +1397,7 @@ pub async fn get_public_domains_resolve_handler(
         return Ok(Json(serde_json::json!({ "data": null })));
     };
 
-    let domain = cms_db::domain::DomainQueries::get_verified_by_hostname(state.db(), &host).await?;
+    let domain = cms_projects::DomainQueries::get_verified_by_hostname(state.db(), &host).await?;
     let data = match domain {
         Some(domain) => {
             let deployment =
@@ -1405,7 +1405,7 @@ pub async fn get_public_domains_resolve_handler(
                     .await?;
             match deployment {
                 Some(deployment) => {
-                    let project = cms_db::project::ProjectQueries::get_by_id(
+                    let project = cms_projects::ProjectQueries::get_by_id(
                         state.db(),
                         &deployment.project_id,
                     )
@@ -1416,7 +1416,7 @@ pub async fn get_public_domains_resolve_handler(
                             &deployment.id,
                         )
                         .await?;
-                    let taken_down = cms_db::project::ProjectQueries::is_taken_down(
+                    let taken_down = cms_projects::ProjectQueries::is_taken_down(
                         state.db(),
                         &deployment.project_id,
                     )

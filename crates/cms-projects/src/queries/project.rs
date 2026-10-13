@@ -87,6 +87,14 @@ impl ProjectQueries {
         Ok(row.map(Into::into))
     }
 
+    /// Get a project by slug (alias for `get_by_slug`)
+    pub async fn get_by_slug_global(
+        pool: &PgPool,
+        slug: &str,
+    ) -> Result<Option<Project>, AppError> {
+        Self::get_by_slug(pool, slug).await
+    }
+
     /// Get all projects
     pub async fn get_all(
         pool: &PgPool,

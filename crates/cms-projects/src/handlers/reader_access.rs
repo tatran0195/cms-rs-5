@@ -19,13 +19,14 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use super::auth::{ProjectUser, authorize_project};
+use super::auth::authorize_project;
+use cms_auth::AuthUser;
 use crate::services::ReaderAccessService;
 
 /// Get project reader access configuration
 pub async fn get_project_reader_access_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<ProjectReaderAccessResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;
@@ -38,7 +39,7 @@ pub async fn get_project_reader_access_handler(
 /// Update project reader access mode
 pub async fn update_project_reader_access_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<ProjectReaderAccessResponse>>, AppError> {
@@ -63,7 +64,7 @@ pub async fn update_project_reader_access_handler(
 /// Create reader audience
 pub async fn create_reader_audience_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<ProjectAudienceItem>>, AppError> {
@@ -84,7 +85,7 @@ pub async fn create_reader_audience_handler(
 /// Delete reader audience
 pub async fn delete_reader_audience_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, audience_id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<WorkspaceMutationResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Editor).await?;
@@ -100,7 +101,7 @@ pub async fn delete_reader_audience_handler(
 /// Invite reader to project audience
 pub async fn invite_project_reader_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<ProjectReaderInvitationResponse>>, AppError> {
@@ -123,7 +124,7 @@ pub async fn invite_project_reader_handler(
 /// Revoke reader from audience
 pub async fn revoke_project_reader_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, reader_id)): Path<(String, String)>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<WorkspaceMutationResponse>>, AppError> {
@@ -145,7 +146,7 @@ pub async fn revoke_project_reader_handler(
 /// Configure reader JWT provider
 pub async fn configure_reader_jwt_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<ApiResponse<ProjectJwtProviderItem>>, AppError> {
@@ -174,12 +175,12 @@ pub async fn configure_reader_jwt_handler(
 /// Test reader JWT configuration
 pub async fn test_reader_jwt_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<ProjectJwtTestResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;
 
-    let provider = cms_db::reader_access::JwtAccessProviderQueries::get_by_issuer_and_audience(
+    let provider = crate::queries::reader_access::JwtAccessProviderQueries::get_by_issuer_and_audience(
         state.db(),
         &project_id,
         &project_id,
@@ -197,7 +198,7 @@ pub async fn test_reader_jwt_handler(
 /// Emergency revoke all reader access tokens/providers for project
 pub async fn emergency_revoke_reader_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<ProjectReaderEmergencyRevokeResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Admin).await?;

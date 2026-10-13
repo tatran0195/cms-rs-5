@@ -6,7 +6,7 @@ use axum::{
     Json,
     extract::{Path, State},
 };
-use cms_db::project::ProjectQueries;
+use cms_projects::ProjectQueries;
 use cms_entity::common::ApiResponse;
 use cms_error::AppError;
 use cms_infra::storage::UploadTarget;

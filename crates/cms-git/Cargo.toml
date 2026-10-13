@@ -12,6 +12,7 @@ cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
 cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
+cms-projects = { workspace = true }
 
 axum = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

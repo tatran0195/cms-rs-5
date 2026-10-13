@@ -578,9 +578,9 @@ pub async fn site_handler(
     let exports = export_rows(&state, Some(&project_id), 50).await?;
     let git = git_rows(&state, Some(&project_id), 10).await?;
     let (readers, audiences, jwt_provider) = tokio::try_join!(
-        cms_db::reader_access::ReaderQueries::get_by_project(state.db(), &project_id),
-        cms_db::reader_access::AudienceQueries::get_by_project(state.db(), &project_id),
-        cms_db::reader_access::JwtAccessProviderQueries::get_by_issuer_and_audience(
+        cms_projects::ReaderQueries::get_by_project(state.db(), &project_id),
+        cms_projects::AudienceQueries::get_by_project(state.db(), &project_id),
+        cms_projects::JwtAccessProviderQueries::get_by_issuer_and_audience(
             state.db(),
             &project_id,
             &project_id,
@@ -889,7 +889,7 @@ pub async fn takedown_site_handler(
             "reason must be between 1 and 500 characters".to_string(),
         ));
     }
-    cms_db::project::ProjectQueries::set_takedown(state.db(), &project_id, reason).await?;
+    cms_projects::ProjectQueries::set_takedown(state.db(), &project_id, reason).await?;
     Ok(Json(json!({ "data": { "ok": true } })))
 }
 
@@ -899,7 +899,7 @@ pub async fn restore_site_handler(
     Path(project_id): Path<String>,
 ) -> Result<Json<Value>, AppError> {
     require_admin(&state, &auth.user.id).await?;
-    cms_db::project::ProjectQueries::restore_takedown(state.db(), &project_id).await?;
+    cms_projects::ProjectQueries::restore_takedown(state.db(), &project_id).await?;
     Ok(Json(json!({ "data": { "ok": true } })))
 }
 

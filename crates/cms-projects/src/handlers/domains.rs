@@ -17,13 +17,14 @@ use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 use validator::Validate;
 
-use super::auth::{ProjectUser, authorize_project};
+use super::auth::authorize_project;
+use cms_auth::AuthUser;
 use crate::services::DomainService;
 
 /// List domains for a project
 pub async fn list_project_domains_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<Vec<SpaDomainResponse>>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;
@@ -36,7 +37,7 @@ pub async fn list_project_domains_handler(
 /// Add a domain to a project
 pub async fn add_project_domain_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<AddProjectDomainRequest>,
 ) -> Result<Json<ApiResponse<SpaDomainResponse>>, AppError> {
@@ -54,7 +55,7 @@ pub async fn add_project_domain_handler(
 /// Delete a domain from a project
 pub async fn delete_project_domain_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<DeleteDomainResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Editor).await?;
@@ -69,7 +70,7 @@ pub async fn delete_project_domain_handler(
 /// Verify domain ownership
 pub async fn verify_project_domain_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<SpaDomainResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Editor).await?;
@@ -89,7 +90,7 @@ pub async fn verify_project_domain_handler(
 /// Set primary domain for a project
 pub async fn set_primary_project_domain_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path((project_id, id)): Path<(String, String)>,
 ) -> Result<Json<ApiResponse<SpaDomainResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Editor).await?;

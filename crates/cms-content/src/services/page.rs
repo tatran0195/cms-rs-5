@@ -5,8 +5,9 @@
 
 use cms_db::{
     PgPool, branch::BranchQueries, language::LanguageQueries, page::PageQueries,
-    platform_event::PlatformEventQueries, project::ProjectQueries,
+    platform_event::PlatformEventQueries,
 };
+use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
     page::{

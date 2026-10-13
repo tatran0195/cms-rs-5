@@ -13,6 +13,7 @@ cms-error = { workspace = true }
 cms-server-core = { workspace = true }
 cms-auth = { workspace = true }
 cms-infra = { workspace = true }
+cms-projects = { workspace = true }
 
 # HTTP & Async
 axum = { workspace = true }

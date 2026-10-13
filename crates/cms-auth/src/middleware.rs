@@ -47,6 +47,7 @@ impl AuthExtractor {
 #[derive(Debug, Clone)]
 pub struct AuthUser {
     pub id: uuid::Uuid,
+    pub user_id: String,
     pub role: String,
     pub claims: crate::Claims,
     pub user: UserResponse,
@@ -73,8 +74,10 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let auth = AuthExtractor::from_request_parts(parts, state).await?;
+        let user_id = auth.user.id.clone();
         Ok(Self {
             id: auth.claims.sub,
+            user_id,
             role: auth.claims.role.clone(),
             claims: auth.claims,
             user: auth.user,

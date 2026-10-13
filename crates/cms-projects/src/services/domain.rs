@@ -3,7 +3,7 @@
 use cms_error::AppError;
 use sqlx::PgPool;
 
-use cms_db::domain::DomainQueries;
+use crate::queries::domain::{DomainQueries, normalize_hostname};
 
 use crate::models::{Domain, SpaDomainResponse};
 
@@ -110,7 +110,7 @@ impl DomainService {
 
     /// Check if a domain is verified and eligible for on-demand TLS issuance (Caddy on-demand TLS)
     pub async fn is_domain_allowed_for_tls(pool: &PgPool, domain: &str) -> Result<bool, AppError> {
-        let Ok(normalized) = cms_db::domain::normalize_hostname(domain) else {
+        let Ok(normalized) = normalize_hostname(domain) else {
             return Ok(false);
         };
         let verified = DomainQueries::get_verified_by_hostname(pool, &normalized).await?;

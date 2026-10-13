@@ -60,9 +60,9 @@ impl ReaderQueries {
             .bind(reader_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_email(pool: &PgPool, email: &str) -> Result<Option<Reader>, AppError> {
@@ -70,9 +70,9 @@ impl ReaderQueries {
             .bind(email)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     /// List all readers granted access to any audience belonging to a project.
@@ -89,9 +89,9 @@ impl ReaderQueries {
         .bind(project_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn create(
@@ -120,7 +120,7 @@ impl ReaderQueries {
             if e.to_string().contains("duplicate key") {
                 AppError::Conflict("Reader with this email already exists".to_string())
             } else {
-                AppError::Database(e.into())
+                AppError::Database(e)
             }
         })?;
 
@@ -151,7 +151,7 @@ impl ReaderQueries {
             .build_query_as::<ReaderRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -161,7 +161,7 @@ impl ReaderQueries {
             .bind(reader_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -217,9 +217,9 @@ impl AudienceQueries {
             .bind(audience_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_project(
@@ -231,9 +231,9 @@ impl AudienceQueries {
                 .bind(project_id)
                 .fetch_all(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn create(
@@ -260,7 +260,7 @@ impl AudienceQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -302,7 +302,7 @@ impl AudienceQueries {
             .build_query_as::<AudienceRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -312,7 +312,7 @@ impl AudienceQueries {
             .bind(audience_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -330,7 +330,7 @@ struct ReaderAudienceRow {
     created_at: DateTime<Utc>,
 }
 
-/// ReaderAudience queries
+/// `ReaderAudience` queries
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderAudienceQueries;
 
@@ -347,7 +347,7 @@ impl ReaderAudienceQueries {
         .bind(audience_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.map(|r| ReaderAudience {
             id: r.id,
@@ -374,7 +374,7 @@ impl ReaderAudienceQueries {
         .bind(project_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(count > 0)
     }
@@ -404,7 +404,7 @@ impl ReaderAudienceQueries {
             if e.to_string().contains("duplicate key") {
                 AppError::Conflict("Reader already has access to this audience".to_string())
             } else {
-                AppError::Database(e.into())
+                AppError::Database(e)
             }
         })?;
 
@@ -427,7 +427,7 @@ impl ReaderAudienceQueries {
                 .bind(audience_id)
                 .execute(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -473,7 +473,7 @@ impl From<AudienceGrantRow> for AudienceGrantResponse {
     }
 }
 
-/// AudienceGrant queries
+/// `AudienceGrant` queries
 #[derive(Debug, Clone, Copy, Default)]
 pub struct AudienceGrantQueries;
 
@@ -487,9 +487,9 @@ impl AudienceGrantQueries {
                 .bind(grant_id)
                 .fetch_optional(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_audience(
@@ -502,9 +502,9 @@ impl AudienceGrantQueries {
         .bind(audience_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn has_grant_for_branch(
@@ -526,7 +526,7 @@ impl AudienceGrantQueries {
         .bind(branch_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(count > 0)
     }
@@ -556,7 +556,7 @@ impl AudienceGrantQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -566,7 +566,7 @@ impl AudienceGrantQueries {
             .bind(grant_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -611,7 +611,7 @@ impl From<ReaderInvitationRow> for ReaderInvitationResponse {
     }
 }
 
-/// ReaderInvitation queries
+/// `ReaderInvitation` queries
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderInvitationQueries;
 
@@ -626,9 +626,9 @@ impl ReaderInvitationQueries {
         .bind(invitation_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_token(
@@ -641,9 +641,9 @@ impl ReaderInvitationQueries {
         .bind(token)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_audience(
@@ -656,9 +656,9 @@ impl ReaderInvitationQueries {
         .bind(audience_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn create(
@@ -690,7 +690,7 @@ impl ReaderInvitationQueries {
             if e.to_string().contains("duplicate key") {
                 AppError::Conflict("Invitation with this token already exists".to_string())
             } else {
-                AppError::Database(e.into())
+                AppError::Database(e)
             }
         })?;
 
@@ -702,7 +702,7 @@ impl ReaderInvitationQueries {
             .bind(invitation_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -721,7 +721,7 @@ struct ReaderSessionRow {
     created_at: DateTime<Utc>,
 }
 
-/// ReaderSession queries
+/// `ReaderSession` queries
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderSessionQueries;
 
@@ -735,7 +735,7 @@ impl ReaderSessionQueries {
                 .bind(session_id)
                 .fetch_optional(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
 
         Ok(row.map(|r| ReaderSession {
             id: r.id,
@@ -756,7 +756,7 @@ impl ReaderSessionQueries {
         .bind(token)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.map(|r| ReaderSession {
             id: r.id,
@@ -790,7 +790,7 @@ impl ReaderSessionQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(ReaderSession {
             id: row.id,
@@ -806,7 +806,7 @@ impl ReaderSessionQueries {
             .bind(session_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -842,7 +842,7 @@ impl From<JwtAccessProviderRow> for JwtAccessProvider {
     }
 }
 
-/// JwtAccessProvider queries
+/// `JwtAccessProvider` queries
 #[derive(Debug, Clone, Copy, Default)]
 pub struct JwtAccessProviderQueries;
 
@@ -857,9 +857,9 @@ impl JwtAccessProviderQueries {
         .bind(provider_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_issuer_and_audience(
@@ -874,9 +874,9 @@ impl JwtAccessProviderQueries {
         .bind(audience)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn create(
@@ -905,7 +905,7 @@ impl JwtAccessProviderQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -915,7 +915,7 @@ impl JwtAccessProviderQueries {
             .bind(provider_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -926,9 +926,9 @@ impl JwtAccessProviderQueries {
         )
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 }
 
@@ -957,7 +957,7 @@ impl From<JwtReplayRow> for JwtReplay {
     }
 }
 
-/// JwtReplay queries
+/// `JwtReplay` queries
 #[derive(Debug, Clone, Copy, Default)]
 pub struct JwtReplayQueries;
 
@@ -974,9 +974,9 @@ impl JwtReplayQueries {
         .bind(provider_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn is_replayed(
@@ -984,7 +984,7 @@ impl JwtReplayQueries {
         jwt_id: &str,
         provider_id: &str,
     ) -> Result<bool, AppError> {
-        let exists = JwtReplayQueries::get_by_jwt_id_and_provider(pool, jwt_id, provider_id)
+        let exists = Self::get_by_jwt_id_and_provider(pool, jwt_id, provider_id)
             .await?
             .is_some();
 
@@ -1017,7 +1017,7 @@ impl JwtReplayQueries {
             if e.to_string().contains("duplicate key") {
                 AppError::Conflict("JWT already used".to_string())
             } else {
-                AppError::Database(e.into())
+                AppError::Database(e)
             }
         })?;
 
@@ -1052,7 +1052,7 @@ impl From<ReaderAuditLogRow> for ReaderAuditLog {
     }
 }
 
-/// ReaderAuditLog queries
+/// `ReaderAuditLog` queries
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderAuditLogQueries;
 
@@ -1082,7 +1082,7 @@ impl ReaderAuditLogQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -1113,9 +1113,9 @@ impl ReaderAuditLogQueries {
             .build_query_as::<ReaderAuditLogRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn count_by_reader(pool: &PgPool, reader_id: &str) -> Result<i64, AppError> {
@@ -1124,7 +1124,7 @@ impl ReaderAuditLogQueries {
                 .bind(reader_id)
                 .fetch_one(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
 
         Ok(count)
     }

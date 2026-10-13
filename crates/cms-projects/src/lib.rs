@@ -11,7 +11,7 @@ pub mod queries;
 pub mod services;
 
 pub use handlers::{
-    ProjectUser, addons_router, core_router, domains_router, members_router, project_router,
+    addons_router, core_router, domains_router, members_router, project_router,
     reader_access_router, tls_check_router,
 };
 pub use models::{
@@ -25,7 +25,9 @@ pub use models::{
     WorkspaceMembersResponse,
 };
 pub use queries::{
-    ProjectAddonQueries, ProjectMemberQueries, ProjectQueries, ProjectSettingsQueries,
+    AudienceQueries, DomainQueries, JwtAccessProviderQueries, ProjectAddonQueries,
+    ProjectMemberQueries, ProjectQueries, ProjectSettingsQueries, ReaderAudienceQueries,
+    ReaderInvitationQueries, ReaderQueries, normalize_hostname,
 };
 pub use services::{DomainService, MemberService, ProjectService, ReaderAccessService};
 

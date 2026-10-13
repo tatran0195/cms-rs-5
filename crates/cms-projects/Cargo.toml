@@ -10,8 +10,6 @@ cms-db = { path = "../cms-db" }
 cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
-cms-content = { path = "../cms-content" }
-cms-assets = { path = "../cms-assets" }
 cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
 
@@ -26,6 +24,7 @@ sqlx = { workspace = true }
 anyhow = { workspace = true }
 validator = { workspace = true }
 utoipa = { workspace = true }
+idna = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }

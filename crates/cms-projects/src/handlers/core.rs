@@ -20,13 +20,14 @@ use cms_server_core::app_state::AppState;
 use uuid::Uuid;
 use validator::Validate;
 
-use super::auth::{ProjectUser, authorize_project};
+use super::auth::authorize_project;
+use cms_auth::AuthUser;
 use crate::services::ProjectService;
 
 /// List all projects for the authenticated user
 pub async fn list_projects_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Query(query): Query<ListProjectsQuery>,
 ) -> Result<Json<ApiResponse<Vec<ProjectResponse>>>, AppError> {
     let candidates = ProjectService::list_all_projects_for_user(
@@ -65,7 +66,7 @@ pub async fn list_projects_handler(
 /// Create a new project
 pub async fn create_project_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Json(request): Json<CreateProjectRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<ProjectResponse>>), AppError> {
     request
@@ -80,7 +81,7 @@ pub async fn create_project_handler(
 /// Get project handler
 pub async fn get_project_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<ProjectResponse>>, AppError> {
     let project = authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;
@@ -90,7 +91,7 @@ pub async fn get_project_handler(
 /// Update project handler
 pub async fn update_project_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(request): Json<UpdateProjectRequest>,
 ) -> Result<Json<ApiResponse<ProjectResponse>>, AppError> {
@@ -109,7 +110,7 @@ pub async fn update_project_handler(
 /// Delete project handler
 pub async fn delete_project_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<DeleteProjectResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Owner).await?;
@@ -124,7 +125,7 @@ pub async fn delete_project_handler(
 /// Get project settings handler
 pub async fn get_project_settings_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<ProjectSettings>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;
@@ -138,7 +139,7 @@ pub async fn get_project_settings_handler(
 /// Update project settings handler
 pub async fn update_project_settings_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(request): Json<UpdateProjectSettingsRequest>,
 ) -> Result<Json<ApiResponse<ProjectSettings>>, AppError> {
@@ -154,7 +155,7 @@ pub async fn update_project_settings_handler(
 /// List project addons handler
 pub async fn list_project_addons_handler(
     State(state): State<Arc<AppState>>,
-    auth: ProjectUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<Vec<ProjectAddonResponse>>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;

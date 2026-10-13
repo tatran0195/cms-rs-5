@@ -2,7 +2,8 @@
 
 use std::collections::HashMap;
 
-use cms_db::{PgPool, branch::BranchQueries, page::PageQueries, project::ProjectQueries};
+use cms_db::{PgPool, branch::BranchQueries, page::PageQueries};
+use cms_projects::ProjectQueries;
 use cms_entity::{
     branch::{
         BranchResponse, BranchWithProjectResponse, CreateBranchRequest, ListBranchesQuery,

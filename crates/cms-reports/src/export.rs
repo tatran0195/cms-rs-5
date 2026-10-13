@@ -11,8 +11,8 @@ use cms_db::{
         ExportArtifactQueries, ExportJobQueries, ExportScheduleQueries, ExportSnapshotQueries,
     },
     page::PageQueries,
-    project::ProjectQueries,
 };
+use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
     export::{

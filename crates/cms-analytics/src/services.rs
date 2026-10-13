@@ -3,9 +3,9 @@
 use cms_db::{
     analytics::{AnalyticsEventQueries, AnalyticsQueries},
     page::PageQueries,
-    project::ProjectQueries,
     PgPool,
 };
+use cms_projects::ProjectQueries;
 use cms_entity::{
     analytics::{
         AnalyticsDashboardResponse, AnalyticsEventResponse, AnalyticsQueryRequest,

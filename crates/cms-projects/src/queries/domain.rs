@@ -131,7 +131,7 @@ fn map_domain_write_error(error: sqlx::Error) -> AppError {
     }
     match error {
         sqlx::Error::RowNotFound => AppError::NotFound("Domain not found".to_string()),
-        error => AppError::Database(error.into()),
+        error => AppError::Database(error),
     }
 }
 
@@ -146,9 +146,9 @@ impl DomainQueries {
             .bind(domain_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     /// Get domain by hostname
@@ -163,9 +163,9 @@ impl DomainQueries {
             .bind(hostname)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     /// Resolve a public host only after domain ownership has been marked verified.
@@ -182,9 +182,9 @@ impl DomainQueries {
         .bind(hostname)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     /// Get domains by deployment ID
@@ -199,9 +199,9 @@ impl DomainQueries {
         .bind(deployment_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// Create a new domain
@@ -218,14 +218,14 @@ impl DomainQueries {
         let mut transaction = pool
             .begin()
             .await
-            .map_err(|error| AppError::Database(error.into()))?;
+            .map_err(|error| AppError::Database(error))?;
 
         let deployment_exists =
             sqlx::query(r#"SELECT id FROM "Deployment" WHERE id = $1 FOR UPDATE"#)
                 .bind(deployment_id)
                 .fetch_optional(&mut *transaction)
                 .await
-                .map_err(|error| AppError::Database(error.into()))?
+                .map_err(|error| AppError::Database(error))?
                 .is_some();
         if !deployment_exists {
             return Err(AppError::NotFound("Deployment not found".to_string()));
@@ -243,7 +243,7 @@ impl DomainQueries {
             .bind(deployment_id)
             .execute(&mut *transaction)
             .await
-            .map_err(|error| AppError::Database(error.into()))?;
+            .map_err(|error| AppError::Database(error))?;
         }
 
         let row = sqlx::query_as::<_, DomainRow>(
@@ -269,7 +269,7 @@ impl DomainQueries {
         transaction
             .commit()
             .await
-            .map_err(|error| AppError::Database(error.into()))?;
+            .map_err(|error| AppError::Database(error))?;
 
         Ok(row.into())
     }
@@ -448,7 +448,7 @@ impl DomainQueries {
         .bind(expected_token)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?
+        .map_err(AppError::Database)?
         .ok_or_else(|| {
             AppError::Conflict("Domain challenge changed during verification".to_string())
         })?;
@@ -474,7 +474,7 @@ impl DomainQueries {
         .bind(expected_token)
         .execute(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
         Ok(())
     }
 
@@ -500,7 +500,7 @@ impl DomainQueries {
             .bind(domain_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -518,13 +518,13 @@ impl DomainQueries {
                 .bind(domain_id)
                 .fetch_one(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?
+                .map_err(AppError::Database)?
         } else {
             sqlx::query_scalar(r#"SELECT COUNT(*) FROM "Domain" WHERE hostname = $1"#)
                 .bind(hostname)
                 .fetch_one(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?
+                .map_err(AppError::Database)?
         };
 
         Ok(count == 0)
@@ -569,9 +569,9 @@ impl DomainQueries {
         .bind(deployment_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 }
 

@@ -5,10 +5,8 @@
 
 use std::sync::Arc;
 
-use cms_db::{
-    PgPool, branch::BranchQueries, mcp::McpAuditEventQueries, page::PageQueries,
-    project::ProjectQueries,
-};
+use cms_db::{PgPool, branch::BranchQueries, mcp::McpAuditEventQueries, page::PageQueries};
+use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
     mcp::{McpAuditEventResponse, McpResourceItem, operation_types},

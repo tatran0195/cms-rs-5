@@ -5,7 +5,7 @@ use cms_error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use cms_db::reader_access::{
+use crate::queries::reader_access::{
     AudienceQueries, JwtAccessProviderQueries, ReaderAudienceQueries, ReaderInvitationQueries,
     ReaderQueries,
 };

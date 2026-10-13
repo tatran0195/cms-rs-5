@@ -2,9 +2,8 @@
 
 use std::sync::Arc;
 
-use cms_db::{
-    page::PageQueries, project::ProjectQueries, search_index::SearchIndexRunQueries, PgPool,
-};
+use cms_db::{page::PageQueries, search_index::SearchIndexRunQueries, PgPool};
+use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
     search::{

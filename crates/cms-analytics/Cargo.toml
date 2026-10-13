@@ -11,6 +11,7 @@ cms-db = { workspace = true }
 cms-error = { workspace = true }
 cms-server-core = { workspace = true }
 cms-auth = { workspace = true }
+cms-projects = { workspace = true }
 
 axum = { workspace = true }
 serde = { workspace = true }

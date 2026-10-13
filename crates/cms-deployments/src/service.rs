@@ -8,10 +8,9 @@ use cms_db::{
     PgPool,
     branch::BranchQueries,
     deployment::DeploymentQueries,
-    domain::DomainQueries,
     page::PageQueries,
-    project::ProjectQueries,
 };
+use cms_projects::{DomainQueries, ProjectQueries, normalize_hostname};
 use cms_entity::{
     common::PaginatedResponse,
     deployment::{
@@ -269,7 +268,7 @@ impl DeploymentService {
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        let hostname = cms_db::domain::normalize_hostname(&request.hostname)?;
+        let hostname = normalize_hostname(&request.hostname)?;
         let existing = DomainQueries::get_by_hostname(pool, &hostname).await?;
         if existing.is_some() {
             return Err(AppError::Conflict("Domain is already in use".to_string()));
