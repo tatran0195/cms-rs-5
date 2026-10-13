@@ -45,7 +45,7 @@ use super::{
     tokenizer::{JapaneseTokenizer, LinderaTantivyTokenizer, JAPANESE_TOKENIZER_NAME},
     traits::SearchEngine,
 };
-use crate::config::RagConfig;
+use cms_infra::config::RagConfig;
 
 /// Schema fields for Tantivy project index
 #[derive(Debug, Clone, Copy)]

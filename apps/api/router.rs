@@ -5,22 +5,7 @@
 
 use std::sync::Arc;
 
-use axum::{
-    Json, Router,
-    extract::{Path, Query, State},
-    response::IntoResponse,
-    routing::{get, post},
-};
-use cms_auth::AuthExtractor;
-use cms_entity::{
-    common::{ApiResponse, Id, PaginatedResponse, SuccessResponse},
-    mcp::{ListMcpAuditEventsQuery, McpAuditEventResponse},
-    search::{
-        ListSearchIndexRunsQuery, ReindexRequest, SearchIndexRunResponse, SearchRequest,
-        SearchResponse,
-    },
-};
-use cms_error::AppError;
+use axum::{Router, routing::get};
 use cms_server_core::{
     app_state::AppState,
     locale_scoping_middleware,
@@ -34,167 +19,6 @@ use cms_server_core::{
     },
 };
 
-#[derive(Debug, serde::Deserialize)]
-pub(crate) struct TlsCheckQuery {
-    pub(crate) domain: Option<String>,
-}
-
-/// Caddy on-demand TLS domain check endpoint handler
-pub(crate) async fn check_domain_tls_handler(
-    State(state): State<Arc<AppState>>,
-    Query(query): Query<TlsCheckQuery>,
-) -> Result<axum::response::Response, AppError> {
-    use axum::http::StatusCode;
-
-    let Some(domain) = query.domain.filter(|d| !d.trim().is_empty()) else {
-        return Ok((StatusCode::BAD_REQUEST, "Missing domain query parameter").into_response());
-    };
-
-    let is_allowed =
-        cms_projects::services::DomainService::is_domain_allowed_for_tls(state.db(), &domain)
-            .await?;
-    if is_allowed {
-        Ok((StatusCode::OK, "Domain is authorized for TLS certificate").into_response())
-    } else {
-        Ok((
-            StatusCode::FORBIDDEN,
-            "Domain is not authorized for TLS certificate",
-        )
-            .into_response())
-    }
-}
-
-/// Health check handler
-async fn get_health(
-    State(state): State<Arc<AppState>>,
-) -> Result<Json<cms_entity::common::SystemHealthResponse>, AppError> {
-    let health =
-        cms_admin::platform_events::PlatformEventService::get_system_health(state.db()).await?;
-    Ok(Json(health))
-}
-
-// ---------------------------------------------------------------------------
-// Search Handlers & Subrouter
-// ---------------------------------------------------------------------------
-
-pub(crate) async fn search_handler(
-    State(state): State<Arc<AppState>>,
-    _auth: AuthExtractor,
-    Query(request): Query<SearchRequest>,
-) -> Result<Json<SearchResponse>, AppError> {
-    let project_id = request.project_id.clone();
-    let result = cms_infra::search::SearchService::search(
-        state.db(),
-        state.search_engine.clone(),
-        &project_id,
-        request,
-    )
-    .await?;
-
-    Ok(Json(result))
-}
-
-pub(crate) async fn reindex_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Json(request): Json<ReindexRequest>,
-) -> Result<Json<ApiResponse<SuccessResponse>>, AppError> {
-    cms_infra::search::SearchService::reindex(
-        state.db(),
-        state.search_engine.clone(),
-        &auth.user.id,
-        request,
-    )
-    .await?;
-
-    Ok(Json(ApiResponse::new(SuccessResponse {
-        success: true,
-        message: Some("Reindexing started".to_string()),
-    })))
-}
-
-pub(crate) async fn list_search_index_runs_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Query(query): Query<ListSearchIndexRunsQuery>,
-) -> Result<Json<PaginatedResponse<SearchIndexRunResponse>>, AppError> {
-    let result =
-        cms_infra::search::SearchService::list_index_runs(state.db(), &auth.user.id, query).await?;
-
-    Ok(Json(result))
-}
-
-pub(crate) async fn get_search_index_run_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Path(run_id): Path<Id>,
-) -> Result<Json<SearchIndexRunResponse>, AppError> {
-    let run =
-        cms_infra::search::SearchService::get_index_run(state.db(), &auth.user.id, &run_id).await?;
-
-    Ok(Json(run))
-}
-
-pub(crate) async fn get_search_status_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Path(project_id): Path<Id>,
-) -> Result<Json<serde_json::Value>, AppError> {
-    let status =
-        cms_infra::search::SearchService::get_search_status(state.db(), &auth.user.id, &project_id)
-            .await?;
-
-    Ok(Json(status))
-}
-
-fn search_router(state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/", get(search_handler))
-        .route("/reindex", post(reindex_handler))
-        .route("/index-runs", get(list_search_index_runs_handler))
-        .route("/index-runs/{id}", get(get_search_index_run_handler))
-        .route("/status/{project_id}", get(get_search_status_handler))
-        .with_state(state)
-}
-
-// ---------------------------------------------------------------------------
-// MCP Handlers & Subrouter
-// ---------------------------------------------------------------------------
-
-pub(crate) async fn list_mcp_audit_events_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Query(query): Query<ListMcpAuditEventsQuery>,
-) -> Result<Json<PaginatedResponse<McpAuditEventResponse>>, AppError> {
-    let result = cms_mcp::services::McpService::list_audit_events(
-        state.db(),
-        &auth.user.id,
-        query.project_id.as_deref(),
-        query.user_id.as_deref(),
-        query.operation.as_deref(),
-        query.limit,
-        query.offset,
-    )
-    .await?;
-
-    Ok(Json(result))
-}
-
-fn mcp_router(state: Arc<AppState>) -> Router {
-    let mcp_service = cms_mcp::create_mcp_http_service(
-        Arc::new(cms_mcp::McpContext::new(
-            state.db().clone(),
-            state.authz().clone(),
-        )),
-        cms_mcp::McpSecurityContext::system(),
-    );
-
-    Router::new()
-        .route("/audit-events", get(list_mcp_audit_events_handler))
-        .with_state(state)
-        .fallback_service(mcp_service)
-}
-
 // ---------------------------------------------------------------------------
 // Root API Router Assembly
 // ---------------------------------------------------------------------------
@@ -204,91 +28,91 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     let mut router = Router::new();
 
     // Mount all autonomous domain slice routers
-    router = router.nest("/auth", cms_auth::router(state.clone()));
-    router = router.nest("/projects", cms_projects::project_router(state.clone()));
-    router = router.nest("/pages", cms_content::page_router(state.clone()));
-    router = router.nest("/branches", cms_content::branch_router(state.clone()));
-    router = router.nest("/languages", cms_content::language_router(state.clone()));
-    router = router.nest("/git", cms_git::router(state.clone()));
-    router = router.nest("/integrations", cms_integrations::router(state.clone()));
-    router = router.nest("/deployments", cms_deployments::router(state.clone()));
+    router = router.nest("/auth", cms_auth::router(Arc::clone(&state)));
+    router = router.nest("/projects", cms_projects::project_router(Arc::clone(&state)));
+    router = router.nest("/pages", cms_content::page_router(Arc::clone(&state)));
+    router = router.nest("/branches", cms_content::branch_router(Arc::clone(&state)));
+    router = router.nest("/languages", cms_content::language_router(Arc::clone(&state)));
+    router = router.nest("/git", cms_git::router(Arc::clone(&state)));
+    router = router.nest("/integrations", cms_integrations::router(Arc::clone(&state)));
+    router = router.nest("/deployments", cms_deployments::router(Arc::clone(&state)));
     router = router.nest(
         "/domains",
-        cms_projects::domains_router().with_state(state.clone()),
+        cms_projects::domains_router().with_state(Arc::clone(&state)),
     );
     router = router.nest(
         "/reader-access",
-        cms_projects::reader_access_router().with_state(state.clone()),
+        cms_projects::reader_access_router().with_state(Arc::clone(&state)),
     );
-    router = router.nest("/comments", cms_content::comment_router(state.clone()));
-    router = router.nest("/search", search_router(state.clone()));
-    router = router.nest("/export", cms_reports::export_router(state.clone()));
-    router = router.nest("/openapi", cms_api_specs::router(state.clone()));
-    router = router.nest("/notifications", cms_notifications::router(state.clone()));
-    router = router.nest("/assets", cms_assets::router(state.clone()));
-    router = router.nest("/analytics", cms_analytics::router(state.clone()));
-    router = router.nest("/themes", cms_themes::router(state.clone()));
+    router = router.nest("/comments", cms_content::comment_router(Arc::clone(&state)));
+    router = router.nest("/search", cms_search::router(Arc::clone(&state)));
+    router = router.nest("/export", cms_reports::export_router(Arc::clone(&state)));
+    router = router.nest("/openapi", cms_api_specs::router(Arc::clone(&state)));
+    router = router.nest("/notifications", cms_notifications::router(Arc::clone(&state)));
+    router = router.nest("/assets", cms_assets::router(Arc::clone(&state)));
+    router = router.nest("/analytics", cms_analytics::router(Arc::clone(&state)));
+    router = router.nest("/themes", cms_themes::router(Arc::clone(&state)));
     router = router.nest(
         "/platform-events",
-        cms_admin::platform_events::router(state.clone()),
+        cms_admin::platform_events::router(Arc::clone(&state)),
     );
-    router = router.nest("/mcp", mcp_router(state.clone()));
-    router = router.nest("/members", cms_workspaces::members_router(state.clone()));
+    router = router.nest("/mcp", cms_mcp::router(Arc::clone(&state)));
+    router = router.nest("/members", cms_workspaces::members_router(Arc::clone(&state)));
     router = router.nest(
         "/workspace",
-        cms_workspaces::workspace_router(state.clone()),
+        cms_workspaces::workspace_router(Arc::clone(&state)),
     );
-    router = router.nest("/invitations", cms_invitations::router(state.clone()));
-    router = router.nest("/reports", cms_reports::router(state.clone()));
-    router = router.nest("/setup", cms_onboarding::router(state.clone()));
+    router = router.nest("/invitations", cms_invitations::router(Arc::clone(&state)));
+    router = router.nest("/reports", cms_reports::router(Arc::clone(&state)));
+    router = router.nest("/setup", cms_onboarding::router(Arc::clone(&state)));
 
     // App and canonical v1 subrouters
     let app_router = Router::new()
-        .nest("/auth", cms_auth::router(state.clone()))
-        .nest("/projects", cms_projects::project_router(state.clone()))
-        .nest("/pages", cms_content::page_router(state.clone()))
-        .nest("/branches", cms_content::branch_router(state.clone()))
-        .nest("/languages", cms_content::language_router(state.clone()))
-        .nest("/git", cms_git::router(state.clone()))
-        .nest("/integrations", cms_integrations::router(state.clone()))
-        .nest("/deployments", cms_deployments::router(state.clone()))
+        .nest("/auth", cms_auth::router(Arc::clone(&state)))
+        .nest("/projects", cms_projects::project_router(Arc::clone(&state)))
+        .nest("/pages", cms_content::page_router(Arc::clone(&state)))
+        .nest("/branches", cms_content::branch_router(Arc::clone(&state)))
+        .nest("/languages", cms_content::language_router(Arc::clone(&state)))
+        .nest("/git", cms_git::router(Arc::clone(&state)))
+        .nest("/integrations", cms_integrations::router(Arc::clone(&state)))
+        .nest("/deployments", cms_deployments::router(Arc::clone(&state)))
         .nest(
             "/domains",
-            cms_projects::domains_router().with_state(state.clone()),
+            cms_projects::domains_router().with_state(Arc::clone(&state)),
         )
         .nest(
             "/reader-access",
-            cms_projects::reader_access_router().with_state(state.clone()),
+            cms_projects::reader_access_router().with_state(Arc::clone(&state)),
         )
-        .nest("/comments", cms_content::comment_router(state.clone()))
-        .nest("/search", search_router(state.clone()))
-        .nest("/export", cms_reports::export_router(state.clone()))
-        .nest("/openapi", cms_api_specs::router(state.clone()))
-        .nest("/notifications", cms_notifications::router(state.clone()))
-        .nest("/assets", cms_assets::router(state.clone()))
-        .nest("/analytics", cms_analytics::router(state.clone()))
-        .nest("/themes", cms_themes::router(state.clone()))
+        .nest("/comments", cms_content::comment_router(Arc::clone(&state)))
+        .nest("/search", cms_search::router(Arc::clone(&state)))
+        .nest("/export", cms_reports::export_router(Arc::clone(&state)))
+        .nest("/openapi", cms_api_specs::router(Arc::clone(&state)))
+        .nest("/notifications", cms_notifications::router(Arc::clone(&state)))
+        .nest("/assets", cms_assets::router(Arc::clone(&state)))
+        .nest("/analytics", cms_analytics::router(Arc::clone(&state)))
+        .nest("/themes", cms_themes::router(Arc::clone(&state)))
         .nest(
             "/platform-events",
-            cms_admin::platform_events::router(state.clone()),
+            cms_admin::platform_events::router(Arc::clone(&state)),
         )
-        .nest("/mcp", mcp_router(state.clone()))
-        .nest("/members", cms_workspaces::members_router(state.clone()))
+        .nest("/mcp", cms_mcp::router(Arc::clone(&state)))
+        .nest("/members", cms_workspaces::members_router(Arc::clone(&state)))
         .nest(
             "/workspace",
-            cms_workspaces::workspace_router(state.clone()),
+            cms_workspaces::workspace_router(Arc::clone(&state)),
         )
-        .nest("/invitations", cms_invitations::router(state.clone()))
-        .nest("/reports", cms_reports::router(state.clone()))
-        .nest("/setup", cms_onboarding::router(state.clone()));
+        .nest("/invitations", cms_invitations::router(Arc::clone(&state)))
+        .nest("/reports", cms_reports::router(Arc::clone(&state)))
+        .nest("/setup", cms_onboarding::router(Arc::clone(&state)));
     router = router.nest("/app", app_router.clone());
     router = router.nest("/v1", app_router);
 
     // Admin routes (platform-admin-only)
-    router = router.nest("/admin", cms_admin::router(state.clone()));
+    router = router.nest("/admin", cms_admin::router(Arc::clone(&state)));
 
     // Public routes (unauthenticated reader-facing JSON API)
-    router = router.nest("/public", cms_public::router(state.clone()));
+    router = router.nest("/public", cms_public::router(Arc::clone(&state)));
 
     // OpenAPI documentation endpoints
     router = router.route(
@@ -303,25 +127,20 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.route("/api-docs/redoc", get(crate::docs::serve_redoc));
 
     // Health check endpoint
-    router = router.route("/health", get(get_health).with_state(state.clone()));
+    router = router.route(
+        "/health",
+        get(cms_server_core::health::health_check_handler).with_state(Arc::clone(&state)),
+    );
 
     // Prometheus metrics scrape endpoint
     router = router.route(
         "/metrics",
-        get(cms_admin::handlers::get_system_metrics_handler).with_state(state.clone()),
+        get(cms_admin::handlers::get_system_metrics_handler).with_state(Arc::clone(&state)),
     );
 
     // Caddy on-demand TLS check internal endpoints
-    let internal_domain_router = Router::new()
-        .route("/domains/check", get(check_domain_tls_handler))
-        .with_state(state.clone());
-    router = router.nest("/v1/internal", internal_domain_router);
-    router = router.nest(
-        "/internal",
-        Router::new()
-            .route("/domains/check", get(check_domain_tls_handler))
-            .with_state(state),
-    );
+    router = router.nest("/v1/internal", cms_projects::tls_check_router(Arc::clone(&state)));
+    router = router.nest("/internal", cms_projects::tls_check_router(state));
 
     router
 }
@@ -364,7 +183,6 @@ pub(crate) fn apply_api_middleware(router: Router, state: Arc<AppState>) -> Rout
             "origin" => ReferrerPolicy::Origin,
             "strict-origin" => ReferrerPolicy::StrictOrigin,
             "origin-when-cross-origin" => ReferrerPolicy::OriginWhenCrossOrigin,
-            "strict-origin-when-cross-origin" => ReferrerPolicy::StrictOriginWhenCrossOrigin,
             "unsafe-url" => ReferrerPolicy::UnsafeUrl,
             _ => ReferrerPolicy::StrictOriginWhenCrossOrigin,
         },
@@ -390,26 +208,26 @@ pub(crate) fn apply_api_middleware(router: Router, state: Arc<AppState>) -> Rout
         client_ttl: std::time::Duration::from_secs(state.config.rate_limit.client_ttl_secs),
     };
 
-    if rate_limit_config.enabled {
-        if let Ok(limiter) = RateLimiter::new(rate_limit_config) {
-            let limiter = Arc::new(limiter);
-            router = router.layer(axum::middleware::from_fn(
-                move |req: axum::extract::Request, next: axum::middleware::Next| {
-                    let limiter = Arc::clone(&limiter);
-                    async move {
-                        let (parts, body) = req.into_parts();
-                        let client = RateLimitClient::from_request(&parts);
-                        let req = axum::extract::Request::from_parts(parts, body);
-                        match limiter.check_rate_limit(&client) {
-                            RateLimitResult::Allowed => next.run(req).await,
-                            RateLimitResult::Rejected { retry_after } => {
-                                rate_limit_exceeded_response(retry_after)
-                            }
+    if rate_limit_config.enabled
+        && let Ok(limiter) = RateLimiter::new(rate_limit_config)
+    {
+        let limiter = Arc::new(limiter);
+        router = router.layer(axum::middleware::from_fn(
+            move |req: axum::extract::Request, next: axum::middleware::Next| {
+                let limiter = Arc::clone(&limiter);
+                async move {
+                    let (parts, body) = req.into_parts();
+                    let client = RateLimitClient::from_request(&parts);
+                    let req = axum::extract::Request::from_parts(parts, body);
+                    match limiter.check_rate_limit(&client) {
+                        RateLimitResult::Allowed => next.run(req).await,
+                        RateLimitResult::Rejected { retry_after } => {
+                            rate_limit_exceeded_response(retry_after)
                         }
                     }
-                },
-            ));
-        }
+                }
+            },
+        ));
     }
 
     // Add locale scoping middleware so handlers and error responses have active request locale
@@ -423,6 +241,7 @@ pub(crate) fn apply_api_middleware(router: Router, state: Arc<AppState>) -> Rout
 
 /// Compose the complete production API router with middleware
 pub fn api_router(state: Arc<AppState>) -> Router {
-    let router = create_api_router(state.clone());
+    let router = create_api_router(Arc::clone(&state));
     apply_api_middleware(router, state)
 }
+

@@ -15,14 +15,12 @@ pub mod config;
 pub mod i18n;
 pub mod mailer;
 pub mod queue;
-pub mod search;
 pub mod storage;
 
 pub use config::Config;
 pub use i18n::{Catalog, Locale};
 pub use mailer::{EmailRenderer, Mailer};
 pub use queue::{JobEnvelope, JobId, JobQueue, JobStatus, JobType};
-pub use search::SearchEngine;
 pub use storage::{Storage, StorageService, StorageUrlService};
 
 /// Initialize infrastructure runtime hooks (e.g. wire i18n error localizer into `cms-error`)

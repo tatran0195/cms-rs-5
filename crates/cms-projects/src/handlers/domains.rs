@@ -4,7 +4,9 @@ use std::sync::Arc;
 
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
+    http::StatusCode,
+    response::IntoResponse,
 };
 use cms_authz::Relation;
 use cms_entity::{
@@ -100,4 +102,31 @@ pub async fn set_primary_project_domain_handler(
     Ok(Json(ApiResponse::new(SpaDomainResponse::from_domain(
         &updated,
     ))))
+}
+
+/// Query parameters for Caddy on-demand TLS domain check
+#[derive(Debug, serde::Deserialize)]
+pub struct TlsCheckQuery {
+    pub domain: Option<String>,
+}
+
+/// Caddy on-demand TLS domain check endpoint handler
+pub async fn check_domain_tls_handler(
+    State(state): State<Arc<AppState>>,
+    Query(query): Query<TlsCheckQuery>,
+) -> Result<axum::response::Response, AppError> {
+    let Some(domain) = query.domain.filter(|d| !d.trim().is_empty()) else {
+        return Ok((StatusCode::BAD_REQUEST, "Missing domain query parameter").into_response());
+    };
+
+    let is_allowed = DomainService::is_domain_allowed_for_tls(state.db(), &domain).await?;
+    if is_allowed {
+        Ok((StatusCode::OK, "Domain is authorized for TLS certificate").into_response())
+    } else {
+        Ok((
+            StatusCode::FORBIDDEN,
+            "Domain is not authorized for TLS certificate",
+        )
+            .into_response())
+    }
 }

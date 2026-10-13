@@ -1,0 +1,49 @@
+[package]
+name = "cms-search"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Vertical Slice: Tantivy lexical search, Lindera Japanese analysis, and FastEmbed vector embeddings"
+
+[dependencies]
+# Internal workspace crates
+cms-entity = { workspace = true }
+cms-db = { workspace = true }
+cms-error = { workspace = true }
+cms-server-core = { workspace = true }
+cms-auth = { workspace = true }
+cms-infra = { workspace = true }
+
+# HTTP & Async
+axum = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+async-trait = { workspace = true }
+
+# Serialization & Core
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+sqlx = { workspace = true }
+rusqlite = { workspace = true }
+parking_lot = { workspace = true }
+
+# Search & ML dependencies
+lindera = { workspace = true }
+unicode-normalization = { workspace = true }
+tantivy = { workspace = true }
+pulldown-cmark = { workspace = true }
+fastembed = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
+
+[features]
+default = ["vector"]
+vector = ["dep:fastembed", "dep:reqwest"]
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["full", "test-util"] }
+
+[lints]
+workspace = true

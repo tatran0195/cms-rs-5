@@ -13,7 +13,7 @@
 use cms_entity::search::{RagAnswer, SearchHit};
 use cms_error::AppError;
 
-use crate::config::RagConfig;
+use cms_infra::config::RagConfig;
 
 /// Generate a RAG answer using the configured LLM provider.
 ///

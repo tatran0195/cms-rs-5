@@ -27,6 +27,8 @@ cms-db = { path = "../cms-db" }
 cms-authz = { path = "../cms-authz" }
 cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-auth = { path = "../cms-auth" }
 
 [dev-dependencies]
 tempfile = { workspace = true }

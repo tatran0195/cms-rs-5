@@ -1,3 +1,5 @@
+//! Abstract search engine trait for CMS documentation search.
+
 use async_trait::async_trait;
 use cms_entity::{
     page::Page,
@@ -5,7 +7,7 @@ use cms_entity::{
 };
 use cms_error::AppError;
 
-/// Search engine trait
+/// Search engine trait for lexical, morphological, and vector search.
 #[async_trait]
 pub trait SearchEngine: Send + Sync {
     /// Perform a hybrid search query
@@ -33,9 +35,6 @@ pub trait SearchEngine: Send + Sync {
     }
 
     /// Return live index statistics for a project.
-    ///
-    /// The default implementation returns all-zero stats, which is appropriate for
-    /// backends that do not maintain a local index.
     async fn index_stats(&self, project_id: &str) -> Result<ProjectIndexStats, AppError> {
         let _ = project_id;
         Ok(ProjectIndexStats::default())

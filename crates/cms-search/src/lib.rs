@@ -15,13 +15,15 @@ use std::sync::Arc;
 
 use cms_error::AppError;
 
-use crate::config::SearchConfig;
+use cms_infra::config::SearchConfig;
 
 #[cfg(feature = "vector")]
 pub mod embedder;
 pub mod markdown;
 #[cfg(feature = "vector")]
 pub mod rag;
+pub mod handlers;
+pub mod router;
 pub mod services;
 pub mod tantivy_engine;
 pub mod tokenizer;
@@ -31,6 +33,7 @@ pub mod vector_index;
 
 #[cfg(feature = "vector")]
 pub use embedder::Embedder;
+pub use router::router;
 pub use services::{process_search_job, SearchService};
 pub use tantivy_engine::{ProjectIndex, TantivyFields, TantivySearchEngine};
 pub use tokenizer::{JapaneseToken, JapaneseTokenizer, LinderaTantivyTokenizer};

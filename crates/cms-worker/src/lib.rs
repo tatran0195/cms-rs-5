@@ -140,7 +140,7 @@ pub async fn process_job(
                 .await
         }
         JobType::Search => {
-            cms_infra::search::process_search_job(&state.db, Arc::clone(&state.search), &job.payload)
+            cms_search::process_search_job(&state.db, Arc::clone(&state.search), &job.payload)
                 .await
         }
         JobType::Usage => Ok(()),
@@ -162,10 +162,10 @@ pub mod app_state {
         create_mailer_with_noop_fallback as create_mailer,
     };
     use cms_analytics::{AnalyticsStore, create_analytics_store};
+    use cms_search::{SearchEngine, create_search_engine};
     use cms_infra::{
         config::Config,
         queue::JobQueue,
-        search::{SearchEngine, create_search_engine},
         storage::{Storage, create_storage},
     };
 

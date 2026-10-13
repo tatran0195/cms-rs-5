@@ -19,9 +19,10 @@ use tokio::net::TcpListener;
 use tracing::info;
 
 async fn shutdown_signal() {
-    tokio::signal::ctrl_c()
-        .await
-        .expect("failed to install CTRL+C signal handler");
+    if let Err(e) = tokio::signal::ctrl_c().await {
+        tracing::error!("Failed to install CTRL+C signal handler: {e}");
+        return;
+    }
     tracing::info!("Received graceful shutdown signal. Starting shutdown...");
 }
 
@@ -114,7 +115,8 @@ async fn main() -> Result<(), AppError> {
     }
 
     // Build application state
-    let state = Arc::new(AppState::from_config(&config).await?);
+    let search_engine = cms_search::create_search_engine(&config.search)?;
+    let state = Arc::new(AppState::from_config(&config, search_engine).await?);
     info!("Application state initialized");
 
     // Run real job processors over the same durable queue used by API handlers.
@@ -123,15 +125,15 @@ async fn main() -> Result<(), AppError> {
     let worker_state = Arc::new(WorkerState::from_app_state(&state).await?);
     let (worker_shutdown_tx, worker_shutdown_rx) = tokio::sync::watch::channel(false);
     let worker_handles = cms_worker::start_consumers_with_shutdown(
-        state.job_queue.clone(),
+        Arc::clone(&state.job_queue),
         worker_state,
         worker_shutdown_rx,
     )
     .await?;
 
     // Build the full router with all middleware
-    let api_router = api_router(state.clone());
-    let sites_router = sites_router(state.clone());
+    let api_router = api_router(Arc::clone(&state));
+    let sites_router = sites_router(Arc::clone(&state));
 
     // CORS configured from the `[admin_origin]` allow-list rather than the wider
     // accepted-by-any-origin default. The SPA is served same-origin, so browser
@@ -143,7 +145,7 @@ async fn main() -> Result<(), AppError> {
         .route("/metrics", axum::routing::get(metrics_handler))
         .nest("/api", api_router)
         .merge(sites_router)
-        .layer(axum::Extension(state.clone()))
+        .layer(axum::Extension(Arc::clone(&state)))
         .layer(tower_http::trace::TraceLayer::new_for_http())
         .layer(tower_http::compression::CompressionLayer::new())
         .layer(cors)

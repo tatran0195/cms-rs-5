@@ -81,6 +81,13 @@ pub fn domains_router() -> Router<Arc<AppState>> {
         )
 }
 
+/// Caddy on-demand TLS domain check internal router
+pub fn tls_check_router(state: Arc<AppState>) -> Router {
+    Router::new()
+        .route("/domains/check", get(check_domain_tls_handler))
+        .with_state(state)
+}
+
 /// Project reader access router
 pub fn reader_access_router() -> Router<Arc<AppState>> {
     Router::new()

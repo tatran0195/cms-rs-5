@@ -39,6 +39,7 @@ cms-onboarding = { workspace = true }
 cms-admin = { workspace = true }
 cms-public = { workspace = true }
 cms-analytics = { workspace = true }
+cms-search = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

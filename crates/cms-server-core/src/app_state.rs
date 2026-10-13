@@ -18,9 +18,9 @@ use cms_infra::{
     config::Config,
     mailer::{EmailRenderer, Mailer},
     queue::JobQueue,
-    search::SearchEngine,
     storage::Storage,
 };
+use crate::search::SearchEngine;
 
 use crate::middleware::rate_limit::SlidingRateLimiter;
 
@@ -112,8 +112,11 @@ impl AppState {
         )
     }
 
-    /// Create `AppState` from full configuration.
-    pub async fn from_config(config: &Config) -> Result<Self, AppError> {
+    /// Create `AppState` from full configuration and search engine.
+    pub async fn from_config(
+        config: &Config,
+        search_engine: Arc<dyn SearchEngine>,
+    ) -> Result<Self, AppError> {
         config.validate()?;
         let pool = cms_db::create_pool(&config.database.url).await?;
         cms_db::run_migrations(&pool).await?;
@@ -121,7 +124,6 @@ impl AppState {
         let storage: Arc<dyn Storage> = Arc::from(storage_box);
         let job_queue =
             cms_infra::queue::create_job_queue_with_pool(&config.queue, pool.clone()).await?;
-        let search_engine = cms_infra::search::create_search_engine(&config.search)?;
         let authz = Arc::new(cms_authz::AuthzState::new(
             pool.clone(),
             config.auth.system_admin_emails.clone(),

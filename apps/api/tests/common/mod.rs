@@ -359,7 +359,8 @@ impl TestContext {
         let storage_root = std::env::temp_dir().join(format!("cms-product-e2e-{}", Uuid::new_v4()));
         config.storage.local_root = Some(storage_root.to_string_lossy().into_owned());
 
-        let state = Arc::new(AppState::from_config(&config).await?);
+        let search_engine = cms_search::create_search_engine(&config.search)?;
+        let state = Arc::new(AppState::from_config(&config, search_engine).await?);
         let worker_state =
             Arc::new(cms_worker::app_state::WorkerState::from_app_state(&state).await?);
         let (worker_shutdown_tx, worker_shutdown_rx) = tokio::sync::watch::channel(false);

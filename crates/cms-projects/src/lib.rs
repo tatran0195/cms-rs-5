@@ -12,7 +12,7 @@ pub mod services;
 
 pub use handlers::{
     ProjectUser, addons_router, core_router, domains_router, members_router, project_router,
-    reader_access_router,
+    reader_access_router, tls_check_router,
 };
 pub use models::{
     AddProjectDomainRequest, AddProjectMemberRequest, CreateDomainRequest, CreateProjectRequest,
