@@ -11,8 +11,8 @@ pub struct HandlerCtx {
     pub attempts: i32,
     pub pool: PgPool,
     pub http_client: reqwest::Client,
-    pub mailer: Option<Arc<dyn cms_mailer::Mailer>>,
-    pub renderer: Option<cms_mailer::EmailRenderer>,
+    pub mailer: Option<Arc<dyn cms_infra::mailer::Mailer>>,
+    pub renderer: Option<cms_infra::mailer::EmailRenderer>,
 }
 
 impl HandlerCtx {
@@ -23,8 +23,8 @@ impl HandlerCtx {
         attempts: i32,
         pool: PgPool,
         http_client: reqwest::Client,
-        mailer: Option<Arc<dyn cms_mailer::Mailer>>,
-        renderer: Option<cms_mailer::EmailRenderer>,
+        mailer: Option<Arc<dyn cms_infra::mailer::Mailer>>,
+        renderer: Option<cms_infra::mailer::EmailRenderer>,
     ) -> Self {
         Self {
             event_id,

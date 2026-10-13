@@ -6,10 +6,11 @@
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{http::StatusCode, Router};
-use cms_api::api_router;
-use cms_config::Config;
 use cms_error::AppError;
-use cms_middleware::{
+use cms_infra::config::Config;
+
+use cms_server::api_router;
+use cms_server_core::{
     app_state::AppState,
     observability::{init_observability, metrics_handler},
 };

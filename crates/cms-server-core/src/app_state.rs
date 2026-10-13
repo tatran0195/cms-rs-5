@@ -130,6 +130,7 @@ impl AppState {
         let email_renderer = EmailRenderer::embedded().map_err(AppError::internal)?;
         let trusted_proxies = Arc::new(Self::load_trusted_proxies_from_env());
         let sliding_rate_limiter = Arc::new(SlidingRateLimiter::new());
+        cms_infra::init();
 
         Ok(Self {
             config: Arc::new(config.clone()),

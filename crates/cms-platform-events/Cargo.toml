@@ -1,0 +1,25 @@
+[package]
+name = "cms-platform-events"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Platform events vertical slice: funnel tracking, event log, system health"
+
+[dependencies]
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-auth = { path = "../cms-auth" }
+
+axum = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+utoipa = { workspace = true }
+anyhow = { workspace = true }
+
+[lints]
+workspace = true

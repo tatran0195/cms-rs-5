@@ -14,7 +14,7 @@ pub use runner::{SchedulerConfig, SchedulerHandle, SchedulerRunner};
 use std::sync::Arc;
 use cms_db::PgPool;
 use cms_error::AppError;
-use cms_queue::JobQueue;
+use cms_infra::queue::JobQueue;
 
 /// High-level facade for the CMS Scheduler subsystem
 #[derive(Debug)]

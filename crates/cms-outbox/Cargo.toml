@@ -6,7 +6,7 @@ rust-version = "1.85"
 
 [dependencies]
 cms-db = { workspace = true }
-cms-mailer = { workspace = true }
+cms-infra = { path = "../cms-infra" }
 cms-error = { workspace = true }
 thiserror = { workspace = true }
 

@@ -2558,5 +2558,8 @@
   "admin_status_disabled": "Disabled",
   "admin_operations_gitkind_pull": "Pull",
   "admin_operations_gitkind_push": "Push",
-  "settings_exports_workflow_format_sqlite": "Isolated SQLite DB"
+  "settings_exports_workflow_format_sqlite": "Isolated SQLite DB",
+  "api_error_auth_invalid_credentials": "Invalid email or password",
+  "api_error_http_not_found": "Resource not found: {path}",
+  "api_error_internal_error": "An internal error occurred"
 }

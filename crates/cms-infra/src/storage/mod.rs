@@ -16,6 +16,7 @@ pub mod s3;
 pub mod traits;
 
 pub use local::LocalFsStorage;
+pub type LocalStorage = LocalFsStorage;
 #[cfg(feature = "s3")]
 pub use s3::S3Storage;
 pub use traits::{DownloadTarget, Storage, UploadTarget};

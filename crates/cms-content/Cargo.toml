@@ -25,7 +25,7 @@ anyhow = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
-cms-config = { path = "../cms-config" }
+cms-infra = { path = "../cms-infra" }
 
 [lints]
 workspace = true

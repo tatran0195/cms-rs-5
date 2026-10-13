@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use cms_mailer::{Locale, RenderedEmail};
+use cms_infra::mailer::{Locale, RenderedEmail};
 use serde::{Deserialize, Serialize};
 
 use crate::handler::{Handler, HandlerCtx, HandlerError};
@@ -19,8 +19,8 @@ pub struct EmailPayload {
     /// HTML body (optional).
     pub html: Option<String>,
 
-    /// Localized typed email descriptor from `cms_mailer`.
-    pub email: Option<cms_mailer::Email>,
+    /// Localized typed email descriptor from `cms_infra::mailer`.
+    pub email: Option<cms_infra::mailer::Email>,
 
     /// Recipient locale tag (e.g. "en", "ja"). Defaults to "en".
     pub locale: Option<String>,

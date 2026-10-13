@@ -1,0 +1,27 @@
+[package]
+name = "cms-workspaces"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Company workspace vertical slice: workspace settings, members, analytics"
+
+[dependencies]
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-auth = { path = "../cms-auth" }
+cms-authz = { path = "../cms-authz" }
+cms-authz-gate = { path = "../cms-authz-gate" }
+cms-infra = { path = "../cms-infra" }
+
+axum = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true

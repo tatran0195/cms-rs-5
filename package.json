@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "vp run -r build",
-    "dev:docs": "bun --filter @cms/docs dev",
+    "dev:site": "bun --filter @cms/site dev",
     "dev:storybook": "bun --filter @cms/ui storybook",
     "dev:studio": "bun --filter @cms/studio dev",
     "fix": "ultracite fix",

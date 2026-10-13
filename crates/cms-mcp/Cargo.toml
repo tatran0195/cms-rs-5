@@ -1,7 +1,7 @@
 [package]
 name = "cms-mcp"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [[bin]]
 name = "cms-mcp"
@@ -22,7 +22,7 @@ tracing-subscriber = { workspace = true }
 clap = { workspace = true }
 uuid = { workspace = true }
 
-cms-config = { path = "../cms-config" }
+cms-infra = { path = "../cms-infra" }
 cms-db = { path = "../cms-db" }
 cms-authz = { path = "../cms-authz" }
 cms-entity = { path = "../cms-entity" }

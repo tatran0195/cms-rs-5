@@ -15,10 +15,9 @@ test = false
 [dependencies]
 cms-sites = { workspace = true }
 cms-server-core = { workspace = true }
-cms-config = { workspace = true }
+cms-infra = { workspace = true }
 cms-error = { workspace = true }
 cms-entity = { workspace = true }
-cms-queue = { workspace = true }
 cms-worker = { workspace = true }
 
 # Vertical slice domain crates
@@ -29,12 +28,10 @@ cms-deployments = { workspace = true }
 cms-git = { workspace = true }
 cms-integrations = { workspace = true }
 cms-themes = { workspace = true }
-cms-search = { workspace = true }
 cms-reports = { workspace = true }
 cms-openapi = { workspace = true }
 cms-notifications = { workspace = true }
 cms-assets = { workspace = true }
-cms-analytics = { workspace = true }
 cms-platform-events = { workspace = true }
 cms-mcp = { workspace = true }
 cms-workspaces = { workspace = true }
@@ -68,7 +65,7 @@ config = { workspace = true }
 cms-db = { workspace = true }
 cms-entity = { workspace = true }
 cms-error = { workspace = true }
-cms-config = { workspace = true }
+cms-infra = { workspace = true }
 cms-server-core = { workspace = true }
 cms-worker = { workspace = true }
 cms-sites = { workspace = true }

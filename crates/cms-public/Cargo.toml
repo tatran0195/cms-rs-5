@@ -1,0 +1,29 @@
+[package]
+name = "cms-public"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Public reader API vertical slice: unauthenticated reader endpoints, SEO, RSS, changelog"
+
+[dependencies]
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-onboarding = { path = "../cms-onboarding" }
+cms-infra = { path = "../cms-infra" }
+cms-auth = { path = "../cms-auth" }
+cms-projects = { path = "../cms-projects" }
+
+anyhow = { workspace = true }
+axum = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+utoipa = { workspace = true }
+
+[lints]
+workspace = true

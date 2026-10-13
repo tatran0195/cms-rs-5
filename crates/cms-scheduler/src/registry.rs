@@ -1,7 +1,7 @@
 use chrono::Utc;
 use cms_db::PgPool;
 use cms_error::AppError;
-use cms_queue::JobType;
+use cms_infra::queue::JobType;
 use serde::{Deserialize, Serialize};
 
 use crate::cron::{next_run_time, parse_schedule};

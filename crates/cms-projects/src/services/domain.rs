@@ -109,4 +109,16 @@ impl DomainService {
     ) -> Result<Domain, AppError> {
         DomainQueries::verify(pool, domain_id, expected_token).await
     }
+
+    /// Check if a domain is verified and eligible for on-demand TLS issuance (Caddy on-demand TLS)
+    pub async fn is_domain_allowed_for_tls(
+        pool: &PgPool,
+        domain: &str,
+    ) -> Result<bool, AppError> {
+        let Ok(normalized) = cms_db::domain::normalize_hostname(domain) else {
+            return Ok(false);
+        };
+        let verified = DomainQueries::get_verified_by_hostname(pool, &normalized).await?;
+        Ok(verified.is_some())
+    }
 }

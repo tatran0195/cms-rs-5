@@ -1,5 +1,5 @@
 use chrono::{Timelike, Utc};
-use cms_queue::JobType;
+use cms_infra::queue::JobType;
 use cms_scheduler::{
     next_run_time, normalize_cron_expr, parse_schedule, CronJobSpec, JobRegistry,
 };

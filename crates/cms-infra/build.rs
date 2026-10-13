@@ -1,3 +1,13 @@
+#![allow(
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::panic,
+    clippy::format_push_string
+)]
+
 use std::{
     collections::BTreeMap,
     env, fs,

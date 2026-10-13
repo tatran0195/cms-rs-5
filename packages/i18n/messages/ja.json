@@ -2558,5 +2558,8 @@
   "admin_status_disabled": "無効",
   "admin_operations_gitkind_pull": "引く",
   "admin_operations_gitkind_push": "押す",
-  "settings_exports_workflow_format_sqlite": "分離された SQLite DB"
+  "settings_exports_workflow_format_sqlite": "分離された SQLite DB",
+  "api_error_auth_invalid_credentials": "メールアドレスまたはパスワードが無効です",
+  "api_error_http_not_found": "リソースが見つかりません: {path}",
+  "api_error_internal_error": "内部エラーが発生しました"
 }

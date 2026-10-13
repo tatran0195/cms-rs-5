@@ -1,0 +1,30 @@
+[package]
+name = "cms-admin"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Platform admin vertical slice: system stats, health, users, audit, site operations"
+
+[dependencies]
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-server-core = { path = "../cms-server-core" }
+cms-auth = { path = "../cms-auth" }
+cms-authz = { path = "../cms-authz" }
+cms-authz-gate = { path = "../cms-authz-gate" }
+cms-infra = { path = "../cms-infra" }
+cms-platform-events = { path = "../cms-platform-events" }
+
+axum = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+utoipa = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

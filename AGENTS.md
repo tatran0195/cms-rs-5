@@ -54,7 +54,7 @@ These constraints are permanent and binding. **Never violate or relax them:**
 | Japanese Tokenizer | Lindera (6.0) with SudachiDict | In-process Japanese morphological analysis |
 | Semantic Vector Search | FastEmbed (7.1) | In-process ONNX embeddings (`multilingual-e5-small`) |
 | Object Storage | Pluggable (Local / S3) | Local disk (`C:/cms/uploads`) or AWS S3 |
-| Asynchronous Queue | In-memory / Redis | Background jobs via `cms-queue` & `cms-worker` |
+| Asynchronous Queue | In-memory / Redis | Background jobs via `cms-infra::queue` & `cms-worker` |
 | Email Delivery | Lettre + MiniJinja | Transactional notifications and invitations |
 | Agent Integration | rmcp (3.5) | Model Context Protocol server exposing CMS capabilities |
 
@@ -85,56 +85,56 @@ cms-rs-4/
 ├── docs/                         # Documentation & ADRs
 │   └── adr/                      # Architecture Decision Records
 ├── crates/
-│   ├── cms-entity/               # Layer 0: Pure domain types, models, DTOs (Zero deps)
-│   ├── cms-db/                   # Layer 1: PostgreSQL repositories, queries, migrations
-│   ├── cms-biz/                  # Layer 2: Business logic services & domain orchestration
-│   ├── cms-api/                  # Layer 3: Axum HTTP routers, extractors, and handlers
-│   ├── cms-server/               # Composition root binary (starts HTTP server & workers)
+│   ├── cms-entity/               # Pure domain types, models, DTOs (Zero internal deps)
+│   ├── cms-db/                   # PostgreSQL repositories, queries, migrations
 │   │
-│   ├── cms-auth/                 # Session, JWT, password, cookie security
-│   ├── cms-authz/                # Role & permission checks
+│   ├── cms-auth/                 # Session, JWT, password, cookie security, auth router
+│   ├── cms-authz/                # Role & permission checks (Zanzibar-style ReBAC)
 │   ├── cms-authz-gate/           # Middleware authorization gates
 │   ├── cms-api-keys/             # API key lifecycle and validation
 │   ├── cms-mfa/                  # Multi-factor authentication
 │   ├── cms-oauth/                # OAuth identity providers
-│   ├── cms-storage/              # Pluggable storage (Local / S3)
-│   ├── cms-search/               # Tantivy + Lindera + FastEmbed search engine
-│   ├── cms-queue/                # Task queue abstraction (Memory / Redis)
+│   ├── cms-infra/                # Consolidated infrastructure (config, storage, search, queue, mailer, analytics, i18n)
 │   ├── cms-worker/               # Background task processor
-│   ├── cms-mailer/               # Transactional email service
 │   ├── cms-mcp/                  # MCP server endpoints for AI tools
-│   ├── cms-i18n/                 # Localization & internationalization
-│   ├── cms-analytics/            # Internal operational metrics & usage telemetry
 │   ├── cms-error/                # AppError and HTTP error responses
-│   ├── cms-config/               # Figment configuration loader
 │   ├── cms-server-core/          # Server foundation (pagination, validation, http_trace, app_state, enterprise middleware)
 │   ├── cms-server-services/      # Shared cross-domain services (auth audit hash-chain, storage URLs, tenant context, outbox dispatch)
-│   ├── cms-middleware/           # Backwards-compatible facade re-exporting cms-server-core
 │   ├── cms-sites/                # Static documentation site generator & SPA server
 │   │
 │   ├── cms-content/              # Vertical Slice: Page hierarchy, branches, BCP-47 languages, comments
 │   ├── cms-assets/               # Vertical Slice: Project asset storage, upload presigning, metadata
 │   ├── cms-projects/             # Vertical Slice: Project workspaces, members, settings, domains, reader access, addons
+│   ├── cms-deployments/          # Vertical Slice: Deployment pipeline, site building, retry/cancel, logs
+│   ├── cms-git/                  # Vertical Slice: Git connections, GitHub/GitLab sync, conflicts, worker jobs
+│   ├── cms-integrations/         # Vertical Slice: Third-party integrations, SSRF protection, webhook testing
+│   ├── cms-themes/               # Vertical Slice: Project & global themes, CSS variables, template presets
 │   ├── cms-notifications/        # Vertical Slice: Notification models, queries, service, WebSocket live hub, router
 │   ├── cms-invitations/          # Vertical Slice: Workspace invitations models, queries, service, email outbox events, router
 │   ├── cms-onboarding/           # Vertical Slice: Setup status, initial admin creation, cryptographic email verification, router
 │   ├── cms-reports/              # Vertical Slice: Report runs lifecycle, sequence generation, background export orchestration, router
+│   ├── cms-workspaces/           # Vertical Slice: Workspace configuration, workspace-level member lifecycle, router
+│   ├── cms-admin/                # Vertical Slice: Platform-level administrative parity router and operations
+│   ├── cms-public/               # Vertical Slice: Unauthenticated reader-facing JSON API, SEO, RSS, sitemaps, changelog
+│   ├── cms-openapi/              # Vertical Slice: OpenAPI v3 schema generation, Swagger UI, ReDoc
+│   ├── cms-platform-events/      # Vertical Slice: Platform health checks and system telemetry
+│   │
 │   ├── cms-outbox/               # Subsystem 1: Transactional Outbox with jittered backoff, worker, DLQ
 │   ├── cms-seed/                 # Subsystem 2: Deterministic UUID v5 dev fixtures & CLI runner
 │   └── cms-scheduler/            # Subsystem 5: Distributed cron scheduler with SKIP LOCKED execution
 └── apps/
+    ├── api/                      # Composition Root binary & library (mounts all vertical slices into unified Axum HTTP router)
     ├── studio/                   # Notion-style documentation management frontend
     └── site/                     # Published documentation reader site
 ```
 
 ### Layer & Vertical Slice Dependency Rules:
 1. `cms-entity` has **zero** internal crate dependencies.
-2. `cms-db` depends only on `cms-entity` and database drivers. It **never** depends on `cms-biz` or `cms-api`.
-3. `cms-biz` depends on `cms-entity`, `cms-db`, and infrastructure crates. It **never** depends on `cms-api` or HTTP concepts.
-4. `cms-api` depends on `cms-biz`, `cms-entity`, `cms-db`, and vertical slice crates. It handles HTTP routing and status codes.
-5. **Vertical Slices** (e.g. `cms-notifications`, `cms-invitations`, `cms-onboarding`, `cms-reports`): High-cohesion domain modules encapsulating domain queries, models, services, and Axum routers directly.
-6. `cms-server-services`: Shared cross-domain services foundation breaking cyclic dependencies across vertical slices.
-7. `cms-server` is the composition root binary assembling all crates.
+2. `cms-db` depends only on `cms-entity` and database drivers.
+3. `cms-biz` and `cms-api` are **completely eliminated**; all business logic and routes live within cohesive vertical slices.
+4. **Vertical Slices** (e.g. `cms-content`, `cms-projects`, `cms-deployments`, `cms-admin`, `cms-public`): High-cohesion autonomous domain modules encapsulating domain queries, models, services, and Axum routers directly.
+5. `cms-server-services`: Shared cross-domain services foundation breaking cyclic dependencies across vertical slices.
+6. `apps/api` (`cms-server`): The composition root assembling all vertical slices directly into the Axum HTTP router (`router.rs`, `lib.rs`, `main.rs`).
 
 ---
 
@@ -161,7 +161,7 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
 ### 4. Vertical Slice: `cms-reports`
 - **Atomic Sequential Identifiers**: Uses `cms_db::next_sequence` to generate sequential codes (e.g. `RPT-2026-00001`) atomically inside transactions.
 - **Lifecycle State Machine**: Tracks status (`queued` -> `running` -> `completed` / `failed`) with artifact storage keys, sizes, and retention expiration timestamps in `report_runs` (`0024_report_runs.sql`).
-- **Background Dispatch & Downloads**: Enqueues typed `JobType::Export` envelopes to `cms-queue` and resolves presigned download targets via `StorageUrlService`.
+- **Background Dispatch & Downloads**: Enqueues typed `JobType::Export` envelopes to `cms_infra::queue` and resolves presigned download targets via `StorageUrlService`.
 - **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/reports` with list, create, get, download, and delete endpoints.
 
 ### 5. Vertical Slice: `cms-content`
@@ -200,7 +200,7 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
   - `csrf`: Double-submit cookie pattern protecting state-changing mutations while allowing safe methods and Bearer auth.
   - `ip_restrict`: Pure IPv4 & IPv6 CIDR subnet matching (`ip_in_cidr`, `ip_allowed`) with DENY precedence.
   - `observability`, `security_headers`, `admin_origin`, and `locale`: Hardened production headers and tracing.
-- **Backwards Compatibility**: `crates/cms-middleware` operates as a zero-overhead facade re-exporting all components from `cms-server-core`.
+- **Consolidated Server Core**: Direct consumption of `cms-server-core` across all vertical slices and composition roots (`cms-middleware` facade completely eliminated).
 
 ### 11. Vertical Slice: `cms-assets`
 - **Asset Lifecycle Management**: Models, direct uploads, metadata querying, and deletion for project assets.
@@ -213,6 +213,26 @@ The platform adopts a Modular Monolith architecture integrating focused vertical
 - **Custom Domains & TXT Verification**: Multi-deployment custom domain association, DNS normalization, and DNS TXT verification checks.
 - **Reader Access & Audiences**: Protected reader access configurations, audiences, audience grants, and reader JWT provider configuration.
 - **Self-Contained Router**: Exposes `core_router`, `members_router`, `domains_router`, `reader_access_router`, `addons_router`, and composite `project_router` mounted at `/projects`.
+
+### 13. Vertical Slice: `cms-deployments`
+- **Deployment Pipeline**: Deployment creation, lifecycle management (pending -> building -> deployed / failed / cancelled), retry, and cancellation.
+- **Site Generation & Artifact Processing**: Encapsulates `DeploymentService`, `process_deployment_job`, and `process_publish_job` for background generation.
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/deployments`.
+
+### 14. Vertical Slice: `cms-git`
+- **Git Connection Lifecycle**: Repository connections (GitHub, GitLab), webhook secret generation, and branch association.
+- **Synchronization Engine**: Full and incremental sync operations, conflict tracking, REST sync jobs, and `process_git_job` worker execution.
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/git`.
+
+### 15. Vertical Slice: `cms-integrations`
+- **Project Integrations**: Third-party webhook providers (Slack, Discord, Teams, Webhook, Zapier, Make) with idempotency tracking and audit events.
+- **SSRF Protection Engine**: Dedicated IP restriction validator (`is_private_or_restricted_ip`) defending against private/link-local network probes during webhook test pings.
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/integrations`.
+
+### 16. Vertical Slice: `cms-themes`
+- **Theme Management**: Project-specific and global theme creation, editing, deletion, and CSS variable extraction (`ThemeCssVariables`).
+- **Template Customization**: Active project theme configuration persisted to project settings.
+- **Self-Contained Router**: Exposes `pub fn router(state: Arc<AppState>) -> Router` mounted at `/themes`.
 
 ---
 
@@ -287,11 +307,12 @@ Foundational decisions are documented in `docs/adr/`:
 | ADR | Title | Key Decision |
 |---|---|---|
 | [ADR 0001](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0001-internal-company-scope.md) | Internal Scope & No Billing/Marketing | Permanent prohibition of SaaS billing and public marketing routes |
-| [ADR 0002](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0002-three-layer-crate-architecture.md) | Three-Layer Crate Architecture | Entity -> DB -> Biz -> API layering with dedicated infrastructure |
+| [ADR 0002](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0002-three-layer-crate-architecture.md) | Three-Layer Crate Architecture (Superseded) | Historical horizontal layering (superseded by ADR 0007) |
 | [ADR 0003](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0003-sqlx-compile-time-no-orm.md) | SQLx Without Heavy ORMs | Compile-time checked queries and embedded migrations |
 | [ADR 0004](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0004-hybrid-search-lindera-tantivy-fastembed.md) | Hybrid Search Architecture | In-process Tantivy BM25 + Lindera Japanese + FastEmbed vectors |
 | [ADR 0005](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0005-react-router-v7-state-and-forms.md) | Frontend State & Forms | TanStack Query + Zustand + React Hook Form + Zod |
 | [ADR 0006](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0006-zero-docker-single-machine-windows-deployment.md) | Zero-Docker Windows Deployment | Native process deployment for internal Windows/AWS servers |
+| [ADR 0007](file:///d:/Workspace/Software/Cloned-Repos/cms-rs-4/docs/adr/0007-vertical-slices-modular-monolith.md) | Modular Monolith & Vertical Slices | Elimination of biz/api layers, autonomous vertical slices, apps/api composition root |
 
 ---
 

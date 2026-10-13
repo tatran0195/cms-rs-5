@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 use chrono::Utc;
 use cms_db::PgPool;
 use cms_error::AppError;
-use cms_queue::{JobEnvelope, JobQueue, JobType};
+use cms_infra::queue::{JobEnvelope, JobQueue, JobType};
 use sqlx::FromRow;
 use tokio::sync::watch;
 use tracing::{error, info, warn};

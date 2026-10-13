@@ -173,7 +173,7 @@ fn test_email_payload_serde() {
         subject: Some("Test Subject".to_string()),
         text: Some("Test body content".to_string()),
         html: None,
-        email: Some(cms_mailer::Email::VerifyEmail {
+        email: Some(cms_infra::mailer::Email::VerifyEmail {
             url: "https://example.com/verify".to_string(),
         }),
         locale: Some("en".to_string()),

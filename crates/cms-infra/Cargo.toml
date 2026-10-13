@@ -57,6 +57,7 @@ s3 = ["dep:aws-sdk-s3", "dep:aws-config", "dep:aws-credential-types"]
 
 [dev-dependencies]
 tempfile = { workspace = true }
+axum = { workspace = true }
 
 [lints]
 workspace = true

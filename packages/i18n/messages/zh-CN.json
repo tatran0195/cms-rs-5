@@ -2558,5 +2558,8 @@
   "admin_status_disabled": "已禁用",
   "admin_operations_gitkind_pull": "拉取",
   "admin_operations_gitkind_push": "推送",
-  "settings_exports_workflow_format_sqlite": "Isolated SQLite DB"
+  "settings_exports_workflow_format_sqlite": "Isolated SQLite DB",
+  "api_error_auth_invalid_credentials": "邮箱或密码无效",
+  "api_error_http_not_found": "未找到资源: {path}",
+  "api_error_internal_error": "发生内部错误"
 }

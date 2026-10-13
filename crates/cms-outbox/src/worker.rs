@@ -53,8 +53,8 @@ pub struct OutboxWorker {
     pool: PgPool,
     registry: Registry,
     http_client: reqwest::Client,
-    mailer: Option<Arc<dyn cms_mailer::Mailer>>,
-    renderer: Option<cms_mailer::EmailRenderer>,
+    mailer: Option<Arc<dyn cms_infra::mailer::Mailer>>,
+    renderer: Option<cms_infra::mailer::EmailRenderer>,
     config: OutboxWorkerConfig,
 }
 
@@ -64,8 +64,8 @@ impl OutboxWorker {
         pool: PgPool,
         registry: Registry,
         http_client: reqwest::Client,
-        mailer: Option<Arc<dyn cms_mailer::Mailer>>,
-        renderer: Option<cms_mailer::EmailRenderer>,
+        mailer: Option<Arc<dyn cms_infra::mailer::Mailer>>,
+        renderer: Option<cms_infra::mailer::EmailRenderer>,
         config: OutboxWorkerConfig,
     ) -> Self {
         Self {

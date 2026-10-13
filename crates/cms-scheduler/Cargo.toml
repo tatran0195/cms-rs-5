@@ -14,7 +14,7 @@ sqlx = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 cms-db = { path = "../cms-db" }
-cms-queue = { path = "../cms-queue" }
+cms-infra = { path = "../cms-infra" }
 cms-error = { path = "../cms-error" }
 
 [lints]
