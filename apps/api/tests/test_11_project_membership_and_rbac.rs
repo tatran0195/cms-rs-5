@@ -140,7 +140,7 @@ async fn test_11_project_membership_and_rbac() -> anyhow::Result<()> {
 
     sqlx::query(r#"DELETE FROM "User" WHERE id = $1"#)
         .bind(second_user_id)
-        .execute(&ctx.state.biz_context.pool)
+        .execute(ctx.state.db())
         .await?;
 
     ctx.teardown().await

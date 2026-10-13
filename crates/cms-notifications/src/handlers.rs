@@ -54,7 +54,7 @@ where
 {
     type Rejection = AppError;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         // 1. Try Claims from Extension
         if let Some(claims) = parts.extensions.get::<Claims>() {
             return Ok(NotificationUser {
@@ -107,13 +107,6 @@ where
             }
         }
 
-        // 4. Try session cookie via AuthenticatedUser extractor
-        if let Ok(user) = AuthenticatedUser::from_request_parts(parts, state).await {
-            return Ok(NotificationUser {
-                user_id: user.user_id,
-            });
-        }
-
         Err(AppError::Unauthorized)
     }
 }
@@ -135,7 +128,7 @@ pub async fn list_notifications_handler(
     let page = (offset / page_size) + 1;
 
     let result = NotificationService::list_notifications(
-        &state.app_state.biz_context.pool,
+        state.app_state.db(),
         &user.user_id,
         query.status,
         page,
@@ -153,7 +146,7 @@ pub async fn get_notification_handler(
     Path(notification_id): Path<String>,
 ) -> Result<Json<NotificationResponse>, AppError> {
     let result = NotificationService::get_notification(
-        &state.app_state.biz_context.pool,
+        state.app_state.db(),
         &user.user_id,
         &notification_id,
     )
@@ -169,7 +162,7 @@ pub async fn mark_notification_read_handler(
     Json(request): Json<MarkNotificationReadRequest>,
 ) -> Result<Json<SuccessResponse>, AppError> {
     NotificationService::mark_notifications_read(
-        &state.app_state.biz_context.pool,
+        state.app_state.db(),
         &state.hub,
         &user.user_id,
         &request.notification_ids,
@@ -185,7 +178,7 @@ pub async fn mark_all_notifications_read_handler(
     user: NotificationUser,
 ) -> Result<Json<SuccessResponse>, AppError> {
     NotificationService::mark_all_as_read(
-        &state.app_state.biz_context.pool,
+        state.app_state.db(),
         &state.hub,
         &user.user_id,
     )
@@ -202,7 +195,7 @@ pub async fn archive_notification_handler(
     Json(_request): Json<Option<ArchiveNotificationRequest>>,
 ) -> Result<Json<SuccessResponse>, AppError> {
     NotificationService::archive_notification(
-        &state.app_state.biz_context.pool,
+        state.app_state.db(),
         &state.hub,
         &user.user_id,
         &notification_id,
@@ -218,7 +211,7 @@ pub async fn get_notification_count_handler(
     user: NotificationUser,
 ) -> Result<Json<NotificationCountResponse>, AppError> {
     let result = NotificationService::get_notification_count(
-        &state.app_state.biz_context.pool,
+        state.app_state.db(),
         &user.user_id,
     )
     .await?;
@@ -242,7 +235,7 @@ async fn handle_ws_socket(socket: WebSocket, state: NotificationState, user_id: 
 
     // Send initial unread count on connect
     if let Ok(unread_count) =
-        NotificationService::get_unread_count(&state.app_state.biz_context.pool, &user_id).await
+        NotificationService::get_unread_count(state.app_state.db(), &user_id).await
     {
         let initial_event = NotificationEvent::UnreadCount { unread_count };
         if let Ok(payload) = serde_json::to_string(&initial_event) {

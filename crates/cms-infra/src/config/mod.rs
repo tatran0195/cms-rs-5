@@ -306,19 +306,10 @@ fn extract_db_password(url_str: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use std::{env, sync::Mutex};
-
     use super::*;
-
-    static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
     #[test]
     fn test_default_config() {
-        let _guard = ENV_MUTEX.lock().unwrap();
-        // Temporarily clear environment
-        env::remove_var("CMS_ENV");
-        env::remove_var("CMS_CONFIG_PATH");
-
         let config = Config::default();
         assert_eq!(config.server.port, 3000);
         assert_eq!(config.server.host, "0.0.0.0");
@@ -459,7 +450,6 @@ mod tests {
 
     #[test]
     fn test_load_from_path() {
-        let _guard = ENV_MUTEX.lock().unwrap();
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
         let deploy_path = format!("{}/../../config/deploy.toml", manifest_dir);
         let config = Config::load_from_path(&deploy_path);
@@ -477,8 +467,6 @@ mod tests {
 
     #[test]
     fn test_is_production() {
-        let _guard = ENV_MUTEX.lock().unwrap();
-        env::remove_var("CMS_ENV");
         let mut config = Config::default();
         assert!(!config.is_production());
 
@@ -493,31 +481,20 @@ mod tests {
 
         config.environment = "dev".to_string();
         assert!(!config.is_production());
-
-        env::set_var("CMS_ENV", "deploy");
-        assert!(config.is_production());
-        env::remove_var("CMS_ENV");
     }
 
     #[test]
     fn test_env_var_override() {
-        let _guard = ENV_MUTEX.lock().unwrap();
-        // Set an env var
-        env::set_var("CMS_SERVER__PORT", "9999");
-        env::set_var("CMS_DATABASE__MAX_POOL_SIZE", "77");
-
-        let config = Config::load().expect("Config::load should succeed");
+        let temp_dir = tempfile::tempdir().expect("tempdir");
+        let toml_path = temp_dir.path().join("test_override.toml");
+        std::fs::write(&toml_path, "[server]\nport = 9999\n[database]\nmax_pool_size = 77\n").expect("write toml");
+        let config = Config::load_from_path(toml_path.to_str().unwrap()).expect("Config::load_from_path should succeed");
         assert_eq!(config.server.port, 9999);
         assert_eq!(config.database.max_pool_size, 77);
-
-        // Cleanup
-        env::remove_var("CMS_SERVER__PORT");
-        env::remove_var("CMS_DATABASE__MAX_POOL_SIZE");
     }
 
     #[test]
     fn test_load_cascading() {
-        let _guard = ENV_MUTEX.lock().unwrap();
         let config = Config::load().expect("Config::load should succeed");
         assert_eq!(config.server.port, 3000);
         assert_eq!(

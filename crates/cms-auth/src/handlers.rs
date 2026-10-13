@@ -11,10 +11,11 @@ use axum::{
 };
 use axum_extra::extract::cookie::Cookie as AxumCookie;
 use cms_entity::auth::{
-    AcceptInvitationPayload, ApiKeyResponse, ChangeEmailPayload, CreateApiKeyRequest, LoginRequest,
-    MfaChallengePayload, MfaDisablePayload, MfaSetupResponse, MfaVerifyPayload, RegisterRequest,
-    RequestEmailChangePayload, SendVerificationOtpPayload, SignInEmailOtpPayload,
-    SignInSocialPayload, UpdateUserPayload, UserResponse, VerifyEmailOtpPayload,
+    AcceptInvitationPayload, ApiKeyResponse, ApiKeyWithSecretResponse, ChangeEmailPayload,
+    CreateApiKeyRequest, LoginRequest, MfaChallengePayload, MfaDisablePayload, MfaSetupResponse,
+    MfaVerifyPayload, RegisterRequest, RequestEmailChangePayload, SendVerificationOtpPayload,
+    SignInEmailOtpPayload, SignInSocialPayload, UpdateUserPayload, UserResponse,
+    VerifyEmailOtpPayload,
 };
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
@@ -219,7 +220,7 @@ pub async fn create_api_key_handler(
     State(state): State<Arc<AppState>>,
     auth: AuthExtractor,
     Json(request): Json<CreateApiKeyRequest>,
-) -> Result<Json<ApiKeyResponse>, AppError> {
+) -> Result<Json<ApiKeyWithSecretResponse>, AppError> {
     let api_key = AuthService::create_api_key(state.db(), &auth.user.id, &request.name).await?;
 
     Ok(Json(api_key))

@@ -221,7 +221,7 @@ pub mod app_state {
         ) -> Result<Self, AppError> {
             Ok(Self {
                 config: Arc::clone(&app.config),
-                db: app.biz_context.pool.clone(),
+                db: app.pool.clone(),
                 storage: Arc::clone(&app.storage),
                 search: Arc::clone(&app.search_engine),
                 mailer: Arc::clone(&app.mailer),

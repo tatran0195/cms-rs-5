@@ -258,6 +258,7 @@ where
 }
 
 /// Authentication middleware for requiring authentication
+#[derive(Debug, Clone, Copy)]
 pub struct RequireAuthMiddleware;
 
 impl Default for RequireAuthMiddleware {
@@ -283,6 +284,7 @@ impl IntoResponse for AuthRejection {
 }
 
 /// Require specific role middleware
+#[derive(Debug, Clone)]
 pub struct RequireRoleMiddleware {
     pub role: cms_entity::common::MemberRole,
 }

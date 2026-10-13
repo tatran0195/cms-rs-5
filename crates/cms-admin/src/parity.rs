@@ -106,7 +106,7 @@ struct FunnelRow {
     median_hours_to_ready: Option<f64>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct FunnelQuery {
     days: Option<i64>,
 }
@@ -309,7 +309,7 @@ pub async fn user_handler(
     Ok(Json(json!({ "data": data })))
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct SetRoleBody {
     role: String,
 }
@@ -327,7 +327,7 @@ pub async fn set_user_role_handler(
             "role must be 'user' or 'admin'".to_string(),
         ));
     }
-    let mut tx = state.biz_context.pool.begin().await?;
+    let mut tx = state.db().begin().await?;
     // Serialize administrator-roster updates so concurrent demotions cannot
     // both observe themselves as non-final administrators.
     sqlx::query("SELECT pg_advisory_xact_lock(78098457211712)")
@@ -377,7 +377,7 @@ pub async fn suspend_user_handler(
     Path(user_id): Path<String>,
 ) -> Result<Json<Value>, AppError> {
     require_admin(&state, &auth.user.id).await?;
-    let mut tx = state.biz_context.pool.begin().await?;
+    let mut tx = state.db().begin().await?;
     let target_role: Option<String> =
         sqlx::query_scalar(r#"SELECT role FROM "User" WHERE id = $1 FOR UPDATE"#)
             .bind(&user_id)
@@ -871,7 +871,7 @@ pub async fn operations_handler(
     } })))
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct TakedownBody {
     reason: String,
 }

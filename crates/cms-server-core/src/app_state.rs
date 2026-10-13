@@ -1,7 +1,8 @@
 //! Unified Application State for CMS Server.
 //!
 //! Houses shared platform context passed to all route handlers:
-//! - Configuration & Business context
+//! - Configuration & Database pool
+//! - Authorization engine state
 //! - Storage & Search engine
 //! - Queue & Mailer
 //! - Host resolution invalidation
@@ -24,39 +25,15 @@ use crate::search::SearchEngine;
 
 use crate::middleware::rate_limit::SlidingRateLimiter;
 
-/// Business context with database pool and access control
-#[derive(Clone)]
-pub struct BizContext {
-    pub pool: sqlx::PgPool,
-    pub authz: Arc<cms_authz::AuthzState>,
-}
-
-impl std::fmt::Debug for BizContext {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("BizContext")
-            .field("pool", &"PgPool")
-            .field("authz", &"AuthzState")
-            .finish()
-    }
-}
-
-impl BizContext {
-    pub fn new(pool: sqlx::PgPool, authz: Arc<cms_authz::AuthzState>) -> Self {
-        Self { pool, authz }
-    }
-
-    pub fn authz(&self) -> &Arc<cms_authz::AuthzState> {
-        &self.authz
-    }
-}
-
 /// Application state shared across all HTTP handlers and services.
 #[derive(Clone)]
 pub struct AppState {
     /// Application configuration
     pub config: Arc<Config>,
-    /// Business context with database pool and access control
-    pub biz_context: BizContext,
+    /// Primary PostgreSQL connection pool
+    pub pool: sqlx::PgPool,
+    /// Authorization engine state
+    pub authz: Arc<cms_authz::AuthzState>,
     /// Storage backend
     pub storage: Arc<dyn Storage>,
     /// Job queue
@@ -80,21 +57,21 @@ impl AppState {
     #[inline]
     #[must_use]
     pub const fn db(&self) -> &sqlx::PgPool {
-        &self.biz_context.pool
+        &self.pool
     }
 
     /// Returns a reference to the authorization engine state.
     #[inline]
     #[must_use]
     pub const fn authz(&self) -> &Arc<cms_authz::AuthzState> {
-        &self.biz_context.authz
+        &self.authz
     }
 
     /// Returns a reference to the authorization backend trait object.
     #[inline]
     #[must_use]
     pub fn authz_backend(&self) -> &dyn cms_authz::AuthzBackend {
-        self.biz_context.authz.backend.as_ref()
+        self.authz.backend.as_ref()
     }
 
     /// Parse trusted proxy CIDRs from environment variable `TRUSTED_PROXIES`.
@@ -128,7 +105,6 @@ impl AppState {
             pool.clone(),
             config.auth.system_admin_emails.clone(),
         ));
-        let biz_context = BizContext::new(pool, authz);
         let mailer = cms_infra::mailer::create_mailer(config.mailer.as_ref())?;
         let email_renderer = EmailRenderer::embedded().map_err(AppError::internal)?;
         let trusted_proxies = Arc::new(Self::load_trusted_proxies_from_env());
@@ -137,7 +113,8 @@ impl AppState {
 
         Ok(Self {
             config: Arc::new(config.clone()),
-            biz_context,
+            pool,
+            authz,
             storage,
             job_queue,
             search_engine,
@@ -147,71 +124,6 @@ impl AppState {
             trusted_proxies,
             sliding_rate_limiter,
         })
-    }
-
-    /// Create a new `AppState` with provided base dependencies (using default mailer and proxies).
-    pub fn new(
-        config: Config,
-        biz_context: BizContext,
-        storage: Arc<dyn Storage>,
-        job_queue: Arc<dyn JobQueue>,
-        search_engine: Arc<dyn SearchEngine>,
-    ) -> Result<Self, AppError> {
-        Self::new_with_mailer(
-            config,
-            biz_context,
-            storage,
-            job_queue,
-            search_engine,
-            Arc::new(cms_infra::mailer::UnconfiguredMailer),
-        )
-    }
-
-    /// Create state with an explicitly configured mail provider.
-    pub fn new_with_mailer(
-        config: Config,
-        biz_context: BizContext,
-        storage: Arc<dyn Storage>,
-        job_queue: Arc<dyn JobQueue>,
-        search_engine: Arc<dyn SearchEngine>,
-        mailer: Arc<dyn Mailer>,
-    ) -> Result<Self, AppError> {
-        let email_renderer = EmailRenderer::embedded().map_err(AppError::internal)?;
-        Ok(Self::new_with_mailer_and_renderer(
-            config,
-            biz_context,
-            storage,
-            job_queue,
-            search_engine,
-            mailer,
-            email_renderer,
-        ))
-    }
-
-    /// Create state with explicitly configured mail provider and email renderer.
-    pub fn new_with_mailer_and_renderer(
-        config: Config,
-        biz_context: BizContext,
-        storage: Arc<dyn Storage>,
-        job_queue: Arc<dyn JobQueue>,
-        search_engine: Arc<dyn SearchEngine>,
-        mailer: Arc<dyn Mailer>,
-        email_renderer: EmailRenderer,
-    ) -> Self {
-        let trusted_proxies = Arc::new(Self::load_trusted_proxies_from_env());
-        let sliding_rate_limiter = Arc::new(SlidingRateLimiter::new());
-        Self {
-            config: Arc::new(config),
-            biz_context,
-            storage,
-            job_queue,
-            search_engine,
-            mailer,
-            email_renderer,
-            host_resolution_generation: Arc::new(AtomicU64::new(0)),
-            trusted_proxies,
-            sliding_rate_limiter,
-        }
     }
 
     /// Invalidate cached host-to-project resolutions after a domain change.
@@ -225,7 +137,8 @@ impl std::fmt::Debug for AppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AppState")
             .field("config", &"Config")
-            .field("biz_context", &"BizContext")
+            .field("pool", &"PgPool")
+            .field("authz", &"AuthzState")
             .field("trusted_proxies", &self.trusted_proxies.len())
             .field(
                 "host_resolution_generation",

@@ -68,7 +68,7 @@ pub async fn record_trusted_tls_observation(
     let Some(domain_id) = resolution.domain_id.as_deref() else {
         return;
     };
-    if let Err(error) = DomainQueries::mark_tls_active(&state.biz_context.pool, domain_id).await {
+    if let Err(error) = DomainQueries::mark_tls_active(state.db(), domain_id).await {
         // TLS status reporting must never take down a successfully published site.
         tracing::warn!(%error, domain_id, "failed to record trusted TLS observation");
     }
@@ -92,11 +92,11 @@ pub async fn load_published_site_snapshot(
 ) -> Result<PublishedSiteSnapshot, AppError> {
     // Public visibility can be revoked immediately, even though old snapshots
     // remain retained for rollback and audit history.
-    let current_project = ProjectQueries::get_by_id(&state.biz_context.pool, project_id)
+    let current_project = ProjectQueries::get_by_id(state.db(), project_id)
         .await?
         .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
     if !current_project.is_public
-        || ProjectQueries::is_taken_down(&state.biz_context.pool, project_id)
+        || ProjectQueries::is_taken_down(state.db(), project_id)
             .await?
             .unwrap_or(false)
     {
@@ -105,7 +105,7 @@ pub async fn load_published_site_snapshot(
 
     let snapshot = if let Some(preferred_deployment_id) = preferred_deployment_id {
         DeploymentQueries::get_snapshot_by_deployment(
-            &state.biz_context.pool,
+            state.db(),
             preferred_deployment_id,
         )
         .await?
@@ -113,14 +113,14 @@ pub async fn load_published_site_snapshot(
         .ok_or_else(|| AppError::NotFound("Domain release is not published".to_string()))?
     } else {
         let releases =
-            DeploymentQueries::get_latest_branch_releases(&state.biz_context.pool, project_id)
+            DeploymentQueries::get_latest_branch_releases(state.db(), project_id)
                 .await?;
         let default_release = releases
             .iter()
             .find(|release| release.is_default)
             .ok_or_else(|| AppError::NotFound("No default-branch release found".to_string()))?;
         DeploymentQueries::get_snapshot_by_deployment(
-            &state.biz_context.pool,
+            state.db(),
             &default_release.deployment_id,
         )
         .await?
@@ -171,7 +171,7 @@ pub async fn load_published_site_page_listing(
     site: &PublishedSiteSnapshot,
 ) -> Result<Vec<cms_db::deployment::DeploymentSnapshotPageListing>, AppError> {
     DeploymentQueries::get_snapshot_page_listing(
-        &state.biz_context.pool,
+        state.db(),
         &site.deployment_id,
         &site.language_id,
     )
@@ -259,10 +259,10 @@ pub async fn wildcard_handler(
         let project_ref = parts.next().unwrap_or("");
         let doc_path = parts.next().unwrap_or("");
 
-        let project = match ProjectQueries::get_by_id(&state.biz_context.pool, project_ref).await? {
+        let project = match ProjectQueries::get_by_id(state.db(), project_ref).await? {
             Some(p) => Some(p),
             None => {
-                ProjectQueries::get_by_slug_global(&state.biz_context.pool, project_ref).await?
+                ProjectQueries::get_by_slug_global(state.db(), project_ref).await?
             }
         };
 
@@ -338,7 +338,7 @@ pub async fn serve_project_index(
     match root_page_id {
         Some(page_id) => {
             let page = DeploymentQueries::get_snapshot_page(
-                &state.biz_context.pool,
+                state.db(),
                 &site.deployment_id,
                 &page_id,
             )
@@ -389,7 +389,7 @@ pub async fn serve_page(
 
     let clean_path = path.trim_matches('/');
     let page = DeploymentQueries::get_snapshot_page_by_path(
-        &state.biz_context.pool,
+        state.db(),
         &site.deployment_id,
         &site.language_id,
         clean_path,

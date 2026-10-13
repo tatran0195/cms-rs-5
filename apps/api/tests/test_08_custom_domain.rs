@@ -66,7 +66,7 @@ async fn test_08_custom_domain_lifecycle_and_tls_verification() -> anyhow::Resul
 
     let custom_hostname = format!("docs-{}.example.invalid", Uuid::new_v4().simple());
     let custom_domain = cms_db::domain::DomainQueries::create(
-        &ctx.state.biz_context.pool,
+        ctx.state.db(),
         dep_id,
         &custom_hostname,
         true,
@@ -87,7 +87,7 @@ async fn test_08_custom_domain_lifecycle_and_tls_verification() -> anyhow::Resul
     )?;
 
     cms_db::domain::DomainQueries::verify(
-        &ctx.state.biz_context.pool,
+        ctx.state.db(),
         &custom_domain.id,
         &custom_domain.verification_token,
     )
@@ -135,7 +135,7 @@ async fn test_08_custom_domain_lifecycle_and_tls_verification() -> anyhow::Resul
     let pending_tls: String =
         sqlx::query_scalar(r#"SELECT ssl_status FROM "Domain" WHERE id = $1"#)
             .bind(&custom_domain.id)
-            .fetch_one(&ctx.state.biz_context.pool)
+            .fetch_one(ctx.state.db())
             .await?;
     anyhow::ensure!(pending_tls == "PENDING");
 
@@ -149,7 +149,7 @@ async fn test_08_custom_domain_lifecycle_and_tls_verification() -> anyhow::Resul
     anyhow::ensure!(trusted_tls_status == StatusCode::OK);
     let active_tls: String = sqlx::query_scalar(r#"SELECT ssl_status FROM "Domain" WHERE id = $1"#)
         .bind(&custom_domain.id)
-        .fetch_one(&ctx.state.biz_context.pool)
+        .fetch_one(ctx.state.db())
         .await?;
     anyhow::ensure!(active_tls == "ACTIVE");
 

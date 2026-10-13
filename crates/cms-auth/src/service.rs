@@ -6,7 +6,9 @@ use chrono::Utc;
 use cms_db::auth::{
     AccountQueries, ApiKeyQueries, SessionQueries, UserQueries, VerificationTokenQueries,
 };
-use cms_entity::auth::{ApiKeyResponse, CreateUserRequest, UserResponse};
+use cms_entity::auth::{
+    ApiKeyResponse, ApiKeyWithSecretResponse, CreateUserRequest, UserResponse,
+};
 use cms_error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -128,10 +130,15 @@ impl AuthService {
         pool: &PgPool,
         api_key: &str,
     ) -> Result<UserResponse, AppError> {
-        let hashed = crate::api_key::hash_key(api_key);
-        let key = ApiKeyQueries::get_by_key(pool, &hashed)
-            .await?
-            .ok_or(AppError::InvalidApiKey)?;
+        let hash = crate::api_keys::fingerprint(api_key);
+        let key = if let Some(k) = ApiKeyQueries::get_by_key(pool, &hash).await? {
+            k
+        } else {
+            let legacy_hash = format!("sha256:{hash}");
+            ApiKeyQueries::get_by_key(pool, &legacy_hash)
+                .await?
+                .ok_or(AppError::InvalidApiKey)?
+        };
         let user = UserQueries::get_by_id(pool, &key.user_id)
             .await?
             .ok_or_else(|| AppError::NotFound("User not found".to_string()))?;
@@ -176,11 +183,15 @@ impl AuthService {
         pool: &PgPool,
         user_id: &str,
         name: &str,
-    ) -> Result<ApiKeyResponse, AppError> {
-        let raw_key = format!("nbl_{}", Uuid::new_v4().to_string().replace("-", ""));
-        let hashed = crate::api_key::hash_key(&raw_key);
-        let key = ApiKeyQueries::create(pool, user_id, name, &hashed).await?;
-        Ok(key.into())
+    ) -> Result<ApiKeyWithSecretResponse, AppError> {
+        let perms = vec!["member".to_string()];
+        let minted = crate::api_keys::mint(crate::api_keys::Environment::Live, &perms)
+            .map_err(|e| AppError::Validation(e.to_string()))?;
+        let key = ApiKeyQueries::create(pool, user_id, name, &minted.hash).await?;
+        Ok(ApiKeyWithSecretResponse {
+            key: key.into(),
+            secret: minted.secret,
+        })
     }
 
     pub async fn delete_api_key(

@@ -64,7 +64,7 @@ async fn test_gatehouse_snapshot_project_and_platform_authorization() -> anyhow:
     .bind(&other_session_token)
     .bind(now + chrono::Duration::hours(2))
     .bind(now)
-    .execute(&ctx.state.biz_context.pool)
+    .execute(ctx.state.db())
     .await?;
     let other_cookie = session_cookie(&other_session_token);
 
