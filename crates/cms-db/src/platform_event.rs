@@ -169,4 +169,22 @@ impl PlatformEventQueries {
 
         Ok(result.rows_affected() > 0)
     }
+
+    /// Get system-wide statistics (total users and total projects)
+    pub async fn get_system_stats(pool: &PgPool) -> Result<serde_json::Value, AppError> {
+        let users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM \"User\"")
+            .fetch_one(pool)
+            .await
+            .map_err(|e| AppError::Database(e.into()))?;
+
+        let projects: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM \"Project\"")
+            .fetch_one(pool)
+            .await
+            .map_err(|e| AppError::Database(e.into()))?;
+
+        Ok(serde_json::json!({
+            "users": users,
+            "projects": projects,
+        }))
+    }
 }

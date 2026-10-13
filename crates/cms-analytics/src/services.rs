@@ -170,11 +170,6 @@ impl AnalyticsService {
 
         AnalyticsQueries::get_page_views(pool, &page.project_id, page_id).await
     }
-
-    /// Get system stats
-    pub async fn get_system_stats(pool: &PgPool) -> Result<serde_json::Value, AppError> {
-        AnalyticsQueries::get_system_stats(pool).await
-    }
 }
 
 /// Process analytics job (for worker)

@@ -45,7 +45,8 @@ pub async fn get_system_stats_handler(
 ) -> Result<Json<serde_json::Value>, AppError> {
     require_system_admin(&state, &auth).await?;
 
-    let stats = cms_analytics::AnalyticsService::get_system_stats(state.db()).await?;
+    let stats =
+        cms_db::platform_event::PlatformEventQueries::get_system_stats(state.db()).await?;
 
     Ok(Json(serde_json::json!(stats)))
 }
@@ -90,7 +91,8 @@ pub async fn get_system_health_handler(
 pub async fn get_system_metrics_handler(
     State(state): State<Arc<AppState>>,
 ) -> Result<(axum::http::HeaderMap, String), AppError> {
-    let stats = cms_analytics::AnalyticsService::get_system_stats(state.db()).await?;
+    let stats =
+        cms_db::platform_event::PlatformEventQueries::get_system_stats(state.db()).await?;
     let users = stats.get("users").and_then(|v| v.as_i64()).unwrap_or(0);
     let projects = stats.get("projects").and_then(|v| v.as_i64()).unwrap_or(0);
 

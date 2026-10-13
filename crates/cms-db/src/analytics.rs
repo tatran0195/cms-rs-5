@@ -297,24 +297,6 @@ impl AnalyticsQueries {
             "unique_visitors": unique_visitors,
         }))
     }
-
-    /// Get system-wide statistics
-    pub async fn get_system_stats(pool: &PgPool) -> Result<serde_json::Value, AppError> {
-        let users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM \"User\"")
-            .fetch_one(pool)
-            .await
-            .map_err(|e| AppError::Database(e.into()))?;
-
-        let projects: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM \"Project\"")
-            .fetch_one(pool)
-            .await
-            .map_err(|e| AppError::Database(e.into()))?;
-
-        Ok(serde_json::json!({
-            "users": users,
-            "projects": projects,
-        }))
-    }
 }
 
 /// Analytics event queries (alias for AnalyticsQueries for API compatibility)
