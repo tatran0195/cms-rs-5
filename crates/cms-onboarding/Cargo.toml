@@ -10,7 +10,6 @@ cms-db = { path = "../cms-db" }
 cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
-cms-server-services = { path = "../cms-server-services" }
 cms-outbox = { path = "../cms-outbox" }
 cms-auth = { path = "../cms-auth" }
 

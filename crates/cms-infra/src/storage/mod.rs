@@ -65,3 +65,84 @@ pub async fn create_storage(config: &StorageConfig) -> Result<Box<dyn Storage>, 
         ))),
     }
 }
+
+/// Cross-domain storage URL resolution and artifact lifecycle helpers.
+#[derive(Clone)]
+pub struct StorageService {
+    storage: std::sync::Arc<dyn Storage>,
+}
+
+pub type StorageUrlService = StorageService;
+
+impl std::fmt::Debug for StorageService {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StorageService").finish_non_exhaustive()
+    }
+}
+
+impl StorageService {
+    /// Create a `StorageService` wrapping the given storage backend.
+    pub fn new(storage: std::sync::Arc<dyn Storage>) -> Self {
+        Self { storage }
+    }
+
+    /// Produce an upload target (presigned URL or local endpoint).
+    pub async fn generate_upload_target(
+        &self,
+        key: &str,
+        ttl: std::time::Duration,
+    ) -> Result<UploadTarget, AppError> {
+        self.storage.upload_target(key, ttl).await
+    }
+
+    /// Produce a download target for a stored artifact.
+    pub async fn generate_download_target(
+        &self,
+        key: &str,
+        ttl: std::time::Duration,
+    ) -> Result<DownloadTarget, AppError> {
+        self.storage.download_target(key, ttl).await
+    }
+
+    /// Resolve a direct download URL string from a storage key.
+    pub async fn resolve_download_url(
+        &self,
+        key: &str,
+        ttl: std::time::Duration,
+    ) -> Result<String, AppError> {
+        let target = self.storage.download_target(key, ttl).await?;
+        match target {
+            DownloadTarget::Presigned(url) | DownloadTarget::ServerMediated(url) => Ok(url),
+        }
+    }
+
+    /// Check if an artifact exists in storage.
+    pub async fn artifact_exists(&self, key: &str) -> Result<bool, AppError> {
+        self.storage.exists(key).await
+    }
+
+    /// Format standard storage key for export/report runs.
+    #[must_use]
+    pub fn format_report_storage_key(workspace_id: &str, run_id: &uuid::Uuid, extension: &str) -> String {
+        format!("reports/{workspace_id}/{run_id}.{}", extension.trim_start_matches('.'))
+    }
+
+    /// Format the canonical storage key for an export/report run artifact.
+    #[must_use]
+    pub fn format_report_key(workspace_id: &str, run_id: &uuid::Uuid, extension: &str) -> String {
+        Self::format_report_storage_key(workspace_id, run_id, extension)
+    }
+
+    /// Format standard storage key for asset uploads.
+    #[must_use]
+    pub fn format_asset_storage_key(workspace_id: &str, asset_id: &uuid::Uuid, filename: &str) -> String {
+        format!("assets/{workspace_id}/{asset_id}/{filename}")
+    }
+
+    /// Format the canonical storage key for a project asset upload.
+    #[must_use]
+    pub fn format_asset_key(workspace_id: &str, asset_id: &uuid::Uuid, filename: &str) -> String {
+        Self::format_asset_storage_key(workspace_id, asset_id, filename)
+    }
+}
+

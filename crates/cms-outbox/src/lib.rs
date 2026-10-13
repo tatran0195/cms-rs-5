@@ -17,5 +17,8 @@ pub mod worker;
 pub use backoff::{calculate_backoff, BackoffConfig};
 pub use handler::{Handler, HandlerCtx, HandlerError, Registry};
 pub use handlers::{EmailHandler, WebhookHandler};
-pub use queue::{queue, queue_batch_in_tx, queue_in_tx, OutboxRecord, OutboxRow};
+pub use queue::{
+    dispatch_email_in_tx, dispatch_in_tx, queue, queue_batch_in_tx, queue_in_tx, OutboxRecord,
+    OutboxRow,
+};
 pub use worker::{OutboxWorker, OutboxWorkerConfig};

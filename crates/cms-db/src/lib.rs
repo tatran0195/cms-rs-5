@@ -47,6 +47,8 @@ pub use context::{
 };
 pub mod sequence;
 pub use sequence::next_sequence;
+pub mod tenant_context;
+pub use tenant_context::{TenantContext, TenantContextService};
 
 use cms_error::AppError;
 pub use setup::SetupQueries;

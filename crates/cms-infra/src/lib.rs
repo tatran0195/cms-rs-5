@@ -25,7 +25,7 @@ pub use i18n::{Catalog, Locale};
 pub use mailer::{EmailRenderer, Mailer};
 pub use queue::{JobEnvelope, JobId, JobQueue, JobStatus, JobType};
 pub use search::SearchEngine;
-pub use storage::Storage;
+pub use storage::{Storage, StorageService, StorageUrlService};
 
 /// Initialize infrastructure runtime hooks (e.g. wire i18n error localizer into `cms-error`)
 pub fn init() {

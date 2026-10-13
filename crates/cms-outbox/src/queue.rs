@@ -128,3 +128,37 @@ pub async fn queue(pool: &PgPool, row: &OutboxRow) -> Result<Uuid, AppError> {
     tx.commit().await.map_err(AppError::Database)?;
     Ok(id)
 }
+
+/// Queue a domain event atomically inside an active database transaction.
+pub async fn dispatch_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    event_type: impl Into<String>,
+    payload: serde_json::Value,
+    workspace_id: Option<String>,
+) -> Result<(), AppError> {
+    let mut row = OutboxRow::new(event_type, payload);
+    if let Some(ws) = workspace_id {
+        row = row.with_workspace(ws);
+    }
+    queue_in_tx(tx, &row).await?;
+    Ok(())
+}
+
+/// Queue an email.send event atomically inside an active database transaction.
+pub async fn dispatch_email_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    to: String,
+    subject: String,
+    body_text: String,
+    body_html: Option<String>,
+    workspace_id: Option<String>,
+) -> Result<(), AppError> {
+    let payload = serde_json::json!({
+        "to": to,
+        "subject": subject,
+        "body_text": body_text,
+        "body_html": body_html,
+    });
+    dispatch_in_tx(tx, "email.send", payload, workspace_id).await
+}
+

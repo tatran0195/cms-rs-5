@@ -5,7 +5,7 @@ use chrono::{Duration, Utc};
 use cms_error::AppError;
 use cms_infra::queue::{JobEnvelope, JobType};
 use cms_server_core::app_state::AppState;
-use cms_server_services::StorageUrlService;
+use cms_infra::storage::StorageUrlService;
 use uuid::Uuid;
 
 use crate::{
