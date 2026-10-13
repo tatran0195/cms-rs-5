@@ -208,3 +208,33 @@ impl Default for AdminOriginConfig {
         }
     }
 }
+
+impl AdminOriginConfig {
+    /// Validate admin origin configuration
+    pub fn validate(&self) -> Result<(), String> {
+        for origin in &self.allowed_origins {
+            if origin.is_empty() {
+                return Err("Allowed origins cannot be empty".to_string());
+            }
+
+            if !origin.starts_with("http://") && !origin.starts_with("https://") {
+                return Err(format!(
+                    "Invalid origin format: {origin}. Must start with http:// or https://"
+                ));
+            }
+
+            let without_scheme = origin.split("://").nth(1).unwrap_or("");
+            if without_scheme.contains('/')
+                || without_scheme.contains('?')
+                || without_scheme.contains('#')
+            {
+                return Err(format!(
+                    "Invalid origin: {origin}. Must not contain path, query, or fragment"
+                ));
+            }
+        }
+
+        Ok(())
+    }
+}
+
