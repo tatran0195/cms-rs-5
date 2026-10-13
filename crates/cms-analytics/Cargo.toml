@@ -1,0 +1,29 @@
+[package]
+name = "cms-analytics"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Vertical Slice: Analytics telemetry, queries, dashboards, and page view metrics"
+
+[dependencies]
+cms-entity = { workspace = true }
+cms-db = { workspace = true }
+cms-error = { workspace = true }
+cms-server-core = { workspace = true }
+cms-auth = { workspace = true }
+
+axum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+
+[lints]
+workspace = true

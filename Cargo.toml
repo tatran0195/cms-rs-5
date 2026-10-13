@@ -45,6 +45,7 @@ cms-api-specs = { path = "crates/cms-api-specs" }
 cms-workspaces = { path = "crates/cms-workspaces" }
 cms-admin = { path = "crates/cms-admin" }
 cms-public = { path = "crates/cms-public" }
+cms-analytics = { path = "crates/cms-analytics" }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
