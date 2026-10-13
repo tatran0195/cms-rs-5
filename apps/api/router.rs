@@ -23,90 +23,56 @@ use cms_server_core::{
 // Root API Router Assembly
 // ---------------------------------------------------------------------------
 
-/// Create the un-middlewared root API router assembling all vertical slices
-pub fn create_api_router(state: Arc<AppState>) -> Router {
-    let mut router = Router::new();
-
-    // Mount all autonomous domain slice routers
-    router = router.nest("/auth", cms_auth::router(Arc::clone(&state)));
-    router = router.nest("/projects", cms_projects::project_router(Arc::clone(&state)));
-    router = router.nest("/pages", cms_content::page_router(Arc::clone(&state)));
-    router = router.nest("/branches", cms_content::branch_router(Arc::clone(&state)));
-    router = router.nest("/languages", cms_content::language_router(Arc::clone(&state)));
-    router = router.nest("/git", cms_git::router(Arc::clone(&state)));
-    router = router.nest("/integrations", cms_integrations::router(Arc::clone(&state)));
-    router = router.nest("/deployments", cms_deployments::router(Arc::clone(&state)));
-    router = router.nest(
-        "/domains",
-        cms_projects::domains_router().with_state(Arc::clone(&state)),
-    );
-    router = router.nest(
-        "/reader-access",
-        cms_projects::reader_access_router().with_state(Arc::clone(&state)),
-    );
-    router = router.nest("/comments", cms_content::comment_router(Arc::clone(&state)));
-    router = router.nest("/search", cms_search::router(Arc::clone(&state)));
-    router = router.nest("/export", cms_reports::export_router(Arc::clone(&state)));
-    router = router.nest("/openapi", cms_api_specs::router(Arc::clone(&state)));
-    router = router.nest("/notifications", cms_notifications::router(Arc::clone(&state)));
-    router = router.nest("/assets", cms_assets::router(Arc::clone(&state)));
-    router = router.nest("/analytics", cms_analytics::router(Arc::clone(&state)));
-    router = router.nest("/themes", cms_themes::router(Arc::clone(&state)));
-    router = router.nest(
-        "/platform-events",
-        cms_admin::platform_events::router(Arc::clone(&state)),
-    );
-    router = router.nest("/mcp", cms_mcp::router(Arc::clone(&state)));
-    router = router.nest("/members", cms_workspaces::members_router(Arc::clone(&state)));
-    router = router.nest(
-        "/workspace",
-        cms_workspaces::workspace_router(Arc::clone(&state)),
-    );
-    router = router.nest("/invitations", cms_invitations::router(Arc::clone(&state)));
-    router = router.nest("/reports", cms_reports::router(Arc::clone(&state)));
-    router = router.nest("/setup", cms_onboarding::router(Arc::clone(&state)));
-
-    // App and canonical v1 subrouters
-    let app_router = Router::new()
-        .nest("/auth", cms_auth::router(Arc::clone(&state)))
-        .nest("/projects", cms_projects::project_router(Arc::clone(&state)))
-        .nest("/pages", cms_content::page_router(Arc::clone(&state)))
-        .nest("/branches", cms_content::branch_router(Arc::clone(&state)))
-        .nest("/languages", cms_content::language_router(Arc::clone(&state)))
-        .nest("/git", cms_git::router(Arc::clone(&state)))
-        .nest("/integrations", cms_integrations::router(Arc::clone(&state)))
-        .nest("/deployments", cms_deployments::router(Arc::clone(&state)))
+/// Helper to construct the unified domain subrouter mounted at root, /app, and /v1
+fn build_domain_subrouter(state: &Arc<AppState>) -> Router {
+    Router::new()
+        .nest("/auth", cms_auth::router(Arc::clone(state)))
+        .nest("/projects", cms_projects::project_router(Arc::clone(state)))
+        .nest("/pages", cms_content::page_router(Arc::clone(state)))
+        .nest("/branches", cms_content::branch_router(Arc::clone(state)))
+        .nest("/languages", cms_content::language_router(Arc::clone(state)))
+        .nest("/git", cms_git::router(Arc::clone(state)))
+        .nest("/integrations", cms_integrations::router(Arc::clone(state)))
+        .nest("/deployments", cms_deployments::router(Arc::clone(state)))
         .nest(
             "/domains",
-            cms_projects::domains_router().with_state(Arc::clone(&state)),
+            cms_projects::domains_router().with_state(Arc::clone(state)),
         )
         .nest(
             "/reader-access",
-            cms_projects::reader_access_router().with_state(Arc::clone(&state)),
+            cms_projects::reader_access_router().with_state(Arc::clone(state)),
         )
-        .nest("/comments", cms_content::comment_router(Arc::clone(&state)))
-        .nest("/search", cms_search::router(Arc::clone(&state)))
-        .nest("/export", cms_reports::export_router(Arc::clone(&state)))
-        .nest("/openapi", cms_api_specs::router(Arc::clone(&state)))
-        .nest("/notifications", cms_notifications::router(Arc::clone(&state)))
-        .nest("/assets", cms_assets::router(Arc::clone(&state)))
-        .nest("/analytics", cms_analytics::router(Arc::clone(&state)))
-        .nest("/themes", cms_themes::router(Arc::clone(&state)))
+        .nest("/comments", cms_content::comment_router(Arc::clone(state)))
+        .nest("/search", cms_search::router(Arc::clone(state)))
+        .nest("/export", cms_reports::export_router(Arc::clone(state)))
+        .nest("/openapi", cms_api_specs::router(Arc::clone(state)))
+        .nest("/notifications", cms_notifications::router(Arc::clone(state)))
+        .nest("/assets", cms_assets::router(Arc::clone(state)))
+        .nest("/analytics", cms_analytics::router(Arc::clone(state)))
+        .nest("/themes", cms_themes::router(Arc::clone(state)))
         .nest(
             "/platform-events",
-            cms_admin::platform_events::router(Arc::clone(&state)),
+            cms_admin::platform_events::router(Arc::clone(state)),
         )
-        .nest("/mcp", cms_mcp::router(Arc::clone(&state)))
-        .nest("/members", cms_workspaces::members_router(Arc::clone(&state)))
+        .nest("/mcp", cms_mcp::router(Arc::clone(state)))
+        .nest("/members", cms_workspaces::members_router(Arc::clone(state)))
         .nest(
             "/workspace",
-            cms_workspaces::workspace_router(Arc::clone(&state)),
+            cms_workspaces::workspace_router(Arc::clone(state)),
         )
-        .nest("/invitations", cms_invitations::router(Arc::clone(&state)))
-        .nest("/reports", cms_reports::router(Arc::clone(&state)))
-        .nest("/setup", cms_onboarding::router(Arc::clone(&state)));
-    router = router.nest("/app", app_router.clone());
-    router = router.nest("/v1", app_router);
+        .nest("/invitations", cms_invitations::router(Arc::clone(state)))
+        .nest("/reports", cms_reports::router(Arc::clone(state)))
+        .nest("/setup", cms_onboarding::router(Arc::clone(state)))
+}
+
+/// Create the un-middlewared root API router assembling all vertical slices
+pub fn create_api_router(state: Arc<AppState>) -> Router {
+    let domain_router = build_domain_subrouter(&state);
+
+    let mut router = Router::new()
+        .merge(domain_router.clone())
+        .nest("/app", domain_router.clone())
+        .nest("/v1", domain_router);
 
     // Admin routes (platform-admin-only)
     router = router.nest("/admin", cms_admin::router(Arc::clone(&state)));
