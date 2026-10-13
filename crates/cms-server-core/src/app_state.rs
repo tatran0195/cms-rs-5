@@ -13,13 +13,42 @@ use std::sync::{
     Arc,
 };
 
-use cms_biz::BizContext;
-use cms_config::Config;
 use cms_error::AppError;
-use cms_queue::JobQueue;
-use cms_storage::Storage;
+use cms_infra::{
+    config::Config,
+    mailer::{EmailRenderer, Mailer},
+    queue::JobQueue,
+    search::SearchEngine,
+    storage::Storage,
+};
 
 use crate::middleware::rate_limit::SlidingRateLimiter;
+
+/// Business context with database pool and access control
+#[derive(Clone)]
+pub struct BizContext {
+    pub pool: sqlx::PgPool,
+    pub authz: Arc<cms_authz::AuthzState>,
+}
+
+impl std::fmt::Debug for BizContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BizContext")
+            .field("pool", &"PgPool")
+            .field("authz", &"AuthzState")
+            .finish()
+    }
+}
+
+impl BizContext {
+    pub fn new(pool: sqlx::PgPool, authz: Arc<cms_authz::AuthzState>) -> Self {
+        Self { pool, authz }
+    }
+
+    pub fn authz(&self) -> &Arc<cms_authz::AuthzState> {
+        &self.authz
+    }
+}
 
 /// Application state shared across all HTTP handlers and services.
 #[derive(Clone)]
@@ -33,11 +62,11 @@ pub struct AppState {
     /// Job queue
     pub job_queue: Arc<dyn JobQueue>,
     /// Search engine
-    pub search_engine: Arc<dyn cms_search::SearchEngine>,
+    pub search_engine: Arc<dyn SearchEngine>,
     /// Outbound email delivery used by auth and workflow handlers
-    pub mailer: Arc<dyn cms_biz::email::Mailer>,
+    pub mailer: Arc<dyn Mailer>,
     /// Transactional email renderer with embedded localized catalog
-    pub email_renderer: cms_biz::email::EmailRenderer,
+    pub email_renderer: EmailRenderer,
     /// Generation counter used to invalidate cached host-to-project resolutions
     pub host_resolution_generation: Arc<AtomicU64>,
     /// Trusted proxy CIDRs for X-Forwarded-For validation
@@ -88,18 +117,17 @@ impl AppState {
         Self::validate_config(config)?;
         let pool = cms_db::create_pool(&config.database.url).await?;
         cms_db::run_migrations(&pool).await?;
-        let storage_box = cms_storage::create_storage(&config.storage).await?;
+        let storage_box = cms_infra::storage::create_storage(&config.storage).await?;
         let storage: Arc<dyn Storage> = Arc::from(storage_box);
-        let job_queue = cms_queue::create_job_queue_with_pool(&config.queue, pool.clone()).await?;
-        let search_engine = cms_search::create_search_engine(&config.search)?;
+        let job_queue = cms_infra::queue::create_job_queue_with_pool(&config.queue, pool.clone()).await?;
+        let search_engine = cms_infra::search::create_search_engine(&config.search)?;
         let authz = Arc::new(cms_authz::AuthzState::new(
             pool.clone(),
             config.auth.system_admin_emails.clone(),
         ));
         let biz_context = BizContext::new(pool, authz);
-        let mailer = cms_biz::email::create_mailer(config.mailer.as_ref())?;
-        let email_renderer =
-            cms_biz::email::EmailRenderer::embedded().map_err(AppError::internal)?;
+        let mailer = cms_infra::mailer::create_mailer(config.mailer.as_ref())?;
+        let email_renderer = EmailRenderer::embedded().map_err(AppError::internal)?;
         let trusted_proxies = Arc::new(Self::load_trusted_proxies_from_env());
         let sliding_rate_limiter = Arc::new(SlidingRateLimiter::new());
 
@@ -123,7 +151,7 @@ impl AppState {
         biz_context: BizContext,
         storage: Arc<dyn Storage>,
         job_queue: Arc<dyn JobQueue>,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
+        search_engine: Arc<dyn SearchEngine>,
     ) -> Result<Self, AppError> {
         Self::new_with_mailer(
             config,
@@ -131,7 +159,7 @@ impl AppState {
             storage,
             job_queue,
             search_engine,
-            Arc::new(cms_biz::email::UnconfiguredMailer),
+            Arc::new(cms_infra::mailer::UnconfiguredMailer),
         )
     }
 
@@ -141,11 +169,11 @@ impl AppState {
         biz_context: BizContext,
         storage: Arc<dyn Storage>,
         job_queue: Arc<dyn JobQueue>,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
-        mailer: Arc<dyn cms_biz::email::Mailer>,
+        search_engine: Arc<dyn SearchEngine>,
+        mailer: Arc<dyn Mailer>,
     ) -> Result<Self, AppError> {
         let email_renderer =
-            cms_biz::email::EmailRenderer::embedded().map_err(AppError::internal)?;
+            EmailRenderer::embedded().map_err(AppError::internal)?;
         Ok(Self::new_with_mailer_and_renderer(
             config,
             biz_context,
@@ -163,9 +191,9 @@ impl AppState {
         biz_context: BizContext,
         storage: Arc<dyn Storage>,
         job_queue: Arc<dyn JobQueue>,
-        search_engine: Arc<dyn cms_search::SearchEngine>,
-        mailer: Arc<dyn cms_biz::email::Mailer>,
-        email_renderer: cms_biz::email::EmailRenderer,
+        search_engine: Arc<dyn SearchEngine>,
+        mailer: Arc<dyn Mailer>,
+        email_renderer: EmailRenderer,
     ) -> Self {
         let trusted_proxies = Arc::new(Self::load_trusted_proxies_from_env());
         let sliding_rate_limiter = Arc::new(SlidingRateLimiter::new());

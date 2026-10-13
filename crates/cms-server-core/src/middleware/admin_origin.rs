@@ -208,8 +208,8 @@ impl AdminOriginExtractor {
     }
 }
 
-impl From<&cms_config::AdminOriginConfig> for AdminOriginConfig {
-    fn from(config: &cms_config::AdminOriginConfig) -> Self {
+impl From<&cms_infra::config::AdminOriginConfig> for AdminOriginConfig {
+    fn from(config: &cms_infra::config::AdminOriginConfig) -> Self {
         let mut origins = HashSet::new();
         for origin in &config.allowed_origins {
             if let Ok(normalized) = normalize_origin(origin) {
@@ -226,8 +226,8 @@ impl From<&cms_config::AdminOriginConfig> for AdminOriginConfig {
     }
 }
 
-impl From<cms_config::AdminOriginConfig> for AdminOriginConfig {
-    fn from(config: cms_config::AdminOriginConfig) -> Self {
+impl From<cms_infra::config::AdminOriginConfig> for AdminOriginConfig {
+    fn from(config: cms_infra::config::AdminOriginConfig) -> Self {
         Self::from(&config)
     }
 }

@@ -8,20 +8,12 @@ description = "Shared server foundation and enterprise middleware for CMS"
 [dependencies]
 # Internal crates
 cms-error = { path = "../cms-error" }
-cms-config = { path = "../cms-config" }
+cms-infra = { path = "../cms-infra" }
 cms-entity = { path = "../cms-entity" }
-cms-biz = { path = "../cms-biz" }
 cms-db = { path = "../cms-db" }
-cms-storage = { path = "../cms-storage" }
-cms-queue = { path = "../cms-queue" }
-cms-search = { path = "../cms-search" }
-cms-analytics = { path = "../cms-analytics" }
-cms-mailer = { path = "../cms-mailer" }
-cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
 cms-authz-gate = { path = "../cms-authz-gate" }
 cms-api-keys = { path = "../cms-api-keys" }
-cms-i18n = { path = "../cms-i18n" }
 
 # External dependencies
 axum = { workspace = true }
@@ -44,6 +36,7 @@ sqlx = { workspace = true }
 governor = { workspace = true }
 parking_lot = { workspace = true }
 async-trait = { workspace = true }
+validator = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
