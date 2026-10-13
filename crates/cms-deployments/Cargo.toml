@@ -10,11 +10,10 @@ cms-db = { path = "../cms-db" }
 cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
-cms-storage = { path = "../cms-storage" }
+cms-infra = { path = "../cms-infra" }
 cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
 cms-authz-gate = { path = "../cms-authz-gate" }
-cms-queue = { path = "../cms-queue" }
 
 axum = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

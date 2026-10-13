@@ -183,7 +183,7 @@ impl ReaderJwtService {
 
 #[cfg(test)]
 mod tests {
-    use cms_config::AuthConfig;
+    use cms_infra::config::AuthConfig;
 
     use super::*;
 
@@ -203,7 +203,7 @@ mod tests {
 
         // We need a PgPool but for tests we can use a dummy one
         // In real usage, this would be a real connection pool
-        let pool = cms_db::PgPool::connect_lazy("postgres://user:pass@localhost/db")
+        let pool = PgPool::connect_lazy("postgres://user:pass@localhost/db")
             .expect("Failed to create test pool");
 
         AuthService::new(config, pool)

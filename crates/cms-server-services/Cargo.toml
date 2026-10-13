@@ -11,9 +11,8 @@ cms-error = { path = "../cms-error" }
 cms-entity = { path = "../cms-entity" }
 cms-db = { path = "../cms-db" }
 cms-server-core = { path = "../cms-server-core" }
-cms-storage = { path = "../cms-storage" }
+cms-infra = { path = "../cms-infra" }
 cms-outbox = { path = "../cms-outbox" }
-cms-queue = { path = "../cms-queue" }
 
 # External dependencies
 tokio = { workspace = true, features = ["full"] }

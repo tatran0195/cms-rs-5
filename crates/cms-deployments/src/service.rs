@@ -19,7 +19,7 @@ use cms_entity::{
     domain::{CreateDomainRequest, DomainResponse, UpdateDomainRequest},
 };
 use cms_error::AppError;
-use cms_storage::Storage;
+use cms_infra::storage::Storage;
 
 /// Deployment service providing core orchestration for project deployments.
 #[derive(Debug)]
@@ -59,7 +59,7 @@ impl DeploymentService {
     /// Create a publish record and durably enqueue its render job.
     pub async fn create_publish_deployment(
         pool: &PgPool,
-        job_queue: &dyn cms_queue::JobQueue,
+        job_queue: &dyn cms_infra::queue::JobQueue,
         queue_backend: &str,
         project_id: &str,
         branch_id: &str,
@@ -109,8 +109,8 @@ impl DeploymentService {
             "actor_user_id".to_string(),
             serde_json::Value::String(user_id.to_string()),
         );
-        let job = cms_queue::JobEnvelope::new(
-            cms_queue::JobType::Publish,
+        let job = cms_infra::queue::JobEnvelope::new(
+            cms_infra::queue::JobType::Publish,
             serde_json::Value::Object(payload),
         );
         if let Err(error) = job_queue.enqueue(job).await {

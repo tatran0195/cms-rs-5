@@ -7,7 +7,7 @@ use chrono::Utc;
 use cms_db::{page::PageQueries, project::ProjectQueries};
 use cms_entity::common::PaginatedResponse;
 use cms_error::AppError;
-use cms_storage::Storage;
+use cms_infra::storage::Storage;
 use sqlx::PgPool;
 
 use crate::{

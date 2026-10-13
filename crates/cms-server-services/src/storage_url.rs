@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cms_error::AppError;
-use cms_storage::{DownloadTarget, Storage, UploadTarget};
+use cms_infra::storage::{DownloadTarget, Storage, UploadTarget};
 
 /// Cross-domain storage and URL resolution service.
 #[derive(Clone)]

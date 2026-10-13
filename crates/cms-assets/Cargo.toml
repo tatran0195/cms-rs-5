@@ -11,7 +11,7 @@ cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
 cms-server-services = { path = "../cms-server-services" }
-cms-storage = { path = "../cms-storage" }
+cms-infra = { path = "../cms-infra" }
 cms-auth = { path = "../cms-auth" }
 
 axum = { workspace = true, features = ["multipart"] }

@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 pub use app_state::WorkerState;
 use cms_error::AppError;
-use cms_queue::JobQueue;
+use cms_infra::queue::JobQueue;
 use tracing::{debug, error, info};
 
 /// Start job consumers
@@ -113,17 +113,17 @@ pub async fn run_consumer(
 
 /// Process a single job
 pub async fn process_job(
-    job: &cms_queue::JobEnvelope,
+    job: &cms_infra::queue::JobEnvelope,
     state: Arc<WorkerState>,
 ) -> Result<(), AppError> {
-    use cms_queue::JobType;
+    use cms_infra::queue::JobType;
 
     match job.job_type {
         JobType::Analytics => {
-            cms_analytics::process_analytics_job(&state.db, &job.payload).await
+            cms_infra::analytics::process_analytics_job(&state.db, &job.payload).await
         }
         JobType::Email => {
-            cms_biz::email::process_email_job_with_renderer(
+            cms_infra::mailer::process_email_job_with_renderer(
                 state.mailer.clone(),
                 &state.email_renderer,
                 &job.payload,
@@ -131,10 +131,10 @@ pub async fn process_job(
             .await
         }
         JobType::Export => {
-            cms_biz::export::process_export_job(&state.db, state.storage.clone(), &job.payload)
+            cms_reports::process_export_job(&state.db, state.storage.clone(), &job.payload)
                 .await
         }
-        JobType::Git => cms_biz::git::process_git_job(&state.db, &job.payload).await,
+        JobType::Git => cms_git::process_git_job(&state.db, &job.payload).await,
         JobType::Publish => {
             cms_deployments::process_deployment_job(
                 &state.db,
@@ -144,11 +144,11 @@ pub async fn process_job(
             .await
         }
         JobType::Search => {
-            cms_search::process_search_job(&state.db, state.search.clone(), &job.payload).await
+            cms_infra::search::process_search_job(&state.db, state.search.clone(), &job.payload).await
         }
         JobType::Usage => Ok(()),
         JobType::Reaper => {
-            cms_biz::queue::process_reaper_job(&state.db, state.job_queue.clone(), &job.payload)
+            cms_infra::queue::process_reaper_job(&state.db, state.job_queue.clone(), &job.payload)
                 .await
         }
     }
@@ -158,14 +158,17 @@ pub async fn process_job(
 pub mod app_state {
     use std::sync::Arc;
 
-    use cms_analytics::AnalyticsStore;
-    use cms_biz::email::Mailer;
-    use cms_config::Config;
     use cms_db::PgPool;
     use cms_error::AppError;
-    use cms_queue::JobQueue;
-    use cms_search::SearchEngine;
-    use cms_storage::Storage;
+    use cms_infra::analytics::{create_analytics_store, AnalyticsStore};
+    use cms_infra::config::Config;
+    pub use cms_infra::mailer::{
+        create_mailer_with_noop_fallback as create_mailer, Email, EmailRenderer, Mailer,
+        NoopMailer, SmtpMailer,
+    };
+    use cms_infra::queue::JobQueue;
+    use cms_infra::search::{create_search_engine, SearchEngine};
+    use cms_infra::storage::{create_storage, Storage};
 
     #[derive(Clone)]
     pub struct WorkerState {
@@ -177,6 +180,14 @@ pub mod app_state {
         pub mailer: Arc<dyn Mailer>,
         pub email_renderer: EmailRenderer,
         pub job_queue: Arc<dyn JobQueue>,
+    }
+
+    impl std::fmt::Debug for WorkerState {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("WorkerState")
+                .field("config", &self.config)
+                .finish_non_exhaustive()
+        }
     }
 
     impl WorkerState {
@@ -191,11 +202,11 @@ pub mod app_state {
             db: PgPool,
         ) -> Result<Self, AppError> {
             let storage: Arc<dyn Storage> =
-                cms_storage::create_storage(&config.storage).await?.into();
-            let search = cms_search::create_search_engine(&config.search)?;
+                create_storage(&config.storage).await?.into();
+            let search = create_search_engine(&config.search)?;
             let analytics =
-                cms_analytics::create_analytics_store(&config.analytics, db.clone()).await?;
-            let mailer = cms_biz::email::create_mailer(config.mailer.as_ref())?;
+                create_analytics_store(&config.analytics, db.clone()).await?;
+            let mailer = create_mailer(config.mailer.as_ref())?;
             let email_renderer =
                 EmailRenderer::embedded().map_err(AppError::internal)?;
 
@@ -214,9 +225,9 @@ pub mod app_state {
         /// Build a worker over the API server's shared pools and adapters so
         /// single-binary deployments execute jobs rather than marking them done.
         pub async fn from_app_state(
-            app: &cms_middleware::app_state::AppState,
+            app: &cms_server_core::app_state::AppState,
         ) -> Result<Self, AppError> {
-            let analytics = cms_analytics::create_analytics_store(
+            let analytics = create_analytics_store(
                 &app.config.analytics,
                 app.biz_context.pool.clone(),
             )
@@ -233,18 +244,12 @@ pub mod app_state {
             })
         }
     }
-
-    // Mailer implementation re-exported from cms-mailer
-    pub use cms_mailer::{
-        create_mailer_with_noop_fallback as create_mailer, Email, EmailRenderer, NoopMailer,
-        SmtpMailer,
-    };
 }
 
 #[cfg(test)]
 mod tests {
-    use cms_biz::email::Mailer;
-    use cms_config::MailerConfig;
+    use cms_infra::config::MailerConfig;
+    use cms_infra::mailer::Mailer;
 
     use crate::app_state::*;
 

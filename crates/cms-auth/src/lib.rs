@@ -12,10 +12,15 @@
 pub mod api_key;
 pub mod claims;
 pub mod cookies;
+pub mod handlers;
 pub mod jwt;
 pub mod lockout;
+pub mod middleware;
 pub mod oauth;
+pub mod oauth_routes;
 pub mod password;
+pub mod router;
+pub mod service;
 pub mod session;
 
 pub use claims::{Claims, decode_jwt, encode_jwt};
@@ -23,6 +28,12 @@ pub use cookies::{
     build_access_cookie, build_csrf_cookie, build_refresh_cookie, clear_access_cookie,
     clear_csrf_cookie, clear_refresh_cookie, generate_csrf_token, parse_cookie_value,
 };
+pub use middleware::{
+    AuthExtractor, AuthMethod, AuthRejection, OptionalAuthExtractor, RequireAuthMiddleware,
+    RequireRoleMiddleware, RoleRejection,
+};
+pub use router::router;
+pub use service::{AuthExtensionsService, AuthService as DomainAuthService};
 pub use lockout::{
     is_account_locked, record_failed_login, reset_failed_logins, LOCKOUT_MINUTES,
     MAX_FAILED_LOGINS,
@@ -40,7 +51,7 @@ use axum::{
 };
 use axum_extra::extract::CookieJar;
 use chrono::Utc;
-use cms_config::AuthConfig;
+use cms_infra::config::AuthConfig;
 use cms_db::{auth::ApiKeyQueries, PgPool};
 use cms_error::AppError;
 use jsonwebtoken::{DecodingKey, EncodingKey, Validation};

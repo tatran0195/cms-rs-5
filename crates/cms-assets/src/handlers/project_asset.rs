@@ -11,7 +11,7 @@ use cms_db::project::ProjectQueries;
 use cms_entity::common::ApiResponse;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
-use cms_storage::UploadTarget;
+use cms_infra::storage::UploadTarget;
 
 use crate::{
     handlers::auth::AssetUser,
