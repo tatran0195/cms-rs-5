@@ -8,12 +8,12 @@ use axum::{
 };
 use cms_server_core::app_state::AppState;
 
-pub mod auth;
 pub mod handlers;
+pub mod queries;
 pub mod service;
 
-pub use auth::{ThemeAuth, ThemeUser};
 pub use handlers::*;
+pub use queries::*;
 pub use service::ThemeService;
 
 /// Constructs the Axum router for theme operations.

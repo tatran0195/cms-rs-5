@@ -3,10 +3,12 @@
 //! Domain service for theme management.
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
-use cms_db::{PgPool, theme::ThemeQueries};
+use cms_db::PgPool;
 use cms_projects::ProjectQueries;
 use cms_entity::theme::{CreateThemeRequest, ThemeCssVariables, ThemeResponse, UpdateThemeRequest};
 use cms_error::AppError;
+
+use crate::queries::ThemeQueries;
 
 /// Theme service
 #[derive(Debug)]

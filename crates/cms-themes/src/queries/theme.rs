@@ -80,9 +80,9 @@ impl ThemeQueries {
         .bind(theme_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     /// Get themes by project
@@ -98,9 +98,9 @@ impl ThemeQueries {
         .bind(project_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// Create a new theme
@@ -132,7 +132,7 @@ impl ThemeQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -185,7 +185,7 @@ impl ThemeQueries {
             .build_query_as::<ThemeRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -196,7 +196,7 @@ impl ThemeQueries {
             .bind(theme_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }

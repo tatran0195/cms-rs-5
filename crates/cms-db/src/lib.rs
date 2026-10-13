@@ -22,7 +22,6 @@ pub mod platform_event;
 pub mod pool;
 pub mod search_index;
 pub mod setup;
-pub mod theme;
 pub use pool::{create_pool, create_pool_with_config, health_check, PgPool, PoolConfig};
 pub mod context;
 pub use context::{
