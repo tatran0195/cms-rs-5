@@ -40,9 +40,9 @@ We evolve the architecture from a layered monolith to a **Modular Monolith compo
 
 3. **Shared Foundation & Infrastructure Layer**:
    - `cms-entity`: Pure shared domain types and DTOs with zero internal dependencies.
-   - `cms-db`: PostgreSQL repositories, migrations, connection pool, and RLS write context.
+   - `cms-db`: Exclusively PostgreSQL infrastructure primitives: migrations, connection pool, transaction context & RLS write attribution (`set_write_context`, `set_read_context`), cryptographic hash-chained audit logging (`AuditLogger`), and atomic sequential ID generation (`next_sequence`). Domain-specific queries are permanently relocated to their respective sovereign vertical slices.
    - `cms-server-core`: Zero-route server foundation (pagination, validation, tracing, unified `AppState`, enterprise middleware suite).
-   - `cms-server-services`: Cross-domain services (audit hash-chain logging, storage URL resolution, tenant context validation, outbox event dispatcher) breaking cyclic dependencies across vertical slices.
+   - `cms-auth`: Canonical authentication provider, sessions, credentials, and the unified `AuthUser` extractor used uniformly across all vertical slice route handlers. Per-slice duplicate auth extractors are forbidden and eliminated.
 
 4. **Composition Root (`apps/api`)**:
    - `apps/api` (package `cms-server`) acts as the single composition root.
@@ -52,6 +52,8 @@ We evolve the architecture from a layered monolith to a **Modular Monolith compo
 ## Consequences
 
 - High domain cohesion: All models, business logic, queries, and HTTP endpoints for a domain live together.
-- Low coupling: Domain crates depend on shared foundation crates (`cms-server-core`, `cms-server-services`, `cms-db`) rather than horizontally across each other.
+- Low coupling: Domain crates depend on shared foundation crates (`cms-server-core`, `cms-auth`, `cms-db`) rather than horizontally across each other.
+- Sovereign queries: No backwards-compatibility shims (`pub use cms_db::...`) in domain crates or database crates.
+- Unified auth: All vertical slices extract caller identity via canonical `cms_auth::AuthUser`, ensuring consistent Zanzibar authorization context.
 - Fast incremental compilation: Editing one domain (such as `cms-git` or `cms-themes`) only recompiles that vertical slice and the composition root.
 - Clean integration testing: Integration tests in `apps/api/tests/` verify end-to-end HTTP behavior against the unified router.

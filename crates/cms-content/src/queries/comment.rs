@@ -122,7 +122,7 @@ impl CommentQueries {
         .bind(user_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.map(Into::into))
     }
@@ -133,7 +133,7 @@ impl CommentQueries {
             .bind(comment_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.map(Into::into))
     }
@@ -181,7 +181,7 @@ impl CommentQueries {
             .build_query_as::<CommentRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -231,7 +231,7 @@ impl CommentQueries {
             .build_query_as::<CommentRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -265,7 +265,7 @@ impl CommentQueries {
             .build()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?
+            .map_err(AppError::Database)?
             .get::<i64, _>(0);
 
         Ok(count)
@@ -301,7 +301,7 @@ impl CommentQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -353,7 +353,7 @@ impl CommentQueries {
             .build_query_as::<CommentRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -364,7 +364,7 @@ impl CommentQueries {
             .bind(comment_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -396,7 +396,7 @@ impl CommentQueries {
             .build_query_as::<CommentRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(rows.into_iter().map(Into::into).collect())
     }

@@ -154,12 +154,12 @@ Validation runs on `AppState::from_config`. Migrations run at startup.
 
 ## 11. Confirmed Conflicts & Architectural Problems
 
-| # | Area | Problem |
-|---|---|---|
-| 1 | Auth middleware | `Uuid::parse_str(...).unwrap_or_else(nil)` -- silent nil UUID |
-| 2 | Auth middleware | `is_bypass` granted to `owner` + `admin` (too broad) |
-| 3 | Auth extractors | 7+ independently duplicated auth extractors per vertical slice |
-| 4 | `cms-db` | `DomainQueries` defined in both `domain.rs` and `deployment.rs` |
-| 5 | Login handler | `let _ = SessionQueries::create(...)` -- session failure silently ignored |
-| 6 | `cms-db` lib | `#![allow(clippy::unnecessary_unwrap)]` masks real defects |
-| 7 | Compile | `axum::http::HeaderValue` unnecessary qualification (FIXED) |
+| # | Area | Problem | Status |
+|---|---|---|---|
+| 1 | Auth middleware | `Uuid::parse_str(...).unwrap_or_else(nil)` -- silent nil UUID | Open |
+| 2 | Auth middleware | `is_bypass` granted to `owner` + `admin` (too broad) | Open |
+| 3 | Auth extractors | 7+ independently duplicated auth extractors per vertical slice | **RESOLVED** (Migrated to canonical `cms_auth::AuthUser`) |
+| 4 | `cms-db` | `DomainQueries` defined in both `domain.rs` and `deployment.rs` | **RESOLVED** (Relocated to sovereign `cms-projects::DomainQueries`) |
+| 5 | Login handler | `let _ = SessionQueries::create(...)` -- session failure silently ignored | Open |
+| 6 | `cms-db` lib | `#![allow(clippy::unnecessary_unwrap)]` masks real defects | Open |
+| 7 | Compile | `axum::http::HeaderValue` unnecessary qualification | **RESOLVED** |

@@ -63,7 +63,7 @@ impl BranchQueries {
             .bind(branch_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.map(Into::into))
     }
@@ -104,7 +104,7 @@ impl BranchQueries {
             .build_query_as::<BranchRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -117,7 +117,7 @@ impl BranchQueries {
         .bind(project_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.map(Into::into))
     }
@@ -135,7 +135,7 @@ impl BranchQueries {
         .bind(name)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.map(Into::into))
     }
@@ -175,7 +175,7 @@ impl BranchQueries {
                 .bind(project_id)
                 .execute(pool)
                 .await
-                .map_err(|e| AppError::Database(e))?;
+                .map_err(AppError::Database)?;
         }
 
         let row = sqlx::query_as::<_, BranchRow>(
@@ -286,7 +286,7 @@ impl BranchQueries {
             .build_query_as::<BranchRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -299,7 +299,7 @@ impl BranchQueries {
                 .bind(branch_id)
                 .fetch_one(pool)
                 .await
-                .map_err(|e| AppError::Database(e))?;
+                .map_err(AppError::Database)?;
 
         if page_count > 0 {
             return Err(AppError::Conflict(
@@ -311,7 +311,7 @@ impl BranchQueries {
             .bind(branch_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -338,7 +338,7 @@ impl BranchQueries {
             .build()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?
+            .map_err(AppError::Database)?
             .get::<i64, _>("count");
 
         Ok(count)
@@ -366,7 +366,7 @@ impl BranchQueries {
             .build()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?
+            .map_err(AppError::Database)?
             .get::<i64, _>("count");
 
         Ok(count == 0)
@@ -407,7 +407,7 @@ impl BranchQueries {
         .bind(project_id)
         .execute(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         // Then set the new default
         let row = sqlx::query_as::<_, BranchRow>(
@@ -417,7 +417,7 @@ impl BranchQueries {
         .bind(branch_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }

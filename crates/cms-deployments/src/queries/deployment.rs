@@ -182,9 +182,9 @@ impl DeploymentQueries {
             .bind(deployment_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     /// Get deployments by project
@@ -214,9 +214,9 @@ impl DeploymentQueries {
             .build_query_as::<DeploymentRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// Count successfully active deployments for one project branch. Pending,
@@ -234,7 +234,7 @@ impl DeploymentQueries {
         .bind(DeploymentStatus::Active)
         .fetch_one(pool)
         .await
-        .map_err(|error| AppError::Database(error.into()))?;
+        .map_err(AppError::Database)?;
         Ok(count)
     }
 
@@ -391,7 +391,7 @@ impl DeploymentQueries {
         .bind(now)
         .execute(&mut *tx)
         .await
-        .map_err(|error| AppError::Database(error.into()))?;
+        .map_err(AppError::Database)?;
         sqlx::query(
             r#"INSERT INTO "DeploymentSnapshotPageIndex"
                (deployment_id, project_id, branch_id, page_id, language_id, path, kind,
@@ -714,7 +714,7 @@ impl DeploymentQueries {
                 .bind(project_id)
                 .fetch_one(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
 
         Ok(count)
     }
@@ -749,7 +749,7 @@ impl DeploymentQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -862,7 +862,7 @@ impl DeploymentQueries {
             .build_query_as::<DeploymentRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -881,7 +881,7 @@ impl DeploymentQueries {
         .bind(deployment_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -902,7 +902,7 @@ impl DeploymentQueries {
         .bind(deployment_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -922,7 +922,7 @@ impl DeploymentQueries {
         .bind(deployment_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -941,7 +941,7 @@ impl DeploymentQueries {
         .bind(deployment_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -952,7 +952,7 @@ impl DeploymentQueries {
             .bind(deployment_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -970,9 +970,9 @@ impl DeploymentQueries {
         .bind(DeploymentStatus::Active)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 }
 

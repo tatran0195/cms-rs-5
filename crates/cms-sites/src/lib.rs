@@ -7,6 +7,15 @@
 //! This replaces the functionality in `apps/app/src/server.ts` from the original
 //! TypeScript monorepo.
 
+#![allow(
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::clone_on_ref_ptr
+)]
+
 use std::sync::Arc;
 
 use axum::Router;

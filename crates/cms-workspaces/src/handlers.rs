@@ -126,7 +126,7 @@ pub async fn update_workspace_settings_handler(
     .bind(body.description.as_deref())
     .execute(state.db())
     .await
-    .map_err(|e| AppError::Database(e.into()))?;
+    .map_err(AppError::Database)?;
 
     get_workspace_settings_handler(State(state), auth).await
 }
@@ -305,7 +305,7 @@ pub async fn invite_workspace_member_handler(
     .bind(now)
     .execute(state.db())
     .await
-    .map_err(|e| AppError::Database(e.into()))?;
+    .map_err(AppError::Database)?;
 
     // Attempt delivering invitation email if mailer is configured
     let base_url = format!(
@@ -410,7 +410,7 @@ pub async fn update_workspace_member_role_handler(
         .bind(&id)
         .execute(state.db())
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     Ok(Json(ApiResponse::new(WorkspaceMutationResponse {
         success: true,
@@ -472,7 +472,7 @@ pub async fn remove_workspace_member_handler(
         .bind(&id)
         .execute(state.db())
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     Ok(Json(ApiResponse::new(WorkspaceMutationResponse {
         success: true,
@@ -494,7 +494,7 @@ pub async fn cancel_workspace_invitation_handler(
     .bind(&id)
     .execute(state.db())
     .await
-    .map_err(|e| AppError::Database(e.into()))?;
+    .map_err(AppError::Database)?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound("Invitation not found".to_string()));
@@ -535,7 +535,7 @@ pub async fn transfer_workspace_ownership_handler(
         .bind(&target_member_id)
         .execute(state.db())
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     Ok(Json(ApiResponse::new(WorkspaceMutationResponse {
         success: true,
@@ -554,13 +554,13 @@ pub async fn delete_workspace_handler(
     sqlx::query(r#"DELETE FROM "Project""#)
         .execute(state.db())
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     // Also clear pending invitations
     sqlx::query(r#"DELETE FROM "WorkspaceInvitation""#)
         .execute(state.db())
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     Ok(Json(ApiResponse::new(WorkspaceMutationResponse {
         success: true,

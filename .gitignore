@@ -165,3 +165,6 @@ infra/.env.bak.*
 
 # Downloaded AI model cache
 crates/cms-api/data/models/
+
+# Generated SDK artifacts (ts-rs exports)
+packages/sdk/

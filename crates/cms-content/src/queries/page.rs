@@ -3,6 +3,8 @@
 //! This module contains all database queries related to pages,
 //! including the page tree structure with parent/child relationships.
 
+#![allow(clippy::too_many_arguments)]
+
 use chrono::{DateTime, Utc};
 use cms_entity::page::{Page, PageListItem, PageTreeNode};
 use cms_error::AppError;
@@ -179,7 +181,7 @@ impl PageQueries {
         .bind(branch_id)
         .fetch_all(pool)
         .await
-        .map_err(|error| AppError::Database(error))?;
+        .map_err(AppError::Database)?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
@@ -189,7 +191,7 @@ impl PageQueries {
             .bind(page_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.map(Into::into))
     }
@@ -200,7 +202,7 @@ impl PageQueries {
             .bind(page_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
         Ok(path)
     }
 
@@ -312,7 +314,7 @@ impl PageQueries {
         .bind(path)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.map(Into::into))
     }
@@ -406,7 +408,7 @@ impl PageQueries {
             .build_query_as::<PageListItemRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(rows.into_iter().map(PageListItem::from).collect())
     }
@@ -481,7 +483,7 @@ impl PageQueries {
             .build()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?
+            .map_err(AppError::Database)?
             .get::<i64, _>("count");
 
         Ok(count)
@@ -514,7 +516,7 @@ impl PageQueries {
             .build_query_as::<PageTreeRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         // Build the tree structure from flat rows
         let nodes: Vec<PageTreeNode> = rows
@@ -1495,7 +1497,7 @@ impl PageQueries {
         let mut transaction = pool
             .begin()
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         for (index, page_id) in page_ids.iter().enumerate() {
             let position = index as i32;
@@ -1506,13 +1508,13 @@ impl PageQueries {
                 .bind(page_id)
                 .execute(&mut *transaction)
                 .await
-                .map_err(|e| AppError::Database(e))?;
+                .map_err(AppError::Database)?;
         }
 
         transaction
             .commit()
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         // Return the reordered pages
         let pages = sqlx::query_as::<_, PageRow>(
@@ -1521,7 +1523,7 @@ impl PageQueries {
         .bind(page_ids)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
         Ok(pages.into_iter().map(Into::into).collect())
     }
@@ -1591,7 +1593,7 @@ impl PageQueries {
             .build()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?
+            .map_err(AppError::Database)?
             .get::<i64, _>(0);
 
         Ok(count == 0)
@@ -1628,7 +1630,7 @@ impl PageQueries {
                     .bind(&current_id)
                     .fetch_one(pool)
                     .await
-                    .map_err(|e| AppError::Database(e))?;
+                    .map_err(AppError::Database)?;
 
             if let Some(parent) = parent_id {
                 current_id = parent;
@@ -1676,7 +1678,7 @@ impl PageQueries {
             .build_query_scalar()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
 
         Ok(count.unwrap_or(0))
     }
@@ -1725,7 +1727,7 @@ impl PageQueries {
         .bind(page_ids)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
@@ -1739,7 +1741,7 @@ impl PageQueries {
         .bind(page_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
         Ok(row.into())
     }
 
@@ -1759,7 +1761,7 @@ impl PageQueries {
         .bind(parent_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
@@ -1769,7 +1771,7 @@ impl PageQueries {
             .bind(branch_id)
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e))?;
+            .map_err(AppError::Database)?;
         Ok(row.get::<i64, _>("count"))
     }
 
@@ -1781,7 +1783,7 @@ impl PageQueries {
         .bind(project_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 }
