@@ -160,12 +160,6 @@ pub async fn get_platform_event_handler(
 pub async fn get_health_handler(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<cms_entity::common::SystemHealthResponse>, AppError> {
-    let health_val = PlatformEventService::get_system_health(state.db()).await?;
-    let health: cms_entity::common::SystemHealthResponse = serde_json::from_value(health_val)
-        .map_err(|e| {
-            AppError::Internal(anyhow::anyhow!(
-                "Failed to deserialize system health response: {e}"
-            ))
-        })?;
+    let health = PlatformEventService::get_system_health(state.db()).await?;
     Ok(Json(health))
 }

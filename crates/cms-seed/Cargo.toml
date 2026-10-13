@@ -13,7 +13,7 @@ cms-db = { workspace = true }
 cms-entity = { workspace = true }
 cms-error = { workspace = true }
 
-argon2 = { workspace = true }
+cms-auth = { workspace = true }
 anyhow = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }

@@ -129,7 +129,7 @@ impl PlatformEventService {
     }
 
     /// Get system health
-    pub async fn get_system_health(pool: &PgPool) -> Result<serde_json::Value, AppError> {
+    pub async fn get_system_health(pool: &PgPool) -> Result<cms_entity::common::SystemHealthResponse, AppError> {
         let start = std::time::Instant::now();
         let db_status = match sqlx::query("SELECT 1").execute(pool).await {
             Ok(_) => "connected",
@@ -145,11 +145,11 @@ impl PlatformEventService {
             "degraded"
         };
 
-        Ok(serde_json::json!({
-            "status": status,
-            "database": db_status,
-            "database_latency_ms": latency_ms,
-            "timestamp": Utc::now().to_rfc3339()
-        }))
+        Ok(cms_entity::common::SystemHealthResponse {
+            status: status.to_string(),
+            database: db_status.to_string(),
+            database_latency_ms: latency_ms,
+            timestamp: Utc::now().to_rfc3339(),
+        })
     }
 }

@@ -1,8 +1,5 @@
-use argon2::{
-    password_hash::{phc::PasswordHash, PasswordHasher, PasswordVerifier},
-    Argon2,
-};
 use chrono::Utc;
+use cms_auth::password;
 use cms_error::AppError;
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
@@ -18,24 +15,14 @@ pub fn deterministic_uuid(name: &str) -> Uuid {
     Uuid::new_v5(&CMS_SEED_NAMESPACE, name.as_bytes())
 }
 
-/// Hash a password using Argon2id.
+/// Hash a password using Argon2id via cms-auth.
 pub fn hash_password(password: &str) -> Result<String, AppError> {
-    let argon2 = Argon2::default();
-    let hash = argon2
-        .hash_password(password.as_bytes())
-        .map_err(|e| AppError::Internal(anyhow::anyhow!("Password hashing failed: {e}")))?;
-    Ok(hash.to_string())
+    password::hash_password(password)
 }
 
-/// Verify a password against an Argon2 hash string.
-pub fn verify_password(hash: &str, password: &str) -> bool {
-    if let Ok(parsed_hash) = PasswordHash::new(hash) {
-        Argon2::default()
-            .verify_password(password.as_bytes(), &parsed_hash)
-            .is_ok()
-    } else {
-        false
-    }
+/// Verify a password against an Argon2 hash string via cms-auth.
+pub fn verify_password(hash: &str, candidate_password: &str) -> bool {
+    password::verify_password(candidate_password, hash).unwrap_or(false)
 }
 
 /// Specification for a seeded user account.
