@@ -43,6 +43,46 @@ impl AuthExtractor {
     }
 }
 
+/// Canonical authenticated user extractor for all vertical slices.
+#[derive(Debug, Clone)]
+pub struct AuthUser {
+    pub id: uuid::Uuid,
+    pub role: String,
+    pub claims: crate::Claims,
+    pub user: UserResponse,
+    pub auth_method: AuthMethod,
+}
+
+impl AuthUser {
+    /// Return the Zanzibar authorization context for this caller.
+    pub fn authz_context(&self) -> cms_authz::AuthzContext {
+        let is_bypass = self.claims.role == "super_admin";
+        cms_authz::AuthzContext::new(self.id, self.role.clone(), is_bypass)
+    }
+
+    pub fn user_uuid(&self) -> uuid::Uuid {
+        self.id
+    }
+}
+
+impl<S> FromRequestParts<S> for AuthUser
+where
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let auth = AuthExtractor::from_request_parts(parts, state).await?;
+        Ok(Self {
+            id: auth.claims.sub,
+            role: auth.claims.role.clone(),
+            claims: auth.claims,
+            user: auth.user,
+            auth_method: auth.auth_method,
+        })
+    }
+}
+
 /// Authentication method used
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AuthMethod {

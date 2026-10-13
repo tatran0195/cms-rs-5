@@ -28,7 +28,7 @@ pub use cookies::{
     clear_csrf_cookie, clear_refresh_cookie, generate_csrf_token, parse_cookie_value,
 };
 pub use middleware::{
-    AuthExtractor, AuthMethod, AuthRejection, OptionalAuthExtractor, RequireAuthMiddleware,
+    AuthExtractor, AuthMethod, AuthRejection, AuthUser, OptionalAuthExtractor, RequireAuthMiddleware,
     RequireRoleMiddleware, RoleRejection,
 };
 pub use router::router;

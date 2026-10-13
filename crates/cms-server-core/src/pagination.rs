@@ -113,3 +113,31 @@ impl<T> CursorPage<T> {
         }
     }
 }
+
+/// Paginated response wrapper for CMS REST APIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PaginatedResponse<T> {
+    pub data: Vec<T>,
+    pub total: u64,
+    pub page: u64,
+    pub page_size: u64,
+    pub total_pages: u64,
+}
+
+impl<T> PaginatedResponse<T> {
+    pub fn new(data: Vec<T>, total: u64, page: u64, page_size: u64) -> Self {
+        let total_pages = if page_size > 0 {
+            total.div_ceil(page_size)
+        } else {
+            0
+        };
+
+        Self {
+            data,
+            total,
+            page,
+            page_size,
+            total_pages,
+        }
+    }
+}
