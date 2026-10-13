@@ -17,7 +17,6 @@ pub mod validation;
 
 pub use app_state::AppState;
 pub use health::health_check_handler;
-pub use middleware::*;
 pub use pagination::{Cursor, CursorPage, PageMeta, Paginated, Pagination};
 pub use search::SearchEngine;
 pub use validation::ValidationErrors;

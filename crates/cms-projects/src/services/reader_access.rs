@@ -5,16 +5,14 @@ use cms_error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::{
-    models::{
-        Audience, JwtAccessProvider, ProjectAudienceItem, ProjectJwtProviderItem,
-        ProjectReaderAccessResponse, ProjectReaderEmergencyRevokeResponse,
-        ProjectReaderInvitationResponse, ProjectReaderItem, Reader,
-    },
-    queries::{
-        AudienceQueries, JwtAccessProviderQueries, ReaderAudienceQueries, ReaderInvitationQueries,
-        ReaderQueries,
-    },
+use cms_db::reader_access::{
+    AudienceQueries, JwtAccessProviderQueries, ReaderAudienceQueries, ReaderInvitationQueries,
+    ReaderQueries,
+};
+use cms_entity::reader_access::{
+    Audience, JwtAccessProvider, ProjectAudienceItem, ProjectJwtProviderItem,
+    ProjectReaderAccessResponse, ProjectReaderEmergencyRevokeResponse,
+    ProjectReaderInvitationResponse, ProjectReaderItem, Reader,
 };
 
 /// Reader access service

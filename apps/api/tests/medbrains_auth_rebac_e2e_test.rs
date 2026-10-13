@@ -179,17 +179,17 @@ fn test_e2e_mfa_totp_and_recovery_codes() {
 #[test]
 fn test_e2e_oauth_pkce_flow() {
     // Generate PKCE pair
-    let pkce = cms_auth::oauth_provider::generate_pkce();
+    let pkce = cms_auth::oauth::generate_pkce();
     assert!(!pkce.verifier.is_empty());
     assert!(!pkce.challenge.is_empty());
 
     // Generate secure state & nonce
-    let (state, nonce) = cms_auth::oauth_provider::generate_state_nonce();
+    let (state, nonce) = cms_auth::oauth::generate_state_nonce();
     assert!(!state.is_empty());
     assert!(!nonce.is_empty());
 
     // Provider catalog
-    let github_provider = cms_auth::oauth_provider::oauth_provider_spec("github")
+    let github_provider = cms_auth::oauth::oauth_provider_spec("github")
         .expect("github provider must be in catalog");
     assert_eq!(github_provider.code, "github");
     assert!(github_provider.auth_url.contains("github.com"));
@@ -205,15 +205,15 @@ fn test_e2e_oauth_pkce_flow() {
         redirect: "/app/dashboard".to_string(),
         nonce,
     };
-    let encoded = cms_auth::oauth_provider::encode_callback_state(&payload)
+    let encoded = cms_auth::oauth::encode_callback_state(&payload)
         .expect("encoding callback state should succeed");
-    let decoded: StatePayload = cms_auth::oauth_provider::decode_callback_state(&encoded)
+    let decoded: StatePayload = cms_auth::oauth::decode_callback_state(&encoded)
         .expect("decoding callback state should succeed");
     assert_eq!(decoded, payload);
 
     // Tampered state fails
     assert!(
-        cms_auth::oauth_provider::decode_callback_state::<StatePayload>("invalid.tampered.state")
+        cms_auth::oauth::decode_callback_state::<StatePayload>("invalid.tampered.state")
             .is_err()
     );
 }

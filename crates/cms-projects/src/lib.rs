@@ -25,8 +25,7 @@ pub use models::{
     WorkspaceMembersResponse,
 };
 pub use queries::{
-    DomainQueries, ProjectAddonQueries, ProjectMemberQueries, ProjectQueries,
-    ProjectSettingsQueries, normalize_hostname,
+    ProjectAddonQueries, ProjectMemberQueries, ProjectQueries, ProjectSettingsQueries,
 };
 pub use services::{DomainService, MemberService, ProjectService, ReaderAccessService};
 

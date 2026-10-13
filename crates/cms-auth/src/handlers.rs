@@ -728,7 +728,7 @@ pub async fn sign_in_social_handler(
                 .map(|g| {
                     // The OAuth `redirect_uri` must be the configured one (matched by the
                     // token exchange in the callback). The SPA deep-link rides in `state`.
-                    let state = super::oauth::encode_callback_state(body.callback_url.as_deref().unwrap_or("/"));
+                    let state = super::oauth::encode_callback_url(body.callback_url.as_deref().unwrap_or("/"));
                     format!(
                         "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=openid%20email%20profile&state={}",
                         g.client_id, g.redirect_uri, state
@@ -740,7 +740,7 @@ pub async fn sign_in_social_handler(
             oauth
                 .and_then(|o| o.github.as_ref())
                 .map(|g| {
-                    let state = super::oauth::encode_callback_state(body.callback_url.as_deref().unwrap_or("/"));
+                    let state = super::oauth::encode_callback_url(body.callback_url.as_deref().unwrap_or("/"));
                     format!(
                         "https://github.com/login/oauth/authorize?client_id={}&redirect_uri={}&scope=read:user%20user:email&state={}",
                         g.client_id, g.redirect_uri, state

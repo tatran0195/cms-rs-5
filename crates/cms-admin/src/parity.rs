@@ -214,7 +214,7 @@ async fn load_admin_users(
         .await?)
 }
 
-fn admin_user_json(user: AdminUserRow) -> Value {
+fn admin_user_json(user: &AdminUserRow) -> Value {
     json!({
         "id": user.id,
         "name": user.name,
@@ -238,7 +238,7 @@ pub async fn users_handler(
     require_admin(&state, &auth.user.id).await?;
     let users = load_admin_users(&state, None, 500).await?;
     Ok(Json(
-        json!({ "data": users.into_iter().map(admin_user_json).collect::<Vec<_>>() }),
+        json!({ "data": users.iter().map(admin_user_json).collect::<Vec<_>>() }),
     ))
 }
 
@@ -303,7 +303,7 @@ pub async fn user_handler(
     })
     .collect::<Vec<_>>();
 
-    let mut data = admin_user_json(user);
+    let mut data = admin_user_json(&user);
     data["workspaces"] = json!(memberships);
     data["activity"] = json!(activity);
     Ok(Json(json!({ "data": data })))

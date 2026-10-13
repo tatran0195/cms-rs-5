@@ -11,13 +11,16 @@ use cms_server_core::{
     middleware::admin_origin::{AdminOriginConfig, AdminOriginLayer},
 };
 
-use crate::{handlers::*, parity};
+use crate::{
+    handlers::{get_system_health_handler, get_system_metrics_handler, get_system_stats_handler},
+    parity,
+};
 
 /// Create the admin router
 pub fn router(state: Arc<AppState>) -> Router {
     let admin_origin_config = AdminOriginConfig::from(&state.config.admin_origin);
-    let admin_origin_layer =
-        AdminOriginLayer::new(admin_origin_config).expect("Invalid admin origin configuration");
+    let admin_origin_layer = AdminOriginLayer::new(admin_origin_config.clone())
+        .unwrap_or_else(|_| AdminOriginLayer::with_arc(Arc::new(admin_origin_config)));
 
     let mutation_routes = Router::new()
         .route("/users/{id}/role", post(parity::set_user_role_handler))

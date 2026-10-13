@@ -10,12 +10,10 @@ use cms_server_core::app_state::AppState;
 
 pub mod auth;
 pub mod handlers;
-pub mod queries;
 pub mod service;
 
 pub use auth::DeploymentUser;
 pub use handlers::*;
-pub use queries::{DeploymentQueries, DomainQueries};
 pub use service::{DeploymentService, process_deployment_job, process_publish_job};
 
 /// Constructs the Axum router for deployment operations.

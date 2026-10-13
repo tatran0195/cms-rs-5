@@ -22,16 +22,10 @@ pub mod domain;
 pub mod export;
 pub mod git;
 pub mod integration;
-pub mod invitation;
 pub mod language;
 pub mod mcp;
 pub mod notification;
 pub mod openapi;
-pub use invitation::{InvitationQueries, WorkspaceInvitationRow};
-pub mod onboarding;
-pub use onboarding::{EmailVerificationTokenRow, OnboardingQueries};
-pub mod report;
-pub use report::{ReportQueries, ReportRunRow};
 pub mod page;
 pub mod platform_event;
 pub mod pool;
@@ -47,8 +41,6 @@ pub use context::{
 };
 pub mod sequence;
 pub use sequence::next_sequence;
-pub mod tenant_context;
-pub use tenant_context::{TenantContext, TenantContextService};
 pub mod authz_queries;
 pub use authz_queries::{
     resolve_api_key_project, resolve_branch_project, resolve_deployment_project,

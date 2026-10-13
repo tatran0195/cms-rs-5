@@ -3,10 +3,9 @@
 use cms_error::AppError;
 use sqlx::PgPool;
 
-use crate::{
-    models::{Domain, SpaDomainResponse},
-    queries::DomainQueries,
-};
+use cms_db::domain::DomainQueries;
+
+use crate::models::{Domain, SpaDomainResponse};
 
 /// Domain service
 #[derive(Debug)]

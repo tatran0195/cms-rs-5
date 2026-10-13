@@ -8,14 +8,16 @@ use std::sync::Arc;
 use axum::{Router, routing::get};
 use cms_server_core::{
     app_state::AppState,
-    locale_scoping_middleware,
-    observability::{ObservabilityConfig, ObservabilityLayer, init_observability},
-    rate_limit::{
-        RateLimitClient, RateLimitConfig, RateLimitResult, RateLimiter,
-        rate_limit_exceeded_response,
-    },
-    security_headers::{
-        ReferrerPolicy, SecurityHeadersConfig, SecurityHeadersMiddleware, XFrameOptions,
+    middleware::{
+        locale::locale_scoping_middleware,
+        observability::{ObservabilityConfig, ObservabilityLayer, init_observability},
+        rate_limit::{
+            RateLimitClient, RateLimitConfig, RateLimitResult, RateLimiter,
+            rate_limit_exceeded_response,
+        },
+        security_headers::{
+            ReferrerPolicy, SecurityHeadersConfig, SecurityHeadersMiddleware, XFrameOptions,
+        },
     },
 };
 

@@ -29,7 +29,7 @@ fn internal(msg: String) -> AppError {
     AppError::Internal(anyhow::anyhow!(msg))
 }
 
-pub(crate) use crate::oauth::{b64url_encode, decode_callback_state};
+pub(crate) use crate::oauth::{b64url_encode, decode_callback_url as decode_callback_state};
 
 #[derive(Deserialize)]
 pub(crate) struct CallbackQuery {

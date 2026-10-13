@@ -11,7 +11,7 @@ use cms_infra::config::Config;
 use cms_server::api_router;
 use cms_server_core::{
     app_state::AppState,
-    observability::{init_observability, metrics_handler},
+    middleware::observability::{init_observability, metrics_handler},
 };
 use cms_sites::sites_router;
 use cms_worker::app_state::WorkerState;
