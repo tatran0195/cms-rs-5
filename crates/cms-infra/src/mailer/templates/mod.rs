@@ -84,7 +84,8 @@ impl Default for TemplateEngine {
 
 #[cfg(test)]
 mod tests {
-    use super::super::types::{Brand, EmailAction};
+    use super::TemplateEngine;
+    use super::super::types::{Brand, EmailAction, TransactionalEmailProps};
     use crate::i18n::Locale;
 
     fn brand() -> Brand {
