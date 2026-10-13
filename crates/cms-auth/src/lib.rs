@@ -10,6 +10,7 @@
 //! - OAuth provider integration
 
 pub mod api_key;
+pub mod api_keys;
 pub mod claims;
 pub mod cookies;
 pub mod handlers;
@@ -40,8 +41,6 @@ pub use lockout::{
     is_account_locked, record_failed_login, reset_failed_logins, LOCKOUT_MINUTES,
     MAX_FAILED_LOGINS,
 };
-
-pub use cms_api_keys as api_keys;
 
 use std::sync::Arc;
 

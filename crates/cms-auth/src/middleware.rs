@@ -157,7 +157,7 @@ async fn extract_from_jwt(
     let token = &auth_value[7..];
 
     // Check if Bearer is machine API key
-    if cms_api_keys::looks_like_key(token) {
+    if crate::api_keys::looks_like_key(token) {
         let user = AuthService::get_user_by_api_key(state.db(), token).await?;
         let user_uuid = uuid::Uuid::parse_str(&user.id).unwrap_or_else(|_| uuid::Uuid::nil());
         let claims = crate::Claims::new_access(user_uuid, "member");

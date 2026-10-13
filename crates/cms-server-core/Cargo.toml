@@ -13,7 +13,6 @@ cms-entity = { path = "../cms-entity" }
 cms-db = { path = "../cms-db" }
 cms-authz = { path = "../cms-authz" }
 cms-authz-gate = { path = "../cms-authz-gate" }
-cms-api-keys = { path = "../cms-api-keys" }
 
 # External dependencies
 axum = { workspace = true }

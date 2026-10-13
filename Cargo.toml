@@ -24,7 +24,6 @@ cms-error = { path = "crates/cms-error" }
 cms-auth = { path = "crates/cms-auth" }
 cms-authz = { path = "crates/cms-authz" }
 cms-authz-gate = { path = "crates/cms-authz-gate" }
-cms-api-keys = { path = "crates/cms-api-keys" }
 cms-worker = { path = "crates/cms-worker" }
 cms-mcp = { path = "crates/cms-mcp" }
 cms-notifications = { path = "crates/cms-notifications" }

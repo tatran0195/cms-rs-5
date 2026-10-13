@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 //! Machine credentials for the API.
 //!
 //! A key is not a user. It carries an explicit list of permissions and no
@@ -153,6 +151,7 @@ pub fn prefix_of(secret: &str) -> Result<String, KeyError> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 

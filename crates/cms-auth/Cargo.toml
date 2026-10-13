@@ -17,7 +17,6 @@ cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
 cms-authz = { path = "../cms-authz" }
-cms-api-keys = { path = "../cms-api-keys" }
 totp-rs = { workspace = true }
 thiserror = { workspace = true }
 utoipa = { workspace = true }

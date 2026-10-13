@@ -110,7 +110,7 @@ fn test_e2e_machine_api_keys() {
     let permissions = vec!["projects:read".to_string(), "pages:write".to_string()];
 
     // Mint machine API key
-    let minted = cms_api_keys::mint(cms_api_keys::Environment::Live, &permissions)
+    let minted = cms_auth::api_keys::mint(cms_auth::api_keys::Environment::Live, &permissions)
         .expect("minting api key should succeed");
 
     assert!(
@@ -120,14 +120,14 @@ fn test_e2e_machine_api_keys() {
 
     // Verify minted key
     assert!(
-        cms_api_keys::verify(&minted.secret, &minted.hash),
+        cms_auth::api_keys::verify(&minted.secret, &minted.hash),
         "valid machine api key must verify against stored SHA-256 hash"
     );
 
     // Tampered key fails
     let tampered_key = format!("{}x", minted.secret);
     assert!(
-        !cms_api_keys::verify(&tampered_key, &minted.hash),
+        !cms_auth::api_keys::verify(&tampered_key, &minted.hash),
         "tampered key must be rejected"
     );
 }
