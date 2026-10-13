@@ -8,12 +8,12 @@ use axum::{
 };
 use cms_server_core::app_state::AppState;
 
-pub mod auth;
 pub mod handlers;
+pub mod queries;
 pub mod service;
 
-pub use auth::{GitAuth, GitUser};
 pub use handlers::*;
+pub use queries::*;
 pub use service::{GitService, process_git_job};
 
 /// Constructs the Axum router for Git operations.

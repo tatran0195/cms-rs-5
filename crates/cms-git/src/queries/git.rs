@@ -55,9 +55,9 @@ impl GitConnectionQueries {
                 .bind(connection_id)
                 .fetch_optional(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_project(
@@ -70,9 +70,9 @@ impl GitConnectionQueries {
         .bind(project_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn create(
@@ -103,7 +103,7 @@ impl GitConnectionQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -154,7 +154,7 @@ impl GitConnectionQueries {
             .build_query_as::<GitConnectionRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -164,7 +164,7 @@ impl GitConnectionQueries {
             .bind(connection_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -220,9 +220,9 @@ impl GitSyncOperationQueries {
         .bind(operation_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_connection(
@@ -251,9 +251,9 @@ impl GitSyncOperationQueries {
             .build_query_as::<GitSyncOperationRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn count_by_connection(pool: &PgPool, connection_id: &str) -> Result<i64, AppError> {
@@ -263,7 +263,7 @@ impl GitSyncOperationQueries {
         .bind(connection_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(count)
     }
@@ -292,7 +292,7 @@ impl GitSyncOperationQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -311,7 +311,7 @@ impl GitSyncOperationQueries {
         .bind(operation_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -331,7 +331,7 @@ impl GitSyncOperationQueries {
         .bind(operation_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -350,7 +350,7 @@ impl GitSyncOperationQueries {
         .bind(operation_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -369,7 +369,7 @@ impl GitSyncOperationQueries {
         .bind(operation_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -423,9 +423,9 @@ impl GitFileStateQueries {
         .bind(path)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_project(
@@ -438,9 +438,9 @@ impl GitFileStateQueries {
         .bind(project_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn create(
@@ -457,7 +457,7 @@ impl GitFileStateQueries {
             INSERT INTO "GitFileState" (id, project_id, path, git_path, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *
-            "#,
+            "#
         )
         .bind(&id)
         .bind(project_id)
@@ -467,7 +467,7 @@ impl GitFileStateQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -497,7 +497,7 @@ impl GitFileStateQueries {
             .build_query_as::<GitFileStateRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -507,7 +507,7 @@ impl GitFileStateQueries {
             .bind(file_state_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -610,8 +610,8 @@ impl GitConflictQueries {
                 .bind(conflict_id)
                 .fetch_optional(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
-        Ok(row.map(|r| r.into()))
+                .map_err(AppError::Database)?;
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_project(
@@ -629,8 +629,8 @@ impl GitConflictQueries {
         .bind(offset.unwrap_or(0))
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        .map_err(AppError::Database)?;
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn count_by_project(pool: &PgPool, project_id: &str) -> Result<i64, AppError> {
@@ -639,7 +639,7 @@ impl GitConflictQueries {
                 .bind(project_id)
                 .fetch_one(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
         Ok(count)
     }
 
@@ -659,7 +659,7 @@ impl GitConflictQueries {
         .bind(resolved_by)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
         Ok(row.into())
     }
 }
@@ -676,8 +676,8 @@ impl GitPullRequestQueries {
         .bind(pr_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
-        Ok(row.map(|r| r.into()))
+        .map_err(AppError::Database)?;
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_connection(
@@ -695,8 +695,8 @@ impl GitPullRequestQueries {
         .bind(offset.unwrap_or(0))
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        .map_err(AppError::Database)?;
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn count_by_connection(pool: &PgPool, connection_id: &str) -> Result<i64, AppError> {
@@ -705,7 +705,7 @@ impl GitPullRequestQueries {
                 .bind(connection_id)
                 .fetch_one(pool)
                 .await
-                .map_err(|e| AppError::Database(e.into()))?;
+                .map_err(AppError::Database)?;
         Ok(count)
     }
 }
@@ -723,8 +723,8 @@ impl GitPreviewQueries {
             .bind(preview_id)
             .fetch_optional(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
-        Ok(row.map(|r| r.into()))
+            .map_err(AppError::Database)?;
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_pull_request(
@@ -737,8 +737,8 @@ impl GitPreviewQueries {
         .bind(pr_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        .map_err(AppError::Database)?;
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 }
 

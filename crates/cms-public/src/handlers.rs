@@ -1290,7 +1290,7 @@ pub async fn get_public_git_preview_handler(
 ) -> Result<Json<serde_json::Value>, AppError> {
     // A preview token is the opaque GitPreview ID, not the deployment ID. Do
     // not allow guessing a deployment's public identifier to read its content.
-    let preview = cms_db::git::GitPreviewQueries::get_by_id(state.db(), &token).await?;
+    let preview = cms_git::GitPreviewQueries::get_by_id(state.db(), &token).await?;
     let data = match preview {
         Some(preview) => match preview.deployment_id.as_deref() {
             Some(deployment_id) => {

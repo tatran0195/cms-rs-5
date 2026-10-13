@@ -4,12 +4,10 @@
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
 use cms_content::{BranchQueries, PageQueries};
-use cms_db::{
-    PgPool,
-    git::{
-        GitConflictQueries, GitConnectionQueries, GitFileStateQueries, GitPreviewQueries,
-        GitPullRequestQueries, GitSyncOperationQueries,
-    },
+use cms_db::PgPool;
+use crate::queries::{
+    GitConflictQueries, GitConnectionQueries, GitFileStateQueries, GitPreviewQueries,
+    GitPullRequestQueries, GitSyncOperationQueries,
 };
 use cms_projects::ProjectQueries;
 use cms_entity::{

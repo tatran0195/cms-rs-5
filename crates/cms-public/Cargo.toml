@@ -16,6 +16,7 @@ cms-auth = { path = "../cms-auth" }
 cms-projects = { path = "../cms-projects" }
 cms-deployments = { workspace = true }
 cms-analytics = { workspace = true }
+cms-git = { workspace = true }
 
 anyhow = { workspace = true }
 axum = { workspace = true }

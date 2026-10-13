@@ -8,6 +8,7 @@ use axum::{
     Json,
     extract::{Path, Query, State},
 };
+use cms_auth::AuthUser;
 use cms_entity::{
     common::{Id, PaginatedResponse},
     git::{
@@ -18,17 +19,17 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{GitService, auth::GitAuth};
+use crate::GitService;
 
 /// Create a new Git connection.
 pub async fn create_git_connection_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Json(request): Json<CreateGitConnectionRequest>,
 ) -> Result<Json<GitConnectionResponse>, AppError> {
     let project_id = request.project_id.clone();
     let connection =
-        GitService::create_connection(state.db(), &auth.user.id, &project_id, request).await?;
+        GitService::create_connection(state.db(), &auth.user_id, &project_id, request).await?;
 
     Ok(Json(connection))
 }
@@ -36,11 +37,11 @@ pub async fn create_git_connection_handler(
 /// Get a Git connection by project.
 pub async fn get_git_connection_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(connection_id): Path<Id>,
 ) -> Result<Json<GitConnectionResponse>, AppError> {
     // connection_id here is actually the project_id for the get-by-project lookup
-    let connection = GitService::get_connection(state.db(), &auth.user.id, &connection_id)
+    let connection = GitService::get_connection(state.db(), &auth.user_id, &connection_id)
         .await?
         .ok_or_else(|| AppError::NotFound("Git connection not found".to_string()))?;
 
@@ -50,10 +51,10 @@ pub async fn get_git_connection_handler(
 /// List Git connections for a project.
 pub async fn list_git_connections_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(project_id): Path<Id>,
 ) -> Result<Json<Vec<GitConnectionResponse>>, AppError> {
-    let connections = GitService::list_connections(state.db(), &auth.user.id, &project_id).await?;
+    let connections = GitService::list_connections(state.db(), &auth.user_id, &project_id).await?;
 
     Ok(Json(connections))
 }
@@ -61,12 +62,12 @@ pub async fn list_git_connections_handler(
 /// Update a Git connection.
 pub async fn update_git_connection_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(connection_id): Path<Id>,
     Json(request): Json<UpdateGitConnectionRequest>,
 ) -> Result<Json<GitConnectionResponse>, AppError> {
     let connection =
-        GitService::update_connection(state.db(), &auth.user.id, &connection_id, request).await?;
+        GitService::update_connection(state.db(), &auth.user_id, &connection_id, request).await?;
 
     Ok(Json(connection))
 }
@@ -74,10 +75,10 @@ pub async fn update_git_connection_handler(
 /// Delete a Git connection.
 pub async fn delete_git_connection_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(connection_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    GitService::delete_connection(state.db(), &auth.user.id, &connection_id).await?;
+    GitService::delete_connection(state.db(), &auth.user_id, &connection_id).await?;
 
     Ok(Json(
         serde_json::json!({"success": true, "message": "Git connection deleted"}),
@@ -87,12 +88,12 @@ pub async fn delete_git_connection_handler(
 /// Trigger a Git sync operation.
 pub async fn trigger_git_sync_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(connection_id): Path<Id>,
 ) -> Result<Json<GitSyncOperationResponse>, AppError> {
     let operation = GitService::trigger_sync(
         state.db(),
-        &auth.user.id,
+        &auth.user_id,
         &connection_id,
         cms_entity::git::GitSyncOperationType::Manual,
     )
@@ -104,7 +105,7 @@ pub async fn trigger_git_sync_handler(
 /// List Git sync operations for a connection.
 pub async fn list_git_sync_operations_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(connection_id): Path<Id>,
     Query(query): Query<ListGitSyncOperationsQuery>,
 ) -> Result<Json<PaginatedResponse<GitSyncOperationResponse>>, AppError> {
@@ -113,7 +114,7 @@ pub async fn list_git_sync_operations_handler(
     let page = (offset / page_size) + 1;
     let result = GitService::list_sync_operations(
         state.db(),
-        &auth.user.id,
+        &auth.user_id,
         &connection_id,
         page,
         page_size,
@@ -126,11 +127,11 @@ pub async fn list_git_sync_operations_handler(
 /// Get a specific Git sync operation.
 pub async fn get_git_sync_operation_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(operation_id): Path<Id>,
 ) -> Result<Json<GitSyncOperationResponse>, AppError> {
     let operation =
-        GitService::get_sync_operation(state.db(), &auth.user.id, &operation_id).await?;
+        GitService::get_sync_operation(state.db(), &auth.user_id, &operation_id).await?;
 
     Ok(Json(operation))
 }
@@ -138,10 +139,10 @@ pub async fn get_git_sync_operation_handler(
 /// Get Git sync status for a connection.
 pub async fn get_git_sync_status_handler(
     State(state): State<Arc<AppState>>,
-    auth: GitAuth,
+    auth: AuthUser,
     Path(connection_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let status = GitService::get_sync_status(state.db(), &auth.user.id, &connection_id).await?;
+    let status = GitService::get_sync_status(state.db(), &auth.user_id, &connection_id).await?;
 
     Ok(Json(status))
 }
