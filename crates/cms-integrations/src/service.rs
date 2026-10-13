@@ -3,12 +3,10 @@
 //! Domain service for project integrations and webhook verification.
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
-use cms_db::{
-    PgPool,
-    integration::{
-        IntegrationAuditEventQueries, IntegrationIdempotencyRecordQueries,
-        ProjectIntegrationQueries,
-    },
+use cms_db::PgPool;
+use crate::queries::{
+    IntegrationAuditEventQueries, IntegrationIdempotencyRecordQueries,
+    ProjectIntegrationQueries,
 };
 use cms_entity::integration::{
     CreateProjectIntegrationRequest, IntegrationProvider, ProjectIntegrationResponse,

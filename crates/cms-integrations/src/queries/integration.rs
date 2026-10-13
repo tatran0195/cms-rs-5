@@ -76,9 +76,9 @@ impl ProjectIntegrationQueries {
         .bind(integration_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     /// Get integrations by project ID
@@ -92,9 +92,9 @@ impl ProjectIntegrationQueries {
         .bind(project_id)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// Get integrations by project ID and provider
@@ -111,9 +111,9 @@ impl ProjectIntegrationQueries {
         .bind(provider)
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// Create a new project integration
@@ -146,7 +146,7 @@ impl ProjectIntegrationQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -208,7 +208,7 @@ impl ProjectIntegrationQueries {
             .build_query_as::<ProjectIntegrationRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -219,7 +219,7 @@ impl ProjectIntegrationQueries {
             .bind(integration_id)
             .execute(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -283,9 +283,9 @@ impl IntegrationAuditEventQueries {
         .bind(event_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_integration(
@@ -314,9 +314,9 @@ impl IntegrationAuditEventQueries {
             .build_query_as::<IntegrationAuditEventRow>()
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn create(
@@ -346,7 +346,7 @@ impl IntegrationAuditEventQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -403,9 +403,9 @@ impl IntegrationConfirmationQueries {
         .bind(confirmation_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn get_by_token(
@@ -418,9 +418,9 @@ impl IntegrationConfirmationQueries {
         .bind(token)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn create(
@@ -444,7 +444,7 @@ impl IntegrationConfirmationQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -460,7 +460,7 @@ impl IntegrationConfirmationQueries {
         .bind(confirmation_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -533,9 +533,9 @@ impl IntegrationWebhookDeliveryQueries {
         .bind(delivery_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn find_pending(
@@ -549,17 +549,17 @@ impl IntegrationWebhookDeliveryQueries {
             .bind(limit)
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?
+            .map_err(AppError::Database)?
         } else {
             sqlx::query_as::<_, IntegrationWebhookDeliveryRow>(
                 r#"SELECT * FROM "IntegrationWebhookDelivery" WHERE status = 'PENDING' ORDER BY created_at ASC"#
             )
             .fetch_all(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?
+            .map_err(AppError::Database)?
         };
 
-        Ok(rows.into_iter().map(|r| r.into()).collect())
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     pub async fn create(
@@ -588,7 +588,7 @@ impl IntegrationWebhookDeliveryQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -624,7 +624,7 @@ impl IntegrationWebhookDeliveryQueries {
             .build_query_as::<IntegrationWebhookDeliveryRow>()
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -682,9 +682,9 @@ impl IntegrationIdempotencyRecordQueries {
         .bind(request_id)
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
-        Ok(row.map(|r| r.into()))
+        Ok(row.map(Into::into))
     }
 
     pub async fn create(
@@ -708,7 +708,7 @@ impl IntegrationIdempotencyRecordQueries {
         .bind(now)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
         Ok(row.into())
     }
