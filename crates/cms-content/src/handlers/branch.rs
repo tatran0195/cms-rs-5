@@ -13,12 +13,14 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{handlers::auth::ContentUser, services::branch::BranchService};
+use cms_auth::AuthUser;
+
+use crate::services::branch::BranchService;
 
 /// List branches for a project
 pub async fn list_branches_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Query(query): Query<ListBranchesQuery>,
 ) -> Result<Json<PaginatedResponse<BranchResponse>>, AppError> {
     let result = BranchService::list_branches(state.db(), &auth.user_id, query, 1, 20).await?;
@@ -29,7 +31,7 @@ pub async fn list_branches_handler(
 /// Create a new branch
 pub async fn create_branch_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Json(request): Json<CreateBranchRequest>,
 ) -> Result<Json<BranchResponse>, AppError> {
     let project_id = request.project_id.clone();
@@ -42,7 +44,7 @@ pub async fn create_branch_handler(
 /// Get a specific branch by ID
 pub async fn get_branch_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(branch_id): Path<Id>,
 ) -> Result<Json<BranchResponse>, AppError> {
     let branch = BranchService::get_branch(state.db(), &auth.user_id, &branch_id).await?;
@@ -53,7 +55,7 @@ pub async fn get_branch_handler(
 /// Update an existing branch
 pub async fn update_branch_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(branch_id): Path<Id>,
     Json(request): Json<UpdateBranchRequest>,
 ) -> Result<Json<BranchResponse>, AppError> {
@@ -66,7 +68,7 @@ pub async fn update_branch_handler(
 /// Delete a branch
 pub async fn delete_branch_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(branch_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     BranchService::delete_branch(state.db(), &auth.user_id, &branch_id).await?;

@@ -218,14 +218,14 @@ impl DomainQueries {
         let mut transaction = pool
             .begin()
             .await
-            .map_err(|error| AppError::Database(error))?;
+            .map_err(AppError::Database)?;
 
         let deployment_exists =
             sqlx::query(r#"SELECT id FROM "Deployment" WHERE id = $1 FOR UPDATE"#)
                 .bind(deployment_id)
                 .fetch_optional(&mut *transaction)
                 .await
-                .map_err(|error| AppError::Database(error))?
+                .map_err(AppError::Database)?
                 .is_some();
         if !deployment_exists {
             return Err(AppError::NotFound("Deployment not found".to_string()));
@@ -243,7 +243,7 @@ impl DomainQueries {
             .bind(deployment_id)
             .execute(&mut *transaction)
             .await
-            .map_err(|error| AppError::Database(error))?;
+            .map_err(AppError::Database)?;
         }
 
         let row = sqlx::query_as::<_, DomainRow>(
@@ -269,7 +269,7 @@ impl DomainQueries {
         transaction
             .commit()
             .await
-            .map_err(|error| AppError::Database(error))?;
+            .map_err(AppError::Database)?;
 
         Ok(row.into())
     }

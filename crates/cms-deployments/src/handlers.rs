@@ -10,6 +10,7 @@ use cms_entity::{
     common::{Id, PaginatedResponse},
     deployment::{CreateDeploymentRequest, DeploymentResponse, ListDeploymentsQuery},
 };
+use cms_content::BranchQueries;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
@@ -87,13 +88,13 @@ pub async fn create_deployment_handler(
     .await?;
 
     let branch_id = if let Some(ref bid) = request.branch_id {
-        let branch = cms_db::branch::BranchQueries::get_by_id(state.db(), bid)
+        let branch = BranchQueries::get_by_id(state.db(), bid)
             .await?
             .filter(|b| b.project_id == request.project_id)
             .ok_or_else(|| AppError::NotFound("Branch not found".to_string()))?;
         branch.id
     } else {
-        cms_db::branch::BranchQueries::get_default(state.db(), &request.project_id)
+        BranchQueries::get_default(state.db(), &request.project_id)
             .await?
             .map(|b| b.id)
             .unwrap_or_default()

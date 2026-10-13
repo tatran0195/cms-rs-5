@@ -3,14 +3,13 @@
 //! Domain service for Git repository connections and synchronization.
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
+use cms_content::{BranchQueries, PageQueries};
 use cms_db::{
     PgPool,
-    branch::BranchQueries,
     git::{
         GitConflictQueries, GitConnectionQueries, GitFileStateQueries, GitPreviewQueries,
         GitPullRequestQueries, GitSyncOperationQueries,
     },
-    page::PageQueries,
 };
 use cms_projects::ProjectQueries;
 use cms_entity::{

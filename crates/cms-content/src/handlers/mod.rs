@@ -5,5 +5,3 @@ pub mod branch;
 pub mod comment;
 pub mod language;
 pub mod page;
-
-pub use auth::ContentUser;

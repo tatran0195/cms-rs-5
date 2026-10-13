@@ -29,6 +29,7 @@ cms-entity = { path = "../cms-entity" }
 cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
 cms-projects = { workspace = true }
+cms-content = { workspace = true }
 cms-auth = { path = "../cms-auth" }
 
 [dev-dependencies]

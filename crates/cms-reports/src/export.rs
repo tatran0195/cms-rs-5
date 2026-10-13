@@ -10,8 +10,8 @@ use cms_db::{
     export::{
         ExportArtifactQueries, ExportJobQueries, ExportScheduleQueries, ExportSnapshotQueries,
     },
-    page::PageQueries,
 };
+use cms_content::{BranchQueries, LanguageQueries, PageQueries};
 use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
@@ -305,7 +305,7 @@ pub async fn process_export_job(
         .await?
     } else {
         // Get default branch
-        let default_branch = cms_db::branch::BranchQueries::get_default(pool, &snapshot.project_id)
+        let default_branch = BranchQueries::get_default(pool, &snapshot.project_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Default branch not found".to_string()))?;
 
@@ -684,12 +684,12 @@ pub async fn generate_sqlite_export(
         .ok_or_else(|| AppError::NotFound(format!("Project not found: {}", project_id)))?;
 
     let branches =
-        cms_db::branch::BranchQueries::get_by_project(pool, project_id, None, Some(100), Some(0))
+        BranchQueries::get_by_project(pool, project_id, None, Some(100), Some(0))
             .await
             .unwrap_or_default();
 
     let languages =
-        cms_db::language::LanguageQueries::get_by_project(pool, project_id, Some(100), Some(0))
+        LanguageQueries::get_by_project(pool, project_id, Some(100), Some(0))
             .await
             .unwrap_or_default();
 

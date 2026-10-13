@@ -1,8 +1,8 @@
 //! Analytics domain business service.
 
+use cms_content::PageQueries;
 use cms_db::{
     analytics::{AnalyticsEventQueries, AnalyticsQueries},
-    page::PageQueries,
     PgPool,
 };
 use cms_projects::ProjectQueries;

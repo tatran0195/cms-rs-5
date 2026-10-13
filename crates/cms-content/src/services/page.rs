@@ -3,11 +3,9 @@
 //! Handles page hierarchy, tree structure, path materialization,
 //! cycle detection, and reordering.
 
-use cms_db::{
-    PgPool, branch::BranchQueries, language::LanguageQueries, page::PageQueries,
-    platform_event::PlatformEventQueries,
-};
+use cms_db::{PgPool, platform_event::PlatformEventQueries};
 use cms_projects::ProjectQueries;
+use crate::queries::{BranchQueries, LanguageQueries, PageQueries};
 use cms_entity::{
     common::PaginatedResponse,
     page::{

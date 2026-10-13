@@ -2,7 +2,8 @@
 
 use std::sync::Arc;
 
-use cms_db::{page::PageQueries, search_index::SearchIndexRunQueries, PgPool};
+use cms_content::{BranchQueries, LanguageQueries, PageQueries};
+use cms_db::{search_index::SearchIndexRunQueries, PgPool};
 use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
@@ -221,7 +222,7 @@ impl SearchService {
         request: ReindexRequest,
     ) -> Result<SearchIndexRunResponse, AppError> {
         let branch = if let Some(branch_id) = request.branch_id.as_deref() {
-            let branch = cms_db::branch::BranchQueries::get_by_id(pool, branch_id)
+            let branch = BranchQueries::get_by_id(pool, branch_id)
                 .await?
                 .ok_or_else(|| AppError::NotFound("Branch not found".to_string()))?;
             if branch.project_id != request.project_id {
@@ -231,12 +232,12 @@ impl SearchService {
             }
             branch
         } else {
-            cms_db::branch::BranchQueries::get_default(pool, &request.project_id)
+            BranchQueries::get_default(pool, &request.project_id)
                 .await?
                 .ok_or_else(|| AppError::Conflict("Project has no default branch".to_string()))?
         };
         let language_id = if let Some(language_id) = request.language_id.as_deref() {
-            let language = cms_db::language::LanguageQueries::get_by_id(pool, language_id)
+            let language = LanguageQueries::get_by_id(pool, language_id)
                 .await?
                 .ok_or_else(|| AppError::NotFound("Language not found".to_string()))?;
             if language.project_id != request.project_id || !language.enabled {

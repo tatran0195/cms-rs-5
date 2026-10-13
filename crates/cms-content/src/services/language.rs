@@ -6,13 +6,9 @@
 
 use std::collections::{HashMap, HashSet};
 
-use cms_db::{
-    PgPool,
-    branch::BranchQueries,
-    language::{LanguageQueries, ProjectTranslationQueries},
-    page::PageQueries,
-};
+use cms_db::PgPool;
 use cms_projects::ProjectQueries;
+use crate::queries::{BranchQueries, LanguageQueries, PageQueries, ProjectTranslationQueries};
 use cms_entity::{
     common::PaginatedResponse,
     language::{

@@ -3,7 +3,8 @@
 //! Handles comments on pages, role enforcement, nested replies,
 //! and resolution state.
 
-use cms_db::{PgPool, comment::CommentQueries, page::PageQueries};
+use cms_db::PgPool;
+use crate::queries::{CommentQueries, PageQueries};
 use cms_entity::{
     comment::{CommentResponse, CommentWithReplies, CreateCommentRequest, UpdateCommentRequest},
     common::{MemberRole, PaginatedResponse},

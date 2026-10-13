@@ -16,12 +16,14 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{handlers::auth::ContentUser, services::language::LanguageService};
+use cms_auth::AuthUser;
+
+use crate::services::language::LanguageService;
 
 /// List languages for a project
 pub async fn list_languages_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Query(query): Query<ListLanguagesQuery>,
 ) -> Result<Json<PaginatedResponse<LanguageResponse>>, AppError> {
     let result = LanguageService::list_languages(state.db(), &auth.user_id, query, 1, 20).await?;
@@ -32,7 +34,7 @@ pub async fn list_languages_handler(
 /// Create a new language for a project
 pub async fn create_language_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Json(request): Json<CreateLanguageRequest>,
 ) -> Result<Json<LanguageResponse>, AppError> {
     let language = LanguageService::create_language(state.db(), &auth.user_id, request).await?;
@@ -43,7 +45,7 @@ pub async fn create_language_handler(
 /// Get a specific language by ID
 pub async fn get_language_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(language_id): Path<Id>,
 ) -> Result<Json<LanguageResponse>, AppError> {
     let language = LanguageService::get_language(state.db(), &auth.user_id, &language_id).await?;
@@ -54,7 +56,7 @@ pub async fn get_language_handler(
 /// Update an existing language
 pub async fn update_language_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(language_id): Path<Id>,
     Json(request): Json<UpdateLanguageRequest>,
 ) -> Result<Json<LanguageResponse>, AppError> {
@@ -67,7 +69,7 @@ pub async fn update_language_handler(
 /// Delete a language
 pub async fn delete_language_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(language_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     LanguageService::delete_language(state.db(), &auth.user_id, &language_id).await?;
@@ -80,7 +82,7 @@ pub async fn delete_language_handler(
 /// Set the default language for a project
 pub async fn set_default_language_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(_project_id): Path<Id>,
     Json(request): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, AppError> {

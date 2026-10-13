@@ -4,12 +4,8 @@
 
 use std::sync::Arc;
 
-use cms_db::{
-    PgPool,
-    branch::BranchQueries,
-    deployment::DeploymentQueries,
-    page::PageQueries,
-};
+use cms_content::{BranchQueries, PageQueries};
+use cms_db::{PgPool, deployment::DeploymentQueries};
 use cms_projects::{DomainQueries, ProjectQueries, normalize_hostname};
 use cms_entity::{
     common::PaginatedResponse,

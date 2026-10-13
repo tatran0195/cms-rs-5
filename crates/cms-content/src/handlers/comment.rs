@@ -16,12 +16,14 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{handlers::auth::ContentUser, services::comment::CommentService};
+use cms_auth::AuthUser;
+
+use crate::services::comment::CommentService;
 
 /// List comments
 pub async fn list_comments_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Query(query): Query<ListCommentsQuery>,
 ) -> Result<Json<PaginatedResponse<CommentResponse>>, AppError> {
     let page_id = query.page_id.as_deref().unwrap_or("");
@@ -45,7 +47,7 @@ pub async fn list_comments_handler(
 /// Create a new comment
 pub async fn create_comment_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Json(request): Json<CreateCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
     let page_id = request.page_id.clone();
@@ -58,7 +60,7 @@ pub async fn create_comment_handler(
 /// Get a comment with its replies
 pub async fn get_comment_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(comment_id): Path<Id>,
 ) -> Result<Json<CommentWithReplies>, AppError> {
     let comment =
@@ -70,7 +72,7 @@ pub async fn get_comment_handler(
 /// Update a comment
 pub async fn update_comment_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(comment_id): Path<Id>,
     Json(request): Json<UpdateCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
@@ -84,7 +86,7 @@ pub async fn update_comment_handler(
 /// Delete a comment
 pub async fn delete_comment_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(comment_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     CommentService::delete_comment(state.db(), &auth.user_id, &comment_id, None).await?;
@@ -95,7 +97,7 @@ pub async fn delete_comment_handler(
 /// Resolve or unresolve a comment
 pub async fn resolve_comment_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(comment_id): Path<Id>,
     Json(request): Json<ResolveCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
@@ -111,7 +113,7 @@ pub async fn resolve_comment_handler(
 /// List comments for a specific page
 pub async fn list_page_comments_handler(
     State(state): State<Arc<AppState>>,
-    auth: ContentUser,
+    auth: AuthUser,
     Path(page_id): Path<Id>,
     Query(query): Query<ListCommentsQuery>,
 ) -> Result<Json<PaginatedResponse<CommentResponse>>, AppError> {
