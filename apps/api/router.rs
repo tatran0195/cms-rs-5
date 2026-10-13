@@ -13,10 +13,6 @@ use axum::{
 };
 use cms_auth::AuthExtractor;
 use cms_entity::{
-    analytics::{
-        AnalyticsDashboardResponse, AnalyticsEventResponse, AnalyticsQueryRequest,
-        AnalyticsQueryResponse, ListAnalyticsEventsQuery, TrackAnalyticsEventRequest,
-    },
     common::{ApiResponse, Id, PaginatedResponse, SuccessResponse},
     mcp::{ListMcpAuditEventsQuery, McpAuditEventResponse},
     search::{
@@ -162,83 +158,6 @@ fn search_router(state: Arc<AppState>) -> Router {
 }
 
 // ---------------------------------------------------------------------------
-// Analytics Handlers & Subrouter
-// ---------------------------------------------------------------------------
-
-pub(crate) async fn track_event_handler(
-    State(state): State<Arc<AppState>>,
-    Json(request): Json<TrackAnalyticsEventRequest>,
-) -> Result<Json<AnalyticsEventResponse>, AppError> {
-    let event = cms_infra::analytics::AnalyticsService::track_event(state.db(), request).await?;
-
-    Ok(Json(event))
-}
-
-pub(crate) async fn list_analytics_events_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Query(query): Query<ListAnalyticsEventsQuery>,
-) -> Result<Json<PaginatedResponse<AnalyticsEventResponse>>, AppError> {
-    let result =
-        cms_infra::analytics::AnalyticsService::list_events(state.db(), &auth.user.id, query)
-            .await?;
-
-    Ok(Json(result))
-}
-
-pub(crate) async fn query_analytics_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Json(request): Json<AnalyticsQueryRequest>,
-) -> Result<Json<AnalyticsQueryResponse>, AppError> {
-    let result =
-        cms_infra::analytics::AnalyticsService::query_analytics(state.db(), &auth.user.id, request)
-            .await?;
-
-    Ok(Json(result))
-}
-
-pub(crate) async fn get_analytics_dashboard_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Path(project_id): Path<Id>,
-) -> Result<Json<AnalyticsDashboardResponse>, AppError> {
-    let dashboard = cms_infra::analytics::AnalyticsService::get_dashboard(
-        state.db(),
-        &auth.user.id,
-        &project_id,
-    )
-    .await?;
-
-    Ok(Json(dashboard))
-}
-
-pub(crate) async fn get_page_views_handler(
-    State(state): State<Arc<AppState>>,
-    auth: AuthExtractor,
-    Path(page_id): Path<Id>,
-) -> Result<Json<serde_json::Value>, AppError> {
-    let views =
-        cms_infra::analytics::AnalyticsService::get_page_views(state.db(), &auth.user.id, &page_id)
-            .await?;
-
-    Ok(Json(serde_json::json!(views)))
-}
-
-fn analytics_router(state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/track", post(track_event_handler))
-        .route("/events", get(list_analytics_events_handler))
-        .route("/query", post(query_analytics_handler))
-        .route(
-            "/dashboard/{project_id}",
-            get(get_analytics_dashboard_handler),
-        )
-        .route("/pages/{page_id}/views", get(get_page_views_handler))
-        .with_state(state)
-}
-
-// ---------------------------------------------------------------------------
 // MCP Handlers & Subrouter
 // ---------------------------------------------------------------------------
 
@@ -307,7 +226,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/openapi", cms_api_specs::router(state.clone()));
     router = router.nest("/notifications", cms_notifications::router(state.clone()));
     router = router.nest("/assets", cms_assets::router(state.clone()));
-    router = router.nest("/analytics", analytics_router(state.clone()));
+    router = router.nest("/analytics", cms_analytics::router(state.clone()));
     router = router.nest("/themes", cms_themes::router(state.clone()));
     router = router.nest(
         "/platform-events",
@@ -347,7 +266,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
         .nest("/openapi", cms_api_specs::router(state.clone()))
         .nest("/notifications", cms_notifications::router(state.clone()))
         .nest("/assets", cms_assets::router(state.clone()))
-        .nest("/analytics", analytics_router(state.clone()))
+        .nest("/analytics", cms_analytics::router(state.clone()))
         .nest("/themes", cms_themes::router(state.clone()))
         .nest(
             "/platform-events",

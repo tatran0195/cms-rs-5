@@ -38,6 +38,7 @@ cms-invitations = { workspace = true }
 cms-onboarding = { workspace = true }
 cms-admin = { workspace = true }
 cms-public = { workspace = true }
+cms-analytics = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -927,7 +927,7 @@ pub async fn post_public_site_events_handler(
     headers: HeaderMap,
     Json(event): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    use cms_infra::analytics::AnalyticsService;
+    use cms_analytics::AnalyticsService;
 
     let project = cms_db::project::ProjectQueries::get_by_id(state.db(), &id)
         .await?
@@ -1216,7 +1216,7 @@ pub async fn post_public_marketing_events_handler(
         .or_else(|| body.get("projectId"))
         .and_then(|v| v.as_str());
 
-    let _ = cms_infra::analytics::AnalyticsService::record_event(
+    let _ = cms_analytics::AnalyticsService::record_event(
         state.db(),
         project_id,
         None,

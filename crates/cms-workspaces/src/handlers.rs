@@ -136,7 +136,7 @@ pub async fn get_workspace_analytics_handler(
     State(state): State<Arc<AppState>>,
     _auth: AuthExtractor,
 ) -> Result<Json<ApiResponse<WorkspaceAnalyticsResponse>>, AppError> {
-    let stats = cms_infra::analytics::AnalyticsService::get_system_stats(state.db())
+    let stats = cms_analytics::AnalyticsService::get_system_stats(state.db())
         .await
         .unwrap_or_else(|_| serde_json::json!({}));
 

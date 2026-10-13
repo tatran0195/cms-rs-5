@@ -9,5 +9,7 @@ pub mod services;
 pub mod traits;
 
 pub use router::router;
-pub use services::{process_analytics_job, AnalyticsService, PostgresAnalyticsStore};
+pub use services::{
+    create_analytics_store, process_analytics_job, AnalyticsService, PostgresAnalyticsStore,
+};
 pub use traits::AnalyticsStore;

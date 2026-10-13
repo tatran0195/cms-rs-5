@@ -261,3 +261,23 @@ impl AnalyticsStore for PostgresAnalyticsStore {
         AnalyticsQueries::get_summary(&self.pool, start_date, end_date).await
     }
 }
+
+/// Create an AnalyticsStore implementation based on backend name.
+pub async fn create_analytics_store(
+    backend: &str,
+    pool: PgPool,
+) -> Result<std::sync::Arc<dyn AnalyticsStore>, AppError> {
+    match backend {
+        "postgres" => {
+            let store = PostgresAnalyticsStore::new(pool);
+            Ok(std::sync::Arc::new(store))
+        }
+        "clickhouse" => Err(AppError::Storage(
+            "ClickHouse analytics backend is not supported; use 'postgres'".into(),
+        )),
+        _ => Err(AppError::Storage(format!(
+            "Unknown analytics backend: {backend}"
+        ))),
+    }
+}
+
