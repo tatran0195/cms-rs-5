@@ -17,26 +17,21 @@ use cms_error::AppError;
 
 use cms_infra::config::SearchConfig;
 
-#[cfg(feature = "vector")]
-pub mod embedder;
-pub mod markdown;
+pub mod engine;
+pub mod handlers;
 #[cfg(feature = "vector")]
 pub mod rag;
-pub mod handlers;
 pub mod router;
 pub mod services;
-pub mod tantivy_engine;
-pub mod tokenizer;
 pub mod traits;
-#[cfg(feature = "vector")]
-pub mod vector_index;
 
+pub use engine::{markdown, tantivy, tokenizer};
 #[cfg(feature = "vector")]
-pub use embedder::Embedder;
+pub use engine::vector::{Embedder, ProjectVectorIndex, VectorMeta, VectorSearchResult};
+pub use engine::tantivy::{ProjectIndex, TantivyFields, TantivySearchEngine};
+pub use engine::tokenizer::{JapaneseToken, JapaneseTokenizer, LinderaTantivyTokenizer};
 pub use router::router;
 pub use services::{process_search_job, SearchService};
-pub use tantivy_engine::{ProjectIndex, TantivyFields, TantivySearchEngine};
-pub use tokenizer::{JapaneseToken, JapaneseTokenizer, LinderaTantivyTokenizer};
 pub use traits::SearchEngine;
 
 /// Create the SearchEngine implementation described by configuration.

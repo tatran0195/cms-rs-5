@@ -359,7 +359,7 @@ impl std::fmt::Debug for LinderaTokenStream {
             .field("index", &self.index)
             .field("total_tokens", &self.tokens.len())
             .finish()
-    }
+        }
 }
 
 impl TokenStream for LinderaTokenStream {

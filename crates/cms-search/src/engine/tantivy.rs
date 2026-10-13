@@ -37,14 +37,12 @@ use tantivy::{
 };
 
 #[cfg(feature = "vector")]
-use super::embedder::Embedder;
-#[cfg(feature = "vector")]
-use super::vector_index::{ProjectVectorIndex, VectorMeta};
+use super::vector::{Embedder, ProjectVectorIndex, VectorMeta};
 use super::{
     markdown,
     tokenizer::{JapaneseTokenizer, LinderaTantivyTokenizer, JAPANESE_TOKENIZER_NAME},
-    traits::SearchEngine,
 };
+use crate::traits::SearchEngine;
 use cms_infra::config::RagConfig;
 
 /// Schema fields for Tantivy project index
@@ -810,7 +808,7 @@ impl SearchEngine for TantivySearchEngine {
         // Use the RAG module for LLM-powered answers when configured
         #[cfg(feature = "vector")]
         {
-            return super::rag::generate_rag_answer(&self.rag_config, project_id, question, &hits)
+            return crate::rag::generate_rag_answer(&self.rag_config, project_id, question, &hits)
                 .await;
         }
 
