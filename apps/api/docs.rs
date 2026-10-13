@@ -23,6 +23,7 @@ use utoipa::OpenApi;
         (name = "search", description = "Hybrid BM25 and vector search")
     )
 )]
+#[derive(Debug)]
 pub struct ApiDoc;
 
 pub async fn serve_openapi_spec() -> impl IntoResponse {

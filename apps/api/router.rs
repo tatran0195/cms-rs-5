@@ -286,7 +286,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/comments", cms_content::comment_router(state.clone()));
     router = router.nest("/search", search_router(state.clone()));
     router = router.nest("/export", cms_reports::export_router(state.clone()));
-    router = router.nest("/openapi", cms_openapi::router(state.clone()));
+    router = router.nest("/openapi", cms_api_specs::router(state.clone()));
     router = router.nest("/notifications", cms_notifications::router(state.clone()));
     router = router.nest("/assets", cms_assets::router(state.clone()));
     router = router.nest("/analytics", analytics_router(state.clone()));
@@ -314,7 +314,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
         .nest("/comments", cms_content::comment_router(state.clone()))
         .nest("/search", search_router(state.clone()))
         .nest("/export", cms_reports::export_router(state.clone()))
-        .nest("/openapi", cms_openapi::router(state.clone()))
+        .nest("/openapi", cms_api_specs::router(state.clone()))
         .nest("/notifications", cms_notifications::router(state.clone()))
         .nest("/assets", cms_assets::router(state.clone()))
         .nest("/analytics", analytics_router(state.clone()))
@@ -336,10 +336,10 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/public", cms_public::router(state.clone()));
 
     // OpenAPI documentation endpoints
-    router = router.route("/api-docs/openapi.json", get(cms_openapi::docs::serve_openapi_spec));
-    router = router.route("/api-docs/openapi.yaml", get(cms_openapi::docs::serve_openapi_yaml));
-    router = router.route("/api-docs", get(cms_openapi::docs::serve_swagger_ui));
-    router = router.route("/api-docs/redoc", get(cms_openapi::docs::serve_redoc));
+    router = router.route("/api-docs/openapi.json", get(crate::docs::serve_openapi_spec));
+    router = router.route("/api-docs/openapi.yaml", get(crate::docs::serve_openapi_yaml));
+    router = router.route("/api-docs", get(crate::docs::serve_swagger_ui));
+    router = router.route("/api-docs/redoc", get(crate::docs::serve_redoc));
 
     // Health check endpoint
     router = router.route("/health", get(get_health).with_state(state.clone()));

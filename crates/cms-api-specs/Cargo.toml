@@ -1,9 +1,9 @@
 [package]
-name = "cms-openapi"
+name = "cms-api-specs"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
-description = "OpenAPI vertical slice: document queries, parser, service, endpoints, docs"
+description = "API specifications vertical slice: stored OpenAPI document CRUD and spec parser"
 
 [dependencies]
 cms-db = { path = "../cms-db" }

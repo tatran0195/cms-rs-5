@@ -29,7 +29,7 @@ cms-git = { workspace = true }
 cms-integrations = { workspace = true }
 cms-themes = { workspace = true }
 cms-reports = { workspace = true }
-cms-openapi = { workspace = true }
+cms-api-specs = { workspace = true }
 cms-notifications = { workspace = true }
 cms-assets = { workspace = true }
 cms-mcp = { workspace = true }
