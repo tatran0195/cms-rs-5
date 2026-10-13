@@ -7,11 +7,11 @@ use axum::{
     extract::{Multipart, Path, Query, State},
 };
 use cms_entity::common::PaginatedResponse;
+use cms_auth::AuthUser;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
 use crate::{
-    handlers::auth::AssetUser,
     models::{
         AssetResponse, DeleteAssetResponse, ListAssetsQuery, UpdateAssetRequest, UploadAssetRequest,
     },
@@ -21,7 +21,7 @@ use crate::{
 /// List assets filtered by project and optional page.
 pub async fn list_assets_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Query(query): Query<ListAssetsQuery>,
 ) -> Result<Json<PaginatedResponse<AssetResponse>>, AppError> {
     let project_id = query.project_id.as_deref().unwrap_or("");
@@ -39,7 +39,7 @@ pub async fn list_assets_handler(
 /// Request direct upload URL or metadata creation.
 pub async fn upload_asset_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Json(request): Json<UploadAssetRequest>,
 ) -> Result<Json<AssetResponse>, AppError> {
     let asset = AssetService::create_asset(
@@ -59,7 +59,7 @@ pub async fn upload_asset_handler(
 /// Upload an asset binary via multipart/form-data.
 pub async fn upload_asset_multipart_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     mut multipart: Multipart,
 ) -> Result<Json<AssetResponse>, AppError> {
@@ -104,7 +104,7 @@ pub async fn upload_asset_multipart_handler(
 /// Get a specific asset by ID.
 pub async fn get_asset_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Path(asset_id): Path<String>,
 ) -> Result<Json<AssetResponse>, AppError> {
     let asset = AssetService::get_asset(state.db(), &auth.user_id, &asset_id).await?;
@@ -115,7 +115,7 @@ pub async fn get_asset_handler(
 /// Update an asset's metadata.
 pub async fn update_asset_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Path(asset_id): Path<String>,
     Json(request): Json<UpdateAssetRequest>,
 ) -> Result<Json<AssetResponse>, AppError> {
@@ -133,7 +133,7 @@ pub async fn update_asset_handler(
 /// Delete an asset permanently.
 pub async fn delete_asset_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Path(asset_id): Path<String>,
 ) -> Result<Json<DeleteAssetResponse>, AppError> {
     let _ = AssetService::delete_asset(

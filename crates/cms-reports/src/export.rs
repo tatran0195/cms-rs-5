@@ -694,7 +694,7 @@ pub async fn generate_sqlite_export(
             .unwrap_or_default();
 
     let raw_assets =
-        cms_db::asset::AssetQueries::get_by_project(pool, project_id, Some(10_000), Some(0))
+        cms_assets::AssetQueries::get_by_project(pool, project_id, Some(10_000), Some(0))
             .await
             .unwrap_or_default();
 

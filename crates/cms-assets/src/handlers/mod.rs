@@ -1,13 +1,11 @@
 //! Handlers and router module for assets vertical slice.
 
 pub mod asset;
-pub mod auth;
 pub mod project_asset;
 
 use std::sync::Arc;
 
 pub use asset::*;
-pub use auth::AssetUser;
 use axum::{
     Router,
     routing::{delete, get, post, put},

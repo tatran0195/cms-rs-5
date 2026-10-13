@@ -6,6 +6,7 @@ use axum::{
     Json,
     extract::{Path, State},
 };
+use cms_auth::AuthUser;
 use cms_projects::ProjectQueries;
 use cms_entity::common::ApiResponse;
 use cms_error::AppError;
@@ -13,7 +14,6 @@ use cms_infra::storage::UploadTarget;
 use cms_server_core::app_state::AppState;
 
 use crate::{
-    handlers::auth::AssetUser,
     models::{
         AssetResponse, ConfirmAssetRequest, ConfirmAssetResponse, PresignAssetRequest,
         PresignAssetResponse,
@@ -24,7 +24,7 @@ use crate::{
 /// List assets for a project.
 pub async fn list_project_assets_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<Vec<AssetResponse>>>, AppError> {
     let result = AssetService::list_assets(state.db(), &auth.user_id, &project_id, 1, 50).await?;
@@ -35,7 +35,7 @@ pub async fn list_project_assets_handler(
 /// Compute a storage key and return an upload target.
 pub async fn presign_project_asset_handler(
     State(state): State<Arc<AppState>>,
-    _auth: AssetUser,
+    _auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<PresignAssetRequest>,
 ) -> Result<Json<ApiResponse<PresignAssetResponse>>, AppError> {
@@ -76,7 +76,7 @@ pub async fn presign_project_asset_handler(
 /// Record a previously-uploaded asset in PostgreSQL and return SPA representation.
 pub async fn confirm_project_asset_handler(
     State(state): State<Arc<AppState>>,
-    auth: AssetUser,
+    auth: AuthUser,
     Path(project_id): Path<String>,
     Json(body): Json<ConfirmAssetRequest>,
 ) -> Result<Json<ApiResponse<ConfirmAssetResponse>>, AppError> {

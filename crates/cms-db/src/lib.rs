@@ -9,7 +9,6 @@
 //! either row structs from cms-entity or Result<T, AppError>.
 
 pub mod analytics;
-pub mod asset;
 pub mod audit;
 pub use audit::{AuditEntry, AuditLogger, ChainVerificationResult, HttpAuditEntry};
 pub mod auth;
