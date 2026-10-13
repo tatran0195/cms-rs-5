@@ -8,7 +8,7 @@ use axum::{
 };
 use cms_server_core::app_state::AppState;
 
-use crate::handlers::{
+use super::handlers::{
     create_platform_event_handler, get_platform_event_handler, list_platform_events_handler,
 };
 

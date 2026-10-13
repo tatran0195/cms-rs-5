@@ -14,7 +14,7 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::service::{FunnelEventType, PlatformEventService};
+use super::service::{FunnelEventType, PlatformEventService};
 
 /// List platform events
 #[utoipa::path(

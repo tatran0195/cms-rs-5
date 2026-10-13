@@ -74,14 +74,8 @@ pub(crate) async fn check_domain_tls_handler(
 async fn get_health(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<cms_entity::common::SystemHealthResponse>, AppError> {
-    let health_val =
-        cms_platform_events::PlatformEventService::get_system_health(state.db()).await?;
-    let health: cms_entity::common::SystemHealthResponse = serde_json::from_value(health_val)
-        .map_err(|e| {
-            AppError::Internal(anyhow::anyhow!(
-                "Failed to deserialize system health response: {e}"
-            ))
-        })?;
+    let health =
+        cms_admin::platform_events::PlatformEventService::get_system_health(state.db()).await?;
     Ok(Json(health))
 }
 
@@ -297,7 +291,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     router = router.nest("/assets", cms_assets::router(state.clone()));
     router = router.nest("/analytics", analytics_router(state.clone()));
     router = router.nest("/themes", cms_themes::router(state.clone()));
-    router = router.nest("/platform-events", cms_platform_events::router(state.clone()));
+    router = router.nest("/platform-events", cms_admin::platform_events::router(state.clone()));
     router = router.nest("/mcp", mcp_router(state.clone()));
     router = router.nest("/members", cms_workspaces::members_router(state.clone()));
     router = router.nest("/workspace", cms_workspaces::workspace_router(state.clone()));
@@ -325,7 +319,7 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
         .nest("/assets", cms_assets::router(state.clone()))
         .nest("/analytics", analytics_router(state.clone()))
         .nest("/themes", cms_themes::router(state.clone()))
-        .nest("/platform-events", cms_platform_events::router(state.clone()))
+        .nest("/platform-events", cms_admin::platform_events::router(state.clone()))
         .nest("/mcp", mcp_router(state.clone()))
         .nest("/members", cms_workspaces::members_router(state.clone()))
         .nest("/workspace", cms_workspaces::workspace_router(state.clone()))

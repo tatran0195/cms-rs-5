@@ -32,7 +32,6 @@ cms-reports = { workspace = true }
 cms-openapi = { workspace = true }
 cms-notifications = { workspace = true }
 cms-assets = { workspace = true }
-cms-platform-events = { workspace = true }
 cms-mcp = { workspace = true }
 cms-workspaces = { workspace = true }
 cms-invitations = { workspace = true }

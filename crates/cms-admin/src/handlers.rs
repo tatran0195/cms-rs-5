@@ -74,7 +74,7 @@ pub async fn get_system_health_handler(
     require_system_admin(&state, &auth).await?;
 
     let health =
-        cms_platform_events::PlatformEventService::get_system_health(state.db())
+        crate::platform_events::PlatformEventService::get_system_health(state.db())
             .await?;
 
     Ok(Json(serde_json::json!(health)))

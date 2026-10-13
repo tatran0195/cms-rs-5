@@ -13,7 +13,6 @@ cms-server-core = { path = "../cms-server-core" }
 cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
 cms-infra = { path = "../cms-infra" }
-cms-platform-events = { path = "../cms-platform-events" }
 
 axum = { workspace = true }
 sqlx = { workspace = true }
