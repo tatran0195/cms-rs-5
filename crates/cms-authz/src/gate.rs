@@ -23,47 +23,12 @@ pub enum ParentLink {
 
 /// Resolve a child resource to its parent project ID in a single indexed query.
 pub async fn resolve_parent_project(pool: &PgPool, link: ParentLink) -> Result<Option<Uuid>, AppError> {
-    let project_id = match link {
-        ParentLink::Page(id) => {
-            sqlx::query_scalar::<_, Uuid>(
-                r#"SELECT project_id::uuid FROM "Page" WHERE id = $1"#,
-            )
-            .bind(id.to_string())
-            .fetch_optional(pool)
-            .await
-            .map_err(|e| AppError::Database(e.into()))?
-        }
-        ParentLink::Branch(id) => {
-            sqlx::query_scalar::<_, Uuid>(
-                r#"SELECT project_id::uuid FROM "Branch" WHERE id = $1"#,
-            )
-            .bind(id.to_string())
-            .fetch_optional(pool)
-            .await
-            .map_err(|e| AppError::Database(e.into()))?
-        }
-        ParentLink::Deployment(id) => {
-            sqlx::query_scalar::<_, Uuid>(
-                r#"SELECT project_id::uuid FROM "Deployment" WHERE id = $1"#,
-            )
-            .bind(id.to_string())
-            .fetch_optional(pool)
-            .await
-            .map_err(|e| AppError::Database(e.into()))?
-        }
-        ParentLink::ApiKey(id) => {
-            sqlx::query_scalar::<_, Option<Uuid>>(
-                r#"SELECT project_id::uuid FROM "ApiKey" WHERE id = $1"#,
-            )
-            .bind(id.to_string())
-            .fetch_optional(pool)
-            .await
-            .map_err(|e| AppError::Database(e.into()))?
-            .flatten()
-        }
-    };
-
-    Ok(project_id)
+    match link {
+        ParentLink::Page(id) => cms_db::resolve_page_project(pool, id).await,
+        ParentLink::Branch(id) => cms_db::resolve_branch_project(pool, id).await,
+        ParentLink::Deployment(id) => cms_db::resolve_deployment_project(pool, id).await,
+        ParentLink::ApiKey(id) => cms_db::resolve_api_key_project(pool, id).await,
+    }
 }
 
 /// Gate route on access to a specific project.
