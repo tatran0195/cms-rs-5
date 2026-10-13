@@ -34,9 +34,7 @@ pub struct AuthExtractor {
 impl AuthExtractor {
     /// Return the Zanzibar authorization context for this caller.
     pub fn authz_context(&self) -> cms_authz::AuthzContext {
-        let is_bypass = self.claims.role == "super_admin"
-            || self.claims.role == "owner"
-            || self.claims.role == "admin";
+        let is_bypass = self.claims.role == "super_admin";
         cms_authz::AuthzContext::new(self.claims.sub, self.claims.role.clone(), is_bypass)
     }
 
@@ -133,7 +131,7 @@ async fn extract_from_session(
         .ok_or(AppError::Unauthorized)?;
 
     let user = AuthService::get_user_by_session(state.db(), &session_token).await?;
-    let user_uuid = uuid::Uuid::parse_str(&user.id).unwrap_or_else(|_| uuid::Uuid::nil());
+    let user_uuid = uuid::Uuid::parse_str(&user.id).map_err(|_| AppError::Unauthorized)?;
     let claims = crate::Claims::new_access(user_uuid, "member");
     Ok((user, claims))
 }
@@ -159,7 +157,7 @@ async fn extract_from_jwt(
     // Check if Bearer is machine API key
     if crate::api_keys::looks_like_key(token) {
         let user = AuthService::get_user_by_api_key(state.db(), token).await?;
-        let user_uuid = uuid::Uuid::parse_str(&user.id).unwrap_or_else(|_| uuid::Uuid::nil());
+        let user_uuid = uuid::Uuid::parse_str(&user.id).map_err(|_| AppError::Unauthorized)?;
         let claims = crate::Claims::new_access(user_uuid, "member");
         return Ok((user, claims));
     }
@@ -174,7 +172,7 @@ async fn extract_from_jwt(
 
     // Fall back to legacy JWT lookup
     let user = AuthService::get_user_by_jwt(state.db(), token).await?;
-    let user_uuid = uuid::Uuid::parse_str(&user.id).unwrap_or_else(|_| uuid::Uuid::nil());
+    let user_uuid = uuid::Uuid::parse_str(&user.id).map_err(|_| AppError::Unauthorized)?;
     let claims = crate::Claims::new_access(user_uuid, "member");
     Ok((user, claims))
 }
@@ -194,7 +192,7 @@ async fn extract_from_api_key(
         .map_err(|_| AppError::Unauthorized)?;
 
     let user = AuthService::get_user_by_api_key(state.db(), api_key).await?;
-    let user_uuid = uuid::Uuid::parse_str(&user.id).unwrap_or_else(|_| uuid::Uuid::nil());
+    let user_uuid = uuid::Uuid::parse_str(&user.id).map_err(|_| AppError::Unauthorized)?;
     let claims = crate::Claims::new_access(user_uuid, "member");
     Ok((user, claims))
 }

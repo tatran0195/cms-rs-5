@@ -35,6 +35,7 @@ impl From<McpAuditEventRow> for McpAuditEvent {
 }
 
 /// MCP audit event queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct McpAuditEventQueries;
 
 impl McpAuditEventQueries {

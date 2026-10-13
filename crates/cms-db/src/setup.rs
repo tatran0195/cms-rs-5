@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use crate::auth::UserRow;
 
+#[derive(Debug, Clone, Copy, Default)]
 pub struct SetupQueries;
 
 impl SetupQueries {

@@ -73,7 +73,6 @@ chrono = { version = "0.4.45", features = ["serde"] }
 uuid = { version = "1.26.0", features = ["v4", "v5", "serde"] }
 
 # Configuration
-figment = { version = "0.10", features = ["toml", "env"] }
 config = { version = "0.14", features = ["toml"] }
 
 # Auth & Crypto

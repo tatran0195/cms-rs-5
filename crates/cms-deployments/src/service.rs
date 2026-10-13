@@ -7,7 +7,8 @@ use std::sync::Arc;
 use cms_db::{
     PgPool,
     branch::BranchQueries,
-    deployment::{DeploymentQueries, DomainQueries},
+    deployment::DeploymentQueries,
+    domain::DomainQueries,
     page::PageQueries,
     project::ProjectQueries,
 };
@@ -274,7 +275,7 @@ impl DeploymentService {
             return Err(AppError::Conflict("Domain is already in use".to_string()));
         }
 
-        let domain = cms_db::domain::DomainQueries::create(
+        let domain = DomainQueries::create(
             pool,
             deployment_id,
             &hostname,
@@ -344,7 +345,7 @@ impl DeploymentService {
             }
         }
 
-        let updated = cms_db::domain::DomainQueries::update(
+        let updated = DomainQueries::update(
             pool,
             domain_id,
             request.hostname.as_deref(),

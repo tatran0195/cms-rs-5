@@ -154,6 +154,7 @@ impl From<PageListItemRow> for PageListItem {
 }
 
 /// Page queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct PageQueries;
 
 impl PageQueries {

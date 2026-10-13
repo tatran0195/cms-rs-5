@@ -61,6 +61,7 @@ impl From<ProjectIntegrationRow> for ProjectIntegrationResponse {
 }
 
 /// ProjectIntegration queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ProjectIntegrationQueries;
 
 impl ProjectIntegrationQueries {
@@ -268,6 +269,7 @@ impl From<IntegrationAuditEventRow> for IntegrationAuditEventResponse {
 }
 
 /// IntegrationAuditEvent queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct IntegrationAuditEventQueries;
 
 impl IntegrationAuditEventQueries {
@@ -387,6 +389,7 @@ impl From<IntegrationConfirmationRow> for IntegrationConfirmationResponse {
 }
 
 /// IntegrationConfirmation queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct IntegrationConfirmationQueries;
 
 impl IntegrationConfirmationQueries {
@@ -516,6 +519,7 @@ impl From<IntegrationWebhookDeliveryRow> for IntegrationWebhookDeliveryResponse 
 }
 
 /// IntegrationWebhookDelivery queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct IntegrationWebhookDeliveryQueries;
 
 impl IntegrationWebhookDeliveryQueries {
@@ -661,6 +665,7 @@ impl From<IntegrationIdempotencyRecordRow> for IntegrationIdempotencyRecordRespo
 }
 
 /// IntegrationIdempotencyRecord queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct IntegrationIdempotencyRecordQueries;
 
 impl IntegrationIdempotencyRecordQueries {

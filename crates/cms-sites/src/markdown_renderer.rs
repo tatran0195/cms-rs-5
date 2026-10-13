@@ -100,6 +100,7 @@ impl Default for MarkdownRendererConfig {
 // ---------------------------------------------------------------------------
 
 /// Markdown renderer
+#[derive(Debug, Clone)]
 pub struct MarkdownRenderer {
     config: MarkdownRendererConfig,
 }

@@ -64,6 +64,7 @@ impl From<ThemeRow> for ThemeResponse {
 }
 
 /// Theme queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ThemeQueries;
 
 impl ThemeQueries {

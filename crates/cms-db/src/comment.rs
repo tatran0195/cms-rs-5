@@ -90,6 +90,7 @@ impl From<CommentAuthRow> for CommentWithAuth {
 }
 
 /// Comment queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct CommentQueries;
 
 impl CommentQueries {

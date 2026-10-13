@@ -187,6 +187,16 @@ pub struct HostResolver {
     last_generation: AtomicU64,
 }
 
+impl std::fmt::Debug for HostResolver {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HostResolver")
+            .field("default_host", &self.default_host)
+            .field("canonical_domains", &self.canonical_domains)
+            .field("trusted_proxies", &self.trusted_proxies)
+            .finish()
+    }
+}
+
 impl HostResolver {
     pub fn new(pool: PgPool, default_host: String) -> Self {
         Self::with_generation(pool, default_host, Arc::new(AtomicU64::new(0)))

@@ -53,6 +53,7 @@ impl From<BranchRow> for BranchResponse {
 }
 
 /// Branch queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct BranchQueries;
 
 impl BranchQueries {

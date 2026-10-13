@@ -57,8 +57,9 @@ pub async fn login_handler(
 
     let session_token = uuid::Uuid::new_v4().to_string();
     let expires_at = chrono::Utc::now() + chrono::Duration::days(30);
-    let _ = cms_db::auth::SessionQueries::create(state.db(), &user.id, &session_token, expires_at)
-        .await;
+    cms_db::auth::SessionQueries::create(state.db(), &user.id, &session_token, expires_at)
+        .await
+        .map_err(|e| AppError::Internal(e.into()))?;
 
     let mut res_headers = HeaderMap::new();
     let cookie_val = state.config.auth.session_cookie_value(
@@ -270,7 +271,6 @@ fn otp_identifier(purpose: &str, email: &str) -> String {
 
 async fn issue_and_send_otp(state: &AppState, email: &str, purpose: &str) -> Result<(), AppError> {
     use cms_db::auth::{EmailOtpThrottleQueries, VerificationTokenQueries};
-    use uuid::Uuid;
 
     let email = email.trim().to_lowercase();
     let Some((local, domain)) = email.split_once('@') else {
@@ -292,11 +292,12 @@ async fn issue_and_send_otp(state: &AppState, email: &str, purpose: &str) -> Res
         return Err(AppError::TooManyRequests);
     }
 
-    // UUID v4 uses the operating system CSPRNG. Reducing it to six digits makes
+    // Cryptographic OS CSPRNG sourced OTP. Reducing it to six digits makes
     // this a human-enterable OTP; the send cooldown and global request limiter
     // constrain online guessing and resend abuse.
-    let bytes = Uuid::new_v4().as_bytes().to_vec();
-    let n = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) % 1_000_000;
+    let mut bytes = [0u8; 4];
+    getrandom::fill(&mut bytes).map_err(|e| AppError::Internal(e.into()))?;
+    let n = u32::from_le_bytes(bytes) % 1_000_000;
     let otp = format!("{n:06}");
     let expires_at = chrono::Utc::now() + chrono::Duration::minutes(10);
     VerificationTokenQueries::create_or_replace(state.db(), &identifier, &otp, expires_at).await?;
@@ -875,8 +876,9 @@ pub async fn mfa_challenge_handler(
 
     let session_token = uuid::Uuid::new_v4().to_string();
     let expires_at = chrono::Utc::now() + chrono::Duration::days(30);
-    let _ = cms_db::auth::SessionQueries::create(state.db(), &user.id, &session_token, expires_at)
-        .await;
+    cms_db::auth::SessionQueries::create(state.db(), &user.id, &session_token, expires_at)
+        .await
+        .map_err(|e| AppError::Internal(e.into()))?;
 
     let mut res_headers = HeaderMap::new();
     let cookie_val = state.config.auth.session_cookie_value(

@@ -76,6 +76,7 @@ pub async fn record_trusted_tls_observation(
 
 /// The immutable public view of a successfully deployed documentation site.
 /// Editor tables are deliberately not used to render published pages.
+#[derive(Debug, Clone)]
 pub struct PublishedSiteSnapshot {
     pub project: cms_entity::project::Project,
     pub deployment_id: String,

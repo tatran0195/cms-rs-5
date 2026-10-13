@@ -76,6 +76,7 @@ impl From<ProjectAddonRow> for ProjectAddon {
 }
 
 /// Project queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ProjectQueries;
 
 impl ProjectQueries {
@@ -517,6 +518,7 @@ impl ProjectQueries {
 }
 
 /// Project settings queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ProjectSettingsQueries;
 
 impl ProjectSettingsQueries {
@@ -661,6 +663,7 @@ impl ProjectSettingsQueries {
 }
 
 /// Project addon queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ProjectAddonQueries;
 
 impl ProjectAddonQueries {

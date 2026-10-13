@@ -33,13 +33,13 @@ async fn shutdown_signal() {
 /// different origin) only for origins listed in `[admin_origin]`. Localhost
 /// origins are also permitted in development when `allow_localhost` is set.
 fn build_cors(config: &Config) -> tower_http::cors::CorsLayer {
-    use axum::http::{HeaderName, Method, header};
+    use axum::http::{HeaderName, HeaderValue, Method, header};
     use tower_http::cors::{AllowOrigin, CorsLayer};
 
     let allow_localhost = config.admin_origin.allow_localhost;
     let allowed = config.admin_origin.allowed_origins.clone();
 
-    let allow_origin = AllowOrigin::predicate(move |origin: &axum::http::HeaderValue, _| {
+    let allow_origin = AllowOrigin::predicate(move |origin: &HeaderValue, _| {
         let Some(origin) = origin.to_str().ok() else {
             return false;
         };

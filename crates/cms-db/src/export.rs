@@ -34,6 +34,7 @@ impl From<ExportSnapshotRow> for ExportSnapshot {
 }
 
 /// ExportSnapshot queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ExportSnapshotQueries;
 
 impl ExportSnapshotQueries {
@@ -169,6 +170,7 @@ impl From<ExportJobRow> for ExportJob {
 }
 
 /// ExportJob queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ExportJobQueries;
 
 impl ExportJobQueries {
@@ -395,6 +397,7 @@ impl From<ExportArtifactRow> for ExportArtifact {
 }
 
 /// ExportArtifact queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ExportArtifactQueries;
 
 impl ExportArtifactQueries {
@@ -508,6 +511,7 @@ impl From<ExportScheduleRow> for ExportSchedule {
 }
 
 /// ExportSchedule queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ExportScheduleQueries;
 
 impl ExportScheduleQueries {

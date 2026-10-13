@@ -41,6 +41,7 @@ impl From<PlatformEventRow> for PlatformEventResponse {
 }
 
 /// PlatformEvent queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct PlatformEventQueries;
 
 impl PlatformEventQueries {

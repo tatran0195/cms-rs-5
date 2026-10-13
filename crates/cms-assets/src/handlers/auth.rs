@@ -35,8 +35,7 @@ where
     #[allow(clippy::unused_async_trait_impl)]
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         if let Some(claims) = parts.extensions.get::<Claims>() {
-            let is_bypass =
-                claims.role == "super_admin" || claims.role == "owner" || claims.role == "admin";
+            let is_bypass = claims.role == "super_admin";
             return Ok(Self {
                 user_id: claims.sub.to_string(),
                 user_uuid: claims.sub,
@@ -46,7 +45,7 @@ where
         }
 
         if let Some(user) = parts.extensions.get::<AuthenticatedUser>() {
-            let user_uuid = Uuid::parse_str(&user.user_id).unwrap_or_else(|_| Uuid::nil());
+            let user_uuid = Uuid::parse_str(&user.user_id).map_err(|_| AppError::Unauthorized)?;
             return Ok(Self {
                 user_id: user.user_id.clone(),
                 user_uuid,
@@ -65,9 +64,7 @@ where
                 if let Ok(auth_str) = auth_header.to_str() {
                     if let Some(token) = auth_str.strip_prefix("Bearer ") {
                         if let Ok(claims) = decode_jwt(token, &secret) {
-                            let is_bypass = claims.role == "super_admin"
-                                || claims.role == "owner"
-                                || claims.role == "admin";
+                            let is_bypass = claims.role == "super_admin";
                             return Ok(Self {
                                 user_id: claims.sub.to_string(),
                                 user_uuid: claims.sub,

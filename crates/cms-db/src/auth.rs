@@ -145,6 +145,7 @@ impl From<VerificationTokenRow> for VerificationToken {
 }
 
 /// User queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct UserQueries;
 
 impl UserQueries {
@@ -395,6 +396,7 @@ impl UserQueries {
 }
 
 /// Session queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct SessionQueries;
 
 impl SessionQueries {
@@ -500,6 +502,7 @@ impl SessionQueries {
 }
 
 /// API Key queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ApiKeyQueries;
 
 impl ApiKeyQueries {
@@ -613,6 +616,7 @@ impl ApiKeyQueries {
 }
 
 /// Verification token queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct VerificationTokenQueries;
 
 impl VerificationTokenQueries {
@@ -762,6 +766,7 @@ impl VerificationTokenQueries {
 }
 
 /// Per-identifier OTP send throttling. The insert/update is atomic across API instances.
+#[derive(Debug, Clone, Copy, Default)]
 pub struct EmailOtpThrottleQueries;
 
 impl EmailOtpThrottleQueries {
@@ -789,6 +794,7 @@ impl EmailOtpThrottleQueries {
 }
 
 /// Account queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct AccountQueries;
 
 impl AccountQueries {

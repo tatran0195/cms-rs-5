@@ -51,6 +51,7 @@ impl From<ReaderRow> for ReaderResponse {
 }
 
 /// Reader queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderQueries;
 
 impl ReaderQueries {
@@ -207,6 +208,7 @@ impl From<AudienceRow> for AudienceResponse {
 }
 
 /// Audience queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct AudienceQueries;
 
 impl AudienceQueries {
@@ -329,6 +331,7 @@ struct ReaderAudienceRow {
 }
 
 /// ReaderAudience queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderAudienceQueries;
 
 impl ReaderAudienceQueries {
@@ -471,6 +474,7 @@ impl From<AudienceGrantRow> for AudienceGrantResponse {
 }
 
 /// AudienceGrant queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct AudienceGrantQueries;
 
 impl AudienceGrantQueries {
@@ -608,6 +612,7 @@ impl From<ReaderInvitationRow> for ReaderInvitationResponse {
 }
 
 /// ReaderInvitation queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderInvitationQueries;
 
 impl ReaderInvitationQueries {
@@ -717,6 +722,7 @@ struct ReaderSessionRow {
 }
 
 /// ReaderSession queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderSessionQueries;
 
 impl ReaderSessionQueries {
@@ -837,6 +843,7 @@ impl From<JwtAccessProviderRow> for JwtAccessProvider {
 }
 
 /// JwtAccessProvider queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct JwtAccessProviderQueries;
 
 impl JwtAccessProviderQueries {
@@ -951,6 +958,7 @@ impl From<JwtReplayRow> for JwtReplay {
 }
 
 /// JwtReplay queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct JwtReplayQueries;
 
 impl JwtReplayQueries {
@@ -1045,6 +1053,7 @@ impl From<ReaderAuditLogRow> for ReaderAuditLog {
 }
 
 /// ReaderAuditLog queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ReaderAuditLogQueries;
 
 impl ReaderAuditLogQueries {

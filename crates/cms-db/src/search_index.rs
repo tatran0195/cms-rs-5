@@ -44,6 +44,7 @@ impl From<SearchIndexRunRow> for SearchIndexRun {
 }
 
 /// SearchIndexRun queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct SearchIndexRunQueries;
 
 impl SearchIndexRunQueries {

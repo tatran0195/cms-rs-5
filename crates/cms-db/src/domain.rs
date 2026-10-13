@@ -136,6 +136,7 @@ fn map_domain_write_error(error: sqlx::Error) -> AppError {
 }
 
 /// Domain queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct DomainQueries;
 
 impl DomainQueries {

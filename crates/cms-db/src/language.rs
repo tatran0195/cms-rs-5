@@ -103,6 +103,7 @@ impl From<ProjectTranslationRow> for ProjectTranslationResponse {
 }
 
 /// Language queries.
+#[derive(Debug, Clone, Copy, Default)]
 pub struct LanguageQueries;
 
 impl LanguageQueries {
@@ -485,6 +486,7 @@ fn map_language_write_error(error: sqlx::Error) -> AppError {
 }
 
 /// Project translation queries.
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ProjectTranslationQueries;
 
 impl ProjectTranslationQueries {

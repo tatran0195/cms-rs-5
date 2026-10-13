@@ -1,5 +1,4 @@
 #![allow(clippy::useless_conversion)]
-#![allow(clippy::unnecessary_unwrap)]
 #![allow(clippy::too_many_arguments)]
 
 //! CMS Database Layer

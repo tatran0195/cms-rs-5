@@ -25,6 +25,7 @@ pub struct SeoMetadata {
 }
 
 /// SEO generator
+#[derive(Debug, Clone)]
 pub struct SeoGenerator {
     base_url: String,
     default_description: String,
@@ -315,6 +316,7 @@ pub struct SitemapPageMetadata {
 }
 
 /// Sitemap generator
+#[derive(Debug, Clone)]
 pub struct SitemapGenerator {
     base_url: String,
 }

@@ -56,6 +56,7 @@ impl From<OpenApiDocumentRow> for OpenApiDocumentResponse {
 }
 
 /// OpenApiDocument queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct OpenApiDocumentQueries;
 
 impl OpenApiDocumentQueries {

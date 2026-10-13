@@ -43,6 +43,7 @@ impl From<AssetRow> for Asset {
 }
 
 /// Asset queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct AssetQueries;
 
 impl AssetQueries {

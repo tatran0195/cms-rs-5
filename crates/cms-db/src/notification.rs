@@ -58,6 +58,7 @@ impl From<NotificationRow> for NotificationResponse {
 }
 
 /// Notification queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct NotificationQueries;
 
 impl NotificationQueries {

@@ -31,6 +31,7 @@ impl From<ProjectMemberRow> for ProjectMember {
     }
 }
 
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ProjectMemberQueries;
 
 impl ProjectMemberQueries {
@@ -175,6 +176,7 @@ pub struct RelationTupleRow {
     pub expires_at: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Clone, Copy, Default)]
 pub struct RelationTupleQueries;
 
 impl RelationTupleQueries {

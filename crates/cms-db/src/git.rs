@@ -42,6 +42,7 @@ impl From<GitConnectionRow> for GitConnection {
 }
 
 /// GitConnection queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitConnectionQueries;
 
 impl GitConnectionQueries {
@@ -205,6 +206,7 @@ impl From<GitSyncOperationRow> for GitSyncOperation {
 }
 
 /// GitSyncOperation queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitSyncOperationQueries;
 
 impl GitSyncOperationQueries {
@@ -405,6 +407,7 @@ impl From<GitFileStateRow> for GitFileState {
 }
 
 /// GitFileState queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitFileStateQueries;
 
 impl GitFileStateQueries {
@@ -594,6 +597,7 @@ impl From<GitPreviewRow> for GitPreview {
 }
 
 /// GitConflict queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitConflictQueries;
 
 impl GitConflictQueries {
@@ -661,6 +665,7 @@ impl GitConflictQueries {
 }
 
 /// GitPullRequest queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitPullRequestQueries;
 
 impl GitPullRequestQueries {
@@ -706,6 +711,7 @@ impl GitPullRequestQueries {
 }
 
 /// GitPreview queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitPreviewQueries;
 
 impl GitPreviewQueries {
@@ -737,6 +743,7 @@ impl GitPreviewQueries {
 }
 
 /// GitWebhookDelivery queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitWebhookDeliveryQueries;
 
 impl GitWebhookDeliveryQueries {
@@ -751,6 +758,7 @@ impl GitWebhookDeliveryQueries {
 }
 
 /// GitAuditEvent queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GitAuditEventQueries;
 
 impl GitAuditEventQueries {

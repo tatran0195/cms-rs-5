@@ -147,6 +147,7 @@ pub fn is_secure_request(headers: &HeaderMap, is_trusted_proxy: bool) -> bool {
 }
 
 /// Security middleware for published sites
+#[derive(Debug, Clone)]
 pub struct SiteSecurityMiddleware {
     config: SiteSecurityConfig,
 }

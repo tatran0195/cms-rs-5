@@ -22,6 +22,15 @@ pub struct StaticFilesHandler {
     max_age: u64,
 }
 
+impl std::fmt::Debug for StaticFilesHandler {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StaticFilesHandler")
+            .field("cache_control", &self.cache_control)
+            .field("max_age", &self.max_age)
+            .finish()
+    }
+}
+
 impl StaticFilesHandler {
     pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self {
@@ -182,6 +191,7 @@ impl StaticFilesHandler {
 }
 
 /// Static file server for development
+#[derive(Debug, Clone)]
 pub struct DevStaticFileServer {
     base_path: String,
 }

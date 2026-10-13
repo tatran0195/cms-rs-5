@@ -12,6 +12,7 @@ use uuid::Uuid;
 // This module provides additional analytics-specific queries
 
 /// Analytics queries
+#[derive(Debug, Clone, Copy, Default)]
 pub struct AnalyticsQueries;
 
 impl AnalyticsQueries {
@@ -302,6 +303,7 @@ impl AnalyticsQueries {
 /// Analytics event queries (alias for AnalyticsQueries for API compatibility)
 ///
 /// Provides CRUD operations for analytics events in the AnalyticsEvent table.
+#[derive(Debug, Clone, Copy, Default)]
 pub struct AnalyticsEventQueries;
 
 impl AnalyticsEventQueries {
