@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 //! OAuth 2.0 and OIDC provider integration (ported from MedBrains).
 //!
 //! Provides:
@@ -122,6 +120,7 @@ pub fn decode_callback_state<T: for<'de> Deserialize<'de>>(state: &str) -> Resul
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 
