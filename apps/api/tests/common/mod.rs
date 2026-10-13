@@ -116,7 +116,7 @@ pub async fn wait_for_deployment_ready(
 ) -> anyhow::Result<(i64, i64)> {
     let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(15);
     loop {
-        let deployment = cms_db::deployment::DeploymentQueries::get_by_id(
+        let deployment = cms_deployments::DeploymentQueries::get_by_id(
             state.db(),
             deployment_id,
         )
@@ -124,13 +124,13 @@ pub async fn wait_for_deployment_ready(
         .ok_or_else(|| anyhow::anyhow!("deployment {deployment_id} disappeared"))?;
         match &deployment.status {
             cms_entity::deployment::DeploymentStatus::Active => {
-                let snapshot = cms_db::deployment::DeploymentQueries::get_snapshot_by_deployment(
+                let snapshot = cms_deployments::DeploymentQueries::get_snapshot_by_deployment(
                     state.db(),
                     deployment_id,
                 )
                 .await?
                 .ok_or_else(|| anyhow::anyhow!("ready deployment has no immutable snapshot"))?;
-                let page_count = cms_db::deployment::DeploymentQueries::get_snapshot_page_count(
+                let page_count = cms_deployments::DeploymentQueries::get_snapshot_page_count(
                     state.db(),
                     deployment_id,
                 )

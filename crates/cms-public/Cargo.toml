@@ -14,6 +14,7 @@ cms-onboarding = { path = "../cms-onboarding" }
 cms-infra = { path = "../cms-infra" }
 cms-auth = { path = "../cms-auth" }
 cms-projects = { path = "../cms-projects" }
+cms-deployments = { workspace = true }
 cms-analytics = { workspace = true }
 
 anyhow = { workspace = true }

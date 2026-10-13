@@ -573,6 +573,60 @@ impl DomainQueries {
 
         Ok(row.map(Into::into))
     }
+
+    /// Get deployment's project_id
+    pub async fn get_deployment_project_id(
+        pool: &PgPool,
+        deployment_id: &str,
+    ) -> Result<Option<String>, AppError> {
+        let row: Option<String> = sqlx::query_scalar(
+            r#"SELECT project_id FROM "Deployment" WHERE id = $1"#,
+        )
+        .bind(deployment_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(AppError::Database)?;
+
+        Ok(row)
+    }
+
+    /// Get the latest deployment ID for a project
+    pub async fn get_latest_deployment_id_for_project(
+        pool: &PgPool,
+        project_id: &str,
+    ) -> Result<Option<String>, AppError> {
+        let row: Option<String> = sqlx::query_scalar(
+            r#"SELECT id FROM "Deployment" WHERE project_id = $1 ORDER BY created_at DESC LIMIT 1"#,
+        )
+        .bind(project_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(AppError::Database)?;
+
+        Ok(row)
+    }
+
+    /// Get all domains across deployments for a project
+    pub async fn get_by_project(
+        pool: &PgPool,
+        project_id: &str,
+    ) -> Result<Vec<Domain>, AppError> {
+        let rows = sqlx::query_as::<_, DomainRow>(
+            r#"
+            SELECT domain.*
+            FROM "Domain" AS domain
+            JOIN "Deployment" AS deployment ON deployment.id = domain.deployment_id
+            WHERE deployment.project_id = $1
+            ORDER BY domain.created_at DESC
+            "#,
+        )
+        .bind(project_id)
+        .fetch_all(pool)
+        .await
+        .map_err(AppError::Database)?;
+
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
 }
 
 #[cfg(test)]

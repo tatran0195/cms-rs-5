@@ -17,7 +17,7 @@ use axum::{
     extract::{ConnectInfo, FromRequestParts},
     http::{HeaderMap, header, request::Parts},
 };
-use cms_db::deployment::DeploymentQueries;
+use cms_deployments::DeploymentQueries;
 use cms_projects::{DomainQueries, ProjectQueries};
 use cms_entity::common::Id;
 use cms_error::AppError;

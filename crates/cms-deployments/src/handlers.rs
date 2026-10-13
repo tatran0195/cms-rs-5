@@ -14,7 +14,8 @@ use cms_content::BranchQueries;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use crate::{auth::DeploymentUser, service::DeploymentService};
+use cms_auth::AuthUser;
+use crate::service::DeploymentService;
 
 /// List deployments for a project
 #[utoipa::path(
@@ -40,7 +41,7 @@ use crate::{auth::DeploymentUser, service::DeploymentService};
 )]
 pub async fn list_deployments_handler(
     State(state): State<Arc<AppState>>,
-    auth: DeploymentUser,
+    auth: AuthUser,
     Query(query): Query<ListDeploymentsQuery>,
 ) -> Result<Json<PaginatedResponse<DeploymentResponse>>, AppError> {
     let project_id = query.project_id.as_deref().unwrap_or("");
@@ -74,7 +75,7 @@ pub async fn list_deployments_handler(
 )]
 pub async fn create_deployment_handler(
     State(state): State<Arc<AppState>>,
-    auth: DeploymentUser,
+    auth: AuthUser,
     Json(request): Json<CreateDeploymentRequest>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let project_uuid = uuid::Uuid::parse_str(&request.project_id)
@@ -136,7 +137,7 @@ pub async fn create_deployment_handler(
 )]
 pub async fn get_deployment_handler(
     State(state): State<Arc<AppState>>,
-    auth: DeploymentUser,
+    auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let deployment =
@@ -166,7 +167,7 @@ pub async fn get_deployment_handler(
 )]
 pub async fn get_deployment_logs_handler(
     State(state): State<Arc<AppState>>,
-    auth: DeploymentUser,
+    auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let logs =
@@ -197,7 +198,7 @@ pub async fn get_deployment_logs_handler(
 )]
 pub async fn retry_deployment_handler(
     State(state): State<Arc<AppState>>,
-    auth: DeploymentUser,
+    auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let deployment =
@@ -229,7 +230,7 @@ pub async fn retry_deployment_handler(
 )]
 pub async fn cancel_deployment_handler(
     State(state): State<Arc<AppState>>,
-    auth: DeploymentUser,
+    auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let deployment =

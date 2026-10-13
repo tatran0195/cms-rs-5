@@ -12,6 +12,7 @@ cms-error = { path = "../cms-error" }
 cms-infra = { path = "../cms-infra" }
 cms-server-core = { path = "../cms-server-core" }
 cms-projects = { path = "../cms-projects" }
+cms-deployments = { workspace = true }
 
 # External dependencies
 axum = { workspace = true, features = ["json", "multipart"] }

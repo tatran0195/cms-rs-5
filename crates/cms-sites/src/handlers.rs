@@ -5,7 +5,7 @@ use axum::{
     http::{HeaderMap, StatusCode, header},
     response::{Html, IntoResponse, Response},
 };
-use cms_db::deployment::DeploymentQueries;
+use cms_deployments::{DeploymentQueries, DeploymentSnapshotPageListing};
 use cms_projects::{DomainQueries, ProjectQueries};
 use cms_entity::deployment::DeploymentSnapshotContent;
 use cms_error::AppError;
@@ -171,7 +171,7 @@ pub async fn load_published_site_snapshot(
 pub async fn load_published_site_page_listing(
     state: &Arc<SitesAppState>,
     site: &PublishedSiteSnapshot,
-) -> Result<Vec<cms_db::deployment::DeploymentSnapshotPageListing>, AppError> {
+) -> Result<Vec<DeploymentSnapshotPageListing>, AppError> {
     DeploymentQueries::get_snapshot_page_listing(
         state.db(),
         &site.deployment_id,
@@ -547,7 +547,7 @@ pub async fn render_page(
 pub async fn render_project_listing(
     _state: &Arc<SitesAppState>,
     project: &cms_entity::project::Project,
-    pages: &[cms_db::deployment::DeploymentSnapshotPageListing],
+    pages: &[DeploymentSnapshotPageListing],
     base_url: &str,
     language_code: &str,
     language_is_rtl: bool,

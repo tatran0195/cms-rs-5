@@ -14,7 +14,6 @@ pub mod audit;
 pub use audit::{AuditEntry, AuditLogger, ChainVerificationResult, HttpAuditEntry};
 pub mod auth;
 pub mod authz;
-pub mod deployment;
 pub mod export;
 pub mod git;
 pub mod integration;

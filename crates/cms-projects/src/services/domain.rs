@@ -22,12 +22,11 @@ impl DomainService {
             .await?
             .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
 
-        let deployment =
-            cms_db::deployment::DeploymentQueries::get_by_id(pool, &domain.deployment_id)
-                .await?
-                .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+        let deployment_project_id = DomainQueries::get_deployment_project_id(pool, &domain.deployment_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        if deployment.project_id != project_id {
+        if deployment_project_id != project_id {
             return Err(AppError::Forbidden);
         }
 
@@ -39,21 +38,8 @@ impl DomainService {
         pool: &PgPool,
         project_id: &str,
     ) -> Result<Vec<SpaDomainResponse>, AppError> {
-        let deployments = cms_db::deployment::DeploymentQueries::get_by_project(
-            pool,
-            project_id,
-            Some(100),
-            None,
-        )
-        .await?;
-
-        let mut items = Vec::new();
-        for d in deployments {
-            let domains = DomainQueries::get_by_deployment(pool, &d.id).await?;
-            items.extend(domains.iter().map(SpaDomainResponse::from_domain));
-        }
-
-        Ok(items)
+        let domains = DomainQueries::get_by_project(pool, project_id).await?;
+        Ok(domains.iter().map(SpaDomainResponse::from_domain).collect())
     }
 
     /// Add a domain to the newest deployment of a project
@@ -67,20 +53,18 @@ impl DomainService {
             return Err(AppError::InvalidInput("domain is required".to_string()));
         }
 
-        let deployments =
-            cms_db::deployment::DeploymentQueries::get_by_project(pool, project_id, Some(1), None)
-                .await?;
+        let deployment_id = DomainQueries::get_latest_deployment_id_for_project(pool, project_id)
+            .await?
+            .ok_or_else(|| {
+                AppError::NotFound("No deployment exists for this project".to_string())
+            })?;
 
-        let deployment = deployments.first().ok_or_else(|| {
-            AppError::NotFound("No deployment exists for this project".to_string())
-        })?;
-
-        let has_primary = DomainQueries::get_primary_by_deployment(pool, &deployment.id)
+        let has_primary = DomainQueries::get_primary_by_deployment(pool, &deployment_id)
             .await?
             .is_some();
         let is_primary = !has_primary;
 
-        let domain = DomainQueries::create(pool, &deployment.id, &normalized, is_primary).await?;
+        let domain = DomainQueries::create(pool, &deployment_id, &normalized, is_primary).await?;
 
         Ok(SpaDomainResponse::from_domain(&domain))
     }

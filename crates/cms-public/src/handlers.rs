@@ -10,6 +10,9 @@ use axum::{
     extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
 };
+use cms_deployments::{
+    DeploymentBranchRelease, DeploymentQueries, DeploymentSnapshotPageSummary,
+};
 use cms_entity::{page::PageResponse, project::ProjectResponse};
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
@@ -363,11 +366,11 @@ struct ResolvedPublicSite {
     project: cms_entity::project::Project,
     branch: cms_entity::branch::Branch,
     deployment_id: String,
-    branches: Vec<cms_db::deployment::DeploymentBranchRelease>,
+    branches: Vec<DeploymentBranchRelease>,
     languages: Vec<cms_entity::language::Language>,
     language: cms_entity::language::Language,
     pages: Vec<cms_entity::page::Page>,
-    all_pages: Vec<cms_db::deployment::DeploymentSnapshotPageSummary>,
+    all_pages: Vec<DeploymentSnapshotPageSummary>,
     language_config: Option<serde_json::Value>,
     primary_domain: Option<String>,
     version_number: u64,
@@ -393,7 +396,7 @@ async fn resolve_public_site(
     }
 
     let branches =
-        cms_db::deployment::DeploymentQueries::get_latest_branch_releases(state.db(), project_id)
+        DeploymentQueries::get_latest_branch_releases(state.db(), project_id)
             .await?;
     if branches.is_empty() {
         return Err(AppError::NotFound(
@@ -412,7 +415,7 @@ async fn resolve_public_site(
             AppError::NotFound("Site has no published default-branch release".to_string())
         })?;
 
-    let saved_snapshot = cms_db::deployment::DeploymentQueries::get_snapshot_by_deployment(
+    let saved_snapshot = DeploymentQueries::get_snapshot_by_deployment(
         state.db(),
         &branch_release.deployment_id,
     )
@@ -450,12 +453,12 @@ async fn resolve_public_site(
                 .cloned()
         })
         .unwrap_or(default_language);
-    let all_pages = cms_db::deployment::DeploymentQueries::get_snapshot_page_summaries(
+    let all_pages = DeploymentQueries::get_snapshot_page_summaries(
         state.db(),
         &deployment_id,
     )
     .await?;
-    let pages = cms_db::deployment::DeploymentQueries::get_snapshot_pages(
+    let pages = DeploymentQueries::get_snapshot_pages(
         state.db(),
         &deployment_id,
         Some(&language.id),
@@ -533,7 +536,7 @@ async fn resolve_public_site_by_slug(
 }
 
 fn public_versions(
-    branches: &[cms_db::deployment::DeploymentBranchRelease],
+    branches: &[DeploymentBranchRelease],
 ) -> Vec<serde_json::Value> {
     branches
         .iter()
@@ -794,7 +797,7 @@ pub async fn get_public_pages_handler(
     Path(id): Path<String>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let saved_snapshot =
-        cms_db::deployment::DeploymentQueries::get_latest_snapshot_for_page(state.db(), &id)
+        DeploymentQueries::get_latest_snapshot_for_page(state.db(), &id)
             .await?
             .ok_or_else(|| AppError::NotFound("Page not found".to_string()))?;
     let deployment_id = saved_snapshot.deployment_id.clone();
@@ -803,7 +806,7 @@ pub async fn get_public_pages_handler(
             AppError::Internal(anyhow::anyhow!("Published snapshot is invalid: {error}"))
         })?;
     let requested_page =
-        cms_db::deployment::DeploymentQueries::get_snapshot_page(state.db(), &deployment_id, &id)
+        DeploymentQueries::get_snapshot_page(state.db(), &deployment_id, &id)
             .await?
             .filter(|page| page.is_published)
             .ok_or_else(|| AppError::NotFound("Page not found".to_string()))?;
@@ -893,7 +896,7 @@ pub async fn get_public_site_changelog_handler(
     }
 
     let releases =
-        cms_db::deployment::DeploymentQueries::get_releases_by_project(state.db(), &id, 50).await?;
+        DeploymentQueries::get_releases_by_project(state.db(), &id, 50).await?;
 
     let items: Vec<serde_json::Value> = releases
         .iter()
@@ -1292,12 +1295,12 @@ pub async fn get_public_git_preview_handler(
         Some(preview) => match preview.deployment_id.as_deref() {
             Some(deployment_id) => {
                 let deployment =
-                    cms_db::deployment::DeploymentQueries::get_by_id(state.db(), deployment_id)
+                    DeploymentQueries::get_by_id(state.db(), deployment_id)
                         .await?;
                 match deployment {
                     Some(deployment) => {
                         let has_snapshot =
-                            cms_db::deployment::DeploymentQueries::get_snapshot_by_deployment(
+                            DeploymentQueries::get_snapshot_by_deployment(
                                 state.db(),
                                 deployment_id,
                             )
@@ -1349,7 +1352,7 @@ pub async fn authorize_custom_domain_tls_handler(
     let domain = cms_projects::DomainQueries::get_verified_by_hostname(pool, &query.domain)
         .await?
         .ok_or_else(|| AppError::NotFound("TLS authorization denied".to_string()))?;
-    let deployment = cms_db::deployment::DeploymentQueries::get_by_id(pool, &domain.deployment_id)
+    let deployment = DeploymentQueries::get_by_id(pool, &domain.deployment_id)
         .await?
         .filter(|deployment| {
             matches!(
@@ -1368,7 +1371,7 @@ pub async fn authorize_custom_domain_tls_handler(
     {
         return Err(AppError::NotFound("TLS authorization denied".to_string()));
     }
-    if cms_db::deployment::DeploymentQueries::get_snapshot_by_deployment(pool, &deployment.id)
+    if DeploymentQueries::get_snapshot_by_deployment(pool, &deployment.id)
         .await?
         .is_none()
     {
@@ -1401,7 +1404,7 @@ pub async fn get_public_domains_resolve_handler(
     let data = match domain {
         Some(domain) => {
             let deployment =
-                cms_db::deployment::DeploymentQueries::get_by_id(state.db(), &domain.deployment_id)
+                DeploymentQueries::get_by_id(state.db(), &domain.deployment_id)
                     .await?;
             match deployment {
                 Some(deployment) => {
@@ -1411,7 +1414,7 @@ pub async fn get_public_domains_resolve_handler(
                     )
                     .await?;
                     let snapshot =
-                        cms_db::deployment::DeploymentQueries::get_snapshot_by_deployment(
+                        DeploymentQueries::get_snapshot_by_deployment(
                             state.db(),
                             &deployment.id,
                         )
@@ -1457,7 +1460,7 @@ async fn site_pages(
     id: &str,
 ) -> Result<Vec<cms_entity::page::Page>, AppError> {
     let site = resolve_public_site(state, id, None, None).await?;
-    cms_db::deployment::DeploymentQueries::get_snapshot_pages(
+    DeploymentQueries::get_snapshot_pages(
         state.db(),
         &site.deployment_id,
         Some(&site.language.id),
@@ -1490,7 +1493,7 @@ pub async fn get_public_site_openapi_handler(
     Path(id): Path<String>,
 ) -> Result<impl axum::response::IntoResponse, AppError> {
     let site = resolve_public_site(&state, &id, None, None).await?;
-    let snapshot = cms_db::deployment::DeploymentQueries::get_snapshot_by_deployment(
+    let snapshot = DeploymentQueries::get_snapshot_by_deployment(
         state.db(),
         &site.deployment_id,
     )
@@ -1516,7 +1519,7 @@ pub async fn get_public_site_changelog_rss_handler(
 ) -> Result<impl axum::response::IntoResponse, AppError> {
     resolve_public_site(&state, &id, None, None).await?;
     let releases =
-        cms_db::deployment::DeploymentQueries::get_releases_by_project(state.db(), &id, 50).await?;
+        DeploymentQueries::get_releases_by_project(state.db(), &id, 50).await?;
 
     let mut items = String::new();
     for release in releases {
