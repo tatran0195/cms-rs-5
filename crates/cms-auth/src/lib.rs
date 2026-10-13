@@ -15,6 +15,7 @@ pub mod cookies;
 pub mod handlers;
 pub mod jwt;
 pub mod lockout;
+pub mod mfa;
 pub mod middleware;
 pub mod oauth;
 pub mod oauth_routes;
@@ -40,7 +41,6 @@ pub use lockout::{
 };
 
 pub use cms_api_keys as api_keys;
-pub use cms_mfa as mfa;
 pub use cms_oauth as oauth_provider;
 
 use std::sync::Arc;

@@ -25,7 +25,6 @@ cms-auth = { path = "crates/cms-auth" }
 cms-authz = { path = "crates/cms-authz" }
 cms-authz-gate = { path = "crates/cms-authz-gate" }
 cms-api-keys = { path = "crates/cms-api-keys" }
-cms-mfa = { path = "crates/cms-mfa" }
 cms-oauth = { path = "crates/cms-oauth" }
 cms-worker = { path = "crates/cms-worker" }
 cms-mcp = { path = "crates/cms-mcp" }

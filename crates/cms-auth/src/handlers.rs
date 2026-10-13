@@ -789,10 +789,10 @@ pub async fn sign_in_social_handler(
 pub async fn setup_mfa_handler(
     auth: AuthExtractor,
 ) -> Result<Json<MfaSetupResponse>, AppError> {
-    let enrollment = cms_mfa::generate_enrollment(&auth.user.email, "Company CMS")
+    let enrollment = crate::mfa::generate_enrollment(&auth.user.email, "Company CMS")
         .map_err(|e| AppError::Internal(anyhow::anyhow!("Failed to generate MFA enrollment: {}", e)))?;
 
-    let (plain_codes, _hashes) = cms_mfa::generate_recovery_codes(cms_mfa::DEFAULT_RECOVERY_CODE_COUNT);
+    let (plain_codes, _hashes) = crate::mfa::generate_recovery_codes(crate::mfa::DEFAULT_RECOVERY_CODE_COUNT);
 
     Ok(Json(MfaSetupResponse {
         secret: enrollment.secret,
@@ -808,7 +808,7 @@ pub async fn verify_mfa_handler(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<MfaVerifyPayload>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let is_valid = cms_mfa::verify_totp(&payload.secret, &payload.code);
+    let is_valid = crate::mfa::verify_totp(&payload.secret, &payload.code);
     if !is_valid {
         return Err(AppError::Validation("Invalid 6-digit authentication code".to_string()));
     }
@@ -816,7 +816,7 @@ pub async fn verify_mfa_handler(
     let hashes: Vec<String> = payload
         .recovery_codes
         .iter()
-        .map(|c| cms_mfa::hash_recovery_code(c))
+        .map(|c| crate::mfa::hash_recovery_code(c))
         .collect();
 
     cms_db::auth::UserQueries::enable_mfa(
@@ -847,11 +847,11 @@ pub async fn disable_mfa_handler(
 
     let mut verified = false;
     if let Some(secret) = secret_opt {
-        if cms_mfa::verify_totp(&secret, &payload.code) {
+        if crate::mfa::verify_totp(&secret, &payload.code) {
             verified = true;
         }
     }
-    if !verified && cms_mfa::verify_recovery_code(&payload.code, &recovery_codes).is_some() {
+    if !verified && crate::mfa::verify_recovery_code(&payload.code, &recovery_codes).is_some() {
         verified = true;
     }
 
@@ -880,14 +880,14 @@ pub async fn mfa_challenge_handler(
 
     if payload.is_recovery_code {
         let mut codes: Vec<String> = recovery_codes;
-        let match_idx = cms_mfa::verify_recovery_code(&payload.code, &codes)
+        let match_idx = crate::mfa::verify_recovery_code(&payload.code, &codes)
             .ok_or(AppError::Unauthorized)?;
 
         codes.remove(match_idx);
         cms_db::auth::UserQueries::update_recovery_codes(state.db(), &user_id, &codes).await?;
     } else {
         let secret = secret_opt.ok_or(AppError::Unauthorized)?;
-        if !cms_mfa::verify_totp(&secret, &payload.code) {
+        if !crate::mfa::verify_totp(&secret, &payload.code) {
             return Err(AppError::Unauthorized);
         }
     }

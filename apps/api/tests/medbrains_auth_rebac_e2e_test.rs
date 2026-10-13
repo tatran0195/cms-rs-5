@@ -137,39 +137,39 @@ fn test_e2e_mfa_totp_and_recovery_codes() {
     let user_email = "lead-dev@company.internal";
 
     // 1. Enroll TOTP
-    let enrolled = cms_mfa::generate_enrollment(user_email, "Company CMS")
+    let enrolled = cms_auth::mfa::generate_enrollment(user_email, "Company CMS")
         .expect("totp enrollment should succeed");
     assert!(!enrolled.secret.is_empty());
     assert!(!enrolled.qr_png_base64.is_empty());
 
     // 2. Generate and verify current TOTP code
-    let totp = cms_mfa::build_totp(&enrolled.secret, user_email, "Company CMS")
+    let totp = cms_auth::mfa::build_totp(&enrolled.secret, user_email, "Company CMS")
         .expect("building totp generator should succeed");
     let current_token = totp
         .generate_current()
         .expect("generating totp code should succeed");
 
     assert!(
-        cms_mfa::verify_totp(&enrolled.secret, &current_token),
+        cms_auth::mfa::verify_totp(&enrolled.secret, &current_token),
         "valid totp token must be accepted"
     );
 
     // Invalid code fails
     assert!(
-        !cms_mfa::verify_totp(&enrolled.secret, "000000"),
+        !cms_auth::mfa::verify_totp(&enrolled.secret, "000000"),
         "invalid totp code must be rejected"
     );
 
     // 3. Recovery codes verification
-    let (plain_codes, hashed_codes) = cms_mfa::generate_recovery_codes(8);
+    let (plain_codes, hashed_codes) = cms_auth::mfa::generate_recovery_codes(8);
     assert_eq!(plain_codes.len(), 8);
     assert_eq!(hashed_codes.len(), 8);
 
     let first_code = &plain_codes[0];
-    let match_idx = cms_mfa::verify_recovery_code(first_code, &hashed_codes);
+    let match_idx = cms_auth::mfa::verify_recovery_code(first_code, &hashed_codes);
     assert_eq!(match_idx, Some(0), "valid recovery code must match index 0");
 
-    let invalid_idx = cms_mfa::verify_recovery_code("INVALID-CODE-1234", &hashed_codes);
+    let invalid_idx = cms_auth::mfa::verify_recovery_code("INVALID-CODE-1234", &hashed_codes);
     assert_eq!(invalid_idx, None, "invalid recovery code must return None");
 }
 

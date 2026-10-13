@@ -73,7 +73,6 @@ cms-auth = { workspace = true }
 cms-authz = { workspace = true }
 cms-authz-gate = { workspace = true }
 cms-api-keys = { workspace = true }
-cms-mfa = { workspace = true }
 cms-oauth = { workspace = true }
 sqlx = { workspace = true }
 tower = { workspace = true, features = ["util"] }

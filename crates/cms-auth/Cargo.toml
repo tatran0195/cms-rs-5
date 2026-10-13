@@ -18,8 +18,9 @@ cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
 cms-authz = { path = "../cms-authz" }
 cms-api-keys = { path = "../cms-api-keys" }
-cms-mfa = { path = "../cms-mfa" }
 cms-oauth = { path = "../cms-oauth" }
+totp-rs = { workspace = true }
+thiserror = { workspace = true }
 utoipa = { workspace = true }
 validator = { workspace = true }
 reqwest = { workspace = true }

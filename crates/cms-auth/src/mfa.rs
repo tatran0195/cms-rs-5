@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 //! TOTP multi-factor authentication (ported from MedBrains).
 //!
 //! Provides:
@@ -120,6 +118,7 @@ pub fn verify_recovery_code(code: &str, stored_hashes: &[String]) -> Option<usiz
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 
