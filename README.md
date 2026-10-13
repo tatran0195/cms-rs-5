@@ -162,25 +162,40 @@ make db-status          # Check migration status
 ```
 cms-rs/
 ├── Cargo.toml                    # Workspace manifest
-├── src/                           # Binary crate (composition root)
-│   └── main.rs                    # Entry point
-├── crates/                        # Library crates
-│   ├── cms-config/            # Configuration
-│   ├── cms-error/             # Error handling
-│   ├── cms-entity/            # Entity types (24 files)
-│   ├── cms-db/                # Database queries (23 files)
-│   ├── cms-auth/              # Authentication
-│   ├── cms-authz/             # Authorization
-│   ├── cms-storage/           # Storage (Local/S3)
-│   ├── cms-search/            # Search (Tantivy FTS + vector + RAG)
-│   ├── cms-queue/             # Job queue (Memory/Redis)
-│   ├── cms-analytics/         # Analytics (Postgres/ClickHouse)
-│   ├── cms-mcp/               # MCP protocol
-│   ├── cms-biz/               # Business logic (26 files)
-│   ├── cms-sites/             # Published sites (6 files)
-│   ├── cms-api/               # API routes/handlers (72 files)
-│   ├── cms-worker/            # Background jobs
-│   └── cms-middleware/        # Middleware (7 files)
+├── apps/                         # Application composition roots
+│   ├── api/                      # Axum HTTP composition root (cms-server)
+│   ├── studio/                   # Notion-style docs editor frontend
+│   └── site/                     # Published documentation reader site
+├── crates/                       # Modular Monolith library crates
+│   ├── cms-infra/                # Consolidated infra (config, storage, search, queue, mailer, analytics, i18n)
+│   ├── cms-entity/               # Domain types & DTOs (zero internal dependencies)
+│   ├── cms-db/                   # Database queries & migrations
+│   ├── cms-error/                # AppError and HTTP error responses
+│   ├── cms-server-core/          # Server foundation & enterprise middleware suite
+│   ├── cms-server-services/      # Shared cross-domain services foundation
+│   ├── cms-worker/               # Background task processor
+│   ├── cms-sites/                # Documentation site generator & reader SPA
+│   ├── Vertical Slices/          # Autonomous vertical slice modules:
+│   │   ├── cms-content           # Pages, branches, languages, page comments
+│   │   ├── cms-projects          # Project workspaces, settings, domains, reader access
+│   │   ├── cms-deployments       # Deployment pipeline & background site generator
+│   │   ├── cms-git               # Git sync engine & repository connections
+│   │   ├── cms-integrations      # Webhooks, third-party providers & SSRF protection
+│   │   ├── cms-themes            # Project & global themes, CSS variables
+│   │   ├── cms-reports           # Sequence codes & export runs lifecycle
+│   │   ├── cms-notifications     # Notification queries & live WebSocket hub
+│   │   ├── cms-assets            # Asset uploads, presigning & metadata
+│   │   ├── cms-workspaces        # Workspace settings & membership lifecycle
+│   │   ├── cms-invitations       # Workspace invitations & email outbox events
+│   │   ├── cms-onboarding        # Setup status & email verification tokens
+│   │   ├── cms-admin             # Platform administration parity router
+│   │   ├── cms-public            # Reader-facing public JSON API & changelog
+│   │   ├── cms-openapi           # OpenAPI v3 docs, Swagger UI & ReDoc
+│   │   └── cms-platform-events   # Platform telemetry & system health checks
+│   └── Subsystems/               # Enterprise platform subsystems:
+│       ├── cms-outbox            # Transactional Outbox with jittered backoff & DLQ
+│       ├── cms-seed              # Deterministic UUID v5 fixtures & CLI runner
+│       └── cms-scheduler         # Distributed cron scheduler with SKIP LOCKED
 ├── migrations/                    # Database migrations
 │   └── 20260101000000_init.sql     # Initial schema
 ├── frontend/                      # Frontend (Vite 8 + React)
@@ -338,15 +353,9 @@ cargo test --workspace
 ### Run specific crate tests
 
 ```bash
-cargo test -p cms-middleware
-cargo test -p cms-api
+cargo test -p cms-infra
+cargo test -p cms-server-core
 cargo test -p cms-db
-```
-
-### Integration tests
-
-```bash
-cargo test --test middleware_test
 ```
 
 ---
