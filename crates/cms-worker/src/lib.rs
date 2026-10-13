@@ -161,7 +161,6 @@ pub mod app_state {
         Email, EmailRenderer, Mailer, NoopMailer, SmtpMailer,
         create_mailer_with_noop_fallback as create_mailer,
     };
-    use cms_analytics::{AnalyticsStore, create_analytics_store};
     use cms_search::{SearchEngine, create_search_engine};
     use cms_infra::{
         config::Config,
@@ -175,7 +174,6 @@ pub mod app_state {
         pub db: PgPool,
         pub storage: Arc<dyn Storage>,
         pub search: Arc<dyn SearchEngine>,
-        pub analytics: Arc<dyn AnalyticsStore>,
         pub mailer: Arc<dyn Mailer>,
         pub email_renderer: EmailRenderer,
         pub job_queue: Arc<dyn JobQueue>,
@@ -202,7 +200,6 @@ pub mod app_state {
         ) -> Result<Self, AppError> {
             let storage: Arc<dyn Storage> = create_storage(&config.storage).await?.into();
             let search = create_search_engine(&config.search)?;
-            let analytics = create_analytics_store(&config.analytics.backend, db.clone()).await?;
             let mailer = create_mailer(config.mailer.as_ref())?;
             let email_renderer = EmailRenderer::embedded().map_err(AppError::internal)?;
 
@@ -211,7 +208,6 @@ pub mod app_state {
                 db,
                 storage,
                 search,
-                analytics,
                 mailer,
                 email_renderer,
                 job_queue,
@@ -223,14 +219,11 @@ pub mod app_state {
         pub async fn from_app_state(
             app: &cms_server_core::app_state::AppState,
         ) -> Result<Self, AppError> {
-            let analytics =
-                create_analytics_store(&app.config.analytics.backend, app.biz_context.pool.clone()).await?;
             Ok(Self {
                 config: Arc::clone(&app.config),
                 db: app.biz_context.pool.clone(),
                 storage: Arc::clone(&app.storage),
                 search: Arc::clone(&app.search_engine),
-                analytics,
                 mailer: Arc::clone(&app.mailer),
                 email_renderer: app.email_renderer.clone(),
                 job_queue: Arc::clone(&app.job_queue),

@@ -1,6 +1,5 @@
 //! Analytics domain business service.
 
-use async_trait::async_trait;
 use cms_db::{
     analytics::{AnalyticsEventQueries, AnalyticsQueries},
     page::PageQueries,
@@ -15,8 +14,6 @@ use cms_entity::{
     common::PaginatedResponse,
 };
 use cms_error::AppError;
-
-use crate::traits::AnalyticsStore;
 
 /// Analytics service decoupled from BizContext.
 #[derive(Debug, Clone, Copy)]
@@ -193,86 +190,5 @@ pub async fn process_analytics_job(
     .await?;
 
     Ok(())
-}
-
-/// Postgres analytics store — delegates to `cms_db::analytics::AnalyticsEventQueries`.
-#[derive(Debug)]
-pub struct PostgresAnalyticsStore {
-    pool: PgPool,
-}
-
-impl PostgresAnalyticsStore {
-    pub fn new(pool: PgPool) -> Self {
-        Self { pool }
-    }
-}
-
-#[async_trait]
-impl AnalyticsStore for PostgresAnalyticsStore {
-    async fn record_event(
-        &self,
-        project_id: Option<&str>,
-        user_id: Option<&str>,
-        event_type: &str,
-        metadata: serde_json::Value,
-        ip_address: Option<&str>,
-        user_agent: Option<&str>,
-    ) -> Result<(), AppError> {
-        AnalyticsEventQueries::create(
-            &self.pool, project_id, user_id, event_type, metadata, ip_address, user_agent,
-        )
-        .await?;
-        Ok(())
-    }
-
-    async fn query_events(
-        &self,
-        project_id: Option<&str>,
-        user_id: Option<&str>,
-        event_type: Option<&str>,
-        start_date: Option<chrono::DateTime<chrono::Utc>>,
-        end_date: Option<chrono::DateTime<chrono::Utc>>,
-        limit: Option<i64>,
-        offset: Option<i64>,
-    ) -> Result<Vec<cms_entity::analytics::AnalyticsEvent>, AppError> {
-        AnalyticsEventQueries::query(
-            &self.pool,
-            project_id,
-            user_id,
-            event_type,
-            start_date,
-            end_date,
-            limit.unwrap_or(100),
-            offset.unwrap_or(0),
-        )
-        .await
-    }
-
-    async fn get_summary(
-        &self,
-        start_date: chrono::DateTime<chrono::Utc>,
-        end_date: chrono::DateTime<chrono::Utc>,
-    ) -> Result<serde_json::Value, AppError> {
-        AnalyticsQueries::get_summary(&self.pool, start_date, end_date).await
-    }
-}
-
-/// Create an AnalyticsStore implementation based on backend name.
-pub async fn create_analytics_store(
-    backend: &str,
-    pool: PgPool,
-) -> Result<std::sync::Arc<dyn AnalyticsStore>, AppError> {
-    match backend {
-        "postgres" => {
-            let store = PostgresAnalyticsStore::new(pool);
-            Ok(std::sync::Arc::new(store))
-        }
-        "clickhouse" => Err(AppError::Storage(
-            "ClickHouse analytics backend is not supported; use 'postgres'".into(),
-        )),
-        _ => Err(AppError::Storage(format!(
-            "Unknown analytics backend: {backend}"
-        ))),
-    }
 }
 
