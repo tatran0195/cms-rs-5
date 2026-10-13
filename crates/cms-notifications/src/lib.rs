@@ -16,7 +16,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use cms_middleware::app_state::AppState;
+use cms_server_core::app_state::AppState;
 
 pub use handlers::{NotificationState, NotificationUser};
 pub use hub::{NotificationEvent, NotificationHub};

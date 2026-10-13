@@ -1,0 +1,402 @@
+use std::path::{Component, Path, PathBuf};
+
+use axum::{
+    body::Body,
+    http::{header, StatusCode},
+    response::{Html, IntoResponse, Response},
+};
+
+use crate::mime::get_mime_type;
+
+/// Resolve configured frontend asset root.
+pub fn get_asset_root() -> PathBuf {
+    if let Ok(dir) = std::env::var("FRONTEND_DIR") {
+        let trimmed = dir.trim();
+        if !trimmed.is_empty() {
+            return PathBuf::from(trimmed);
+        }
+    }
+    let default_path = Path::new("dist/frontend");
+    if default_path.exists() {
+        return default_path.to_path_buf();
+    }
+    let parent_path = Path::new("../../dist/frontend");
+    if parent_path.exists() {
+        return parent_path.to_path_buf();
+    }
+    default_path.to_path_buf()
+}
+
+/// Percent-decode a UTF-8 string. Returns None if malformed.
+fn percent_decode(input: &str) -> Option<String> {
+    let mut bytes = Vec::with_capacity(input.len());
+    let mut chars = input.bytes();
+    while let Some(b) = chars.next() {
+        if b == b'%' {
+            let h1 = chars.next()?;
+            let h2 = chars.next()?;
+            let hex_bytes = [h1, h2];
+            let hex_str = std::str::from_utf8(&hex_bytes).ok()?;
+            let byte = u8::from_str_radix(hex_str, 16).ok()?;
+            bytes.push(byte);
+        } else {
+            bytes.push(b);
+        }
+    }
+    String::from_utf8(bytes).ok()
+}
+
+/// Validate that a requested path is strictly relative and contains no directory
+/// traversal, backslashes, double slashes, or absolute components.
+fn validate_relative_path(path: &str) -> Result<PathBuf, &'static str> {
+    if path.is_empty() {
+        return Ok(PathBuf::new());
+    }
+
+    // Reject backslashes and double-slashes in the raw path
+    if path.contains('\\') || path.contains("//") {
+        return Err("Path contains invalid separators");
+    }
+
+    // Reject raw traversal sequence
+    if path.contains("..") {
+        return Err("Path contains directory traversal");
+    }
+
+    // Repeated percent-decoding to guard against double-encoding attacks
+    let mut decoded = path.to_string();
+    for _ in 0..3 {
+        if let Some(next) = percent_decode(&decoded) {
+            if next == decoded {
+                break;
+            }
+            decoded = next;
+        } else {
+            return Err("Invalid percent-encoding");
+        }
+    }
+
+    // Reject traversal, null bytes, backslashes, double-slashes, or colon in decoded form
+    if decoded.contains('\0')
+        || decoded.contains('\\')
+        || decoded.contains("//")
+        || decoded.contains("..")
+        || decoded.contains(':')
+    {
+        return Err("Decoded path contains invalid components");
+    }
+
+    // Strip at most one leading slash if present
+    let normalized = if let Some(stripped) = decoded.strip_prefix('/') {
+        if stripped.starts_with('/') {
+            return Err("Path contains leading double slash");
+        }
+        stripped
+    } else {
+        &decoded
+    };
+
+    let rel_path = Path::new(normalized);
+    for component in rel_path.components() {
+        match component {
+            Component::Normal(_) => {}
+            _ => return Err("Path contains non-normal component"),
+        }
+    }
+
+    Ok(rel_path.to_path_buf())
+}
+
+/// Validate frontend asset bundle existence and contents.
+/// Fails if the asset root does not exist, is not a directory, is empty,
+/// or lacks `index.html`.
+pub fn validate_frontend_assets(asset_root: &Path) -> Result<PathBuf, String> {
+    if !asset_root.exists() {
+        return Err(format!(
+            "Frontend assets directory not found at '{}'. Run 'bun run build' or set FRONTEND_DIR.",
+            asset_root.display()
+        ));
+    }
+    let canonical_root = asset_root.canonicalize().map_err(|e| {
+        format!(
+            "Failed to resolve frontend assets directory '{}': {e}",
+            asset_root.display()
+        )
+    })?;
+    if !canonical_root.is_dir() {
+        return Err(format!(
+            "Frontend assets path '{}' is not a directory.",
+            canonical_root.display()
+        ));
+    }
+    let mut entries = std::fs::read_dir(&canonical_root).map_err(|e| {
+        format!(
+            "Failed to read frontend assets directory '{}': {e}",
+            canonical_root.display()
+        )
+    })?;
+    if entries.next().is_none() {
+        return Err(format!(
+            "Frontend assets directory '{}' is empty. Run 'bun run build' before starting the \
+             server.",
+            canonical_root.display()
+        ));
+    }
+    let index_file = canonical_root.join("index.html");
+    if !index_file.is_file() {
+        return Err(format!(
+            "Frontend assets directory '{}' is missing 'index.html'. Run 'bun run build' before \
+             starting the server.",
+            canonical_root.display()
+        ));
+    }
+    Ok(canonical_root)
+}
+
+/// Fallback HTML when assets are missing. Returns 500 Internal Server Error rather than 200 OK.
+fn fallback_html_response() -> Response {
+    let mut res = Html(r#"<!DOCTYPE html><html><head><meta charset="utf-8"><title>CMS - Missing Assets</title></head><body><div id="root"><h1>CMS App</h1><p>Frontend assets not found in dist/frontend. Please build the frontend bundle before running the server.</p></div></body></html>"#.to_string()).into_response();
+    *res.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
+    res
+}
+
+/// Serve static file or SPA index.html fallback from a specified root directory,
+/// verifying that the canonical target strictly remains inside the asset root.
+pub async fn serve_spa_file_from_root(path: &str, asset_root: &Path) -> Response {
+    let trimmed = path.trim_start_matches('/');
+    if trimmed.starts_with("api/") || trimmed == "api" {
+        let json = serde_json::json!({
+            "error": {
+                "code": "not_found",
+                "message": "API endpoint not found"
+            }
+        });
+        let mut res = Response::new(Body::from(serde_json::to_vec(&json).unwrap()));
+        *res.status_mut() = StatusCode::NOT_FOUND;
+        res.headers_mut().insert(
+            header::CONTENT_TYPE,
+            header::HeaderValue::from_static("application/json"),
+        );
+        return res;
+    }
+
+    let rel_path = match validate_relative_path(path) {
+        Ok(p) => p,
+        Err(err) => {
+            let json = serde_json::json!({
+                "error": {
+                    "code": "invalid_path",
+                    "message": err
+                }
+            });
+            let mut res = Response::new(Body::from(serde_json::to_vec(&json).unwrap()));
+            *res.status_mut() = StatusCode::BAD_REQUEST;
+            res.headers_mut().insert(
+                header::CONTENT_TYPE,
+                header::HeaderValue::from_static("application/json"),
+            );
+            return res;
+        }
+    };
+
+    let canonical_root = match asset_root.canonicalize() {
+        Ok(r) => r,
+        Err(_) => return fallback_html_response(),
+    };
+
+    // 1. If path points to a specific static file, verify confinement and serve it
+    if !rel_path.as_os_str().is_empty() {
+        let file_path = canonical_root.join(&rel_path);
+        if let Ok(canonical_file) = file_path.canonicalize() {
+            if !canonical_file.starts_with(&canonical_root) {
+                let json = serde_json::json!({
+                    "error": {
+                        "code": "forbidden",
+                        "message": "Path escapes asset root"
+                    }
+                });
+                let mut res = Response::new(Body::from(serde_json::to_vec(&json).unwrap()));
+                *res.status_mut() = StatusCode::FORBIDDEN;
+                res.headers_mut().insert(
+                    header::CONTENT_TYPE,
+                    header::HeaderValue::from_static("application/json"),
+                );
+                return res;
+            }
+
+            if canonical_file.is_file() {
+                if let Ok(bytes) = tokio::fs::read(&canonical_file).await {
+                    let ext = canonical_file
+                        .extension()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("")
+                        .to_lowercase();
+                    let mime = get_mime_type(&ext);
+                    let mut res = Response::new(Body::from(bytes));
+                    if let Ok(val) = header::HeaderValue::from_str(mime) {
+                        res.headers_mut().insert(header::CONTENT_TYPE, val);
+                    }
+                    if ext != "html" {
+                        res.headers_mut().insert(
+                            header::CACHE_CONTROL,
+                            header::HeaderValue::from_static("public, max-age=31536000, immutable"),
+                        );
+                    }
+                    return res;
+                }
+            }
+        }
+    }
+
+    // 2. SPA fallback: serve index.html for client-side routing
+    let index_path = canonical_root.join("index.html");
+    if let Ok(canonical_index) = index_path.canonicalize() {
+        if canonical_index.starts_with(&canonical_root) && canonical_index.is_file() {
+            if let Ok(bytes) = tokio::fs::read(&canonical_index).await {
+                let mut res = Response::new(Body::from(bytes));
+                res.headers_mut().insert(
+                    header::CONTENT_TYPE,
+                    header::HeaderValue::from_static("text/html; charset=utf-8"),
+                );
+                res.headers_mut().insert(
+                    header::CACHE_CONTROL,
+                    header::HeaderValue::from_static("no-cache"),
+                );
+                return res;
+            }
+        }
+    }
+
+    // 3. Fallback HTML if build artifacts are missing
+    fallback_html_response()
+}
+
+/// Serve static file or SPA index.html fallback from the configured frontend root.
+pub async fn serve_spa_file(path: &str) -> Response {
+    serve_spa_file_from_root(path, &get_asset_root()).await
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use tempfile::tempdir;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_plain_traversal_rejected() {
+        let dir = tempdir().unwrap();
+        let res = serve_spa_file_from_root("../../etc/passwd", dir.path()).await;
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+
+        let res2 = serve_spa_file_from_root("..\\..\\etc\\passwd", dir.path()).await;
+        assert_eq!(res2.status(), StatusCode::BAD_REQUEST);
+
+        let res3 = serve_spa_file_from_root("subdir/../secret.txt", dir.path()).await;
+        assert_eq!(res3.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn test_encoded_traversal_rejected() {
+        let dir = tempdir().unwrap();
+        let res1 = serve_spa_file_from_root("%2e%2e/etc/passwd", dir.path()).await;
+        assert_eq!(res1.status(), StatusCode::BAD_REQUEST);
+
+        let res2 = serve_spa_file_from_root("%2e%2e%2fetc%2fpasswd", dir.path()).await;
+        assert_eq!(res2.status(), StatusCode::BAD_REQUEST);
+
+        let res3 = serve_spa_file_from_root("..%2f..%2f", dir.path()).await;
+        assert_eq!(res3.status(), StatusCode::BAD_REQUEST);
+
+        let res4 = serve_spa_file_from_root("%252e%252e/etc/passwd", dir.path()).await;
+        assert_eq!(res4.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn test_double_slash_rejected() {
+        let dir = tempdir().unwrap();
+        let res1 = serve_spa_file_from_root("//etc/passwd", dir.path()).await;
+        assert_eq!(res1.status(), StatusCode::BAD_REQUEST);
+
+        let res2 = serve_spa_file_from_root("assets//app.js", dir.path()).await;
+        assert_eq!(res2.status(), StatusCode::BAD_REQUEST);
+
+        let res3 = serve_spa_file_from_root("///", dir.path()).await;
+        assert_eq!(res3.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn test_valid_path_served_and_confined() {
+        let dir = tempdir().unwrap();
+        let root = dir.path();
+
+        // Create index.html and assets/app.js
+        fs::write(root.join("index.html"), "<html><body>SPA App</body></html>").unwrap();
+        let assets_dir = root.join("assets");
+        fs::create_dir(&assets_dir).unwrap();
+        fs::write(assets_dir.join("app.js"), "console.log('cms');").unwrap();
+
+        // 1. Valid static file
+        let res_js = serve_spa_file_from_root("assets/app.js", root).await;
+        assert_eq!(res_js.status(), StatusCode::OK);
+        assert_eq!(
+            res_js.headers().get(header::CONTENT_TYPE).unwrap(),
+            "application/javascript; charset=utf-8"
+        );
+
+        // 2. Valid static file with single leading slash
+        let res_js_slash = serve_spa_file_from_root("/assets/app.js", root).await;
+        assert_eq!(res_js_slash.status(), StatusCode::OK);
+
+        // 3. Valid index.html
+        let res_index = serve_spa_file_from_root("index.html", root).await;
+        assert_eq!(res_index.status(), StatusCode::OK);
+        assert_eq!(
+            res_index.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/html; charset=utf-8"
+        );
+
+        // 4. SPA route fallback
+        let res_spa = serve_spa_file_from_root("dashboard/settings", root).await;
+        assert_eq!(res_spa.status(), StatusCode::OK);
+        assert_eq!(
+            res_spa.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/html; charset=utf-8"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_api_route_not_found() {
+        let dir = tempdir().unwrap();
+        let res = serve_spa_file_from_root("api/v1/unknown", dir.path()).await;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn test_missing_assets_returns_500_not_200() {
+        let dir = tempdir().unwrap();
+        // Empty directory has no index.html and no assets
+        let res = serve_spa_file_from_root("some/spa/route", dir.path()).await;
+        assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[test]
+    fn test_validate_frontend_assets() {
+        // Non-existent directory
+        let missing = Path::new("non_existent_frontend_directory_12345");
+        assert!(validate_frontend_assets(missing).is_err());
+
+        // Empty directory
+        let dir = tempdir().unwrap();
+        assert!(validate_frontend_assets(dir.path()).is_err());
+
+        // Directory with files but no index.html
+        fs::write(dir.path().join("other.txt"), "hello").unwrap();
+        assert!(validate_frontend_assets(dir.path()).is_err());
+
+        // Directory with index.html
+        fs::write(dir.path().join("index.html"), "<html></html>").unwrap();
+        assert!(validate_frontend_assets(dir.path()).is_ok());
+    }
+}

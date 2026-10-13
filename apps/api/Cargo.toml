@@ -1,7 +1,11 @@
 [package]
 name = "cms-server"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+
+[lib]
+name = "cms_server"
+path = "lib.rs"
 
 [[bin]]
 name = "cms-server"
@@ -9,14 +13,40 @@ path = "main.rs"
 test = false
 
 [dependencies]
-cms-api = { workspace = true }
 cms-sites = { workspace = true }
 cms-server-core = { workspace = true }
-cms-middleware = { workspace = true }
 cms-config = { workspace = true }
 cms-error = { workspace = true }
+cms-entity = { workspace = true }
 cms-queue = { workspace = true }
 cms-worker = { workspace = true }
+
+# Vertical slice domain crates
+cms-auth = { workspace = true }
+cms-projects = { workspace = true }
+cms-content = { workspace = true }
+cms-deployments = { workspace = true }
+cms-git = { workspace = true }
+cms-integrations = { workspace = true }
+cms-themes = { workspace = true }
+cms-search = { workspace = true }
+cms-reports = { workspace = true }
+cms-openapi = { workspace = true }
+cms-notifications = { workspace = true }
+cms-assets = { workspace = true }
+cms-analytics = { workspace = true }
+cms-platform-events = { workspace = true }
+cms-mcp = { workspace = true }
+cms-workspaces = { workspace = true }
+cms-invitations = { workspace = true }
+cms-onboarding = { workspace = true }
+cms-admin = { workspace = true }
+cms-public = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+utoipa = { workspace = true }
 
 # HTTP
 axum = { workspace = true }
@@ -33,6 +63,31 @@ tracing-subscriber = { workspace = true }
 
 # Configuration
 config = { workspace = true }
+
+[dev-dependencies]
+cms-db = { workspace = true }
+cms-entity = { workspace = true }
+cms-error = { workspace = true }
+cms-config = { workspace = true }
+cms-server-core = { workspace = true }
+cms-worker = { workspace = true }
+cms-sites = { workspace = true }
+cms-auth = { workspace = true }
+cms-authz = { workspace = true }
+cms-authz-gate = { workspace = true }
+cms-api-keys = { workspace = true }
+cms-mfa = { workspace = true }
+cms-oauth = { workspace = true }
+sqlx = { workspace = true }
+tower = { workspace = true, features = ["util"] }
+http = { workspace = true }
+hyper = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+anyhow = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true }
 
 [features]
 default = []

@@ -1,0 +1,42 @@
+[package]
+name = "cms-sites"
+version = "0.1.0"
+edition = "2024"
+description = "Published site and marketing serving for CMS"
+
+[dependencies]
+# Internal crates
+cms-db = { path = "../cms-db" }
+cms-entity = { path = "../cms-entity" }
+cms-error = { path = "../cms-error" }
+cms-infra = { path = "../cms-infra" }
+cms-server-core = { path = "../cms-server-core" }
+
+# External dependencies
+axum = { workspace = true, features = ["json", "multipart"] }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+tracing = { workspace = true }
+ipnet = { workspace = true }
+moka = { workspace = true }
+
+# Markdown rendering
+pulldown-cmark = { workspace = true }
+
+# HTML sanitization
+ammonia = { workspace = true }
+
+# Syntax highlighting (server-side, zero JS)
+syntect = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

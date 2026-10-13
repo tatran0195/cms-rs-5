@@ -19,7 +19,7 @@ use cms_entity::{
     },
 };
 use cms_error::AppError;
-use cms_middleware::app_state::AppState;
+use cms_server_core::app_state::AppState;
 use futures::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 
