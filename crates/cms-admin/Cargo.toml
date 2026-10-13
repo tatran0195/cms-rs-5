@@ -12,7 +12,6 @@ cms-error = { path = "../cms-error" }
 cms-server-core = { path = "../cms-server-core" }
 cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
-cms-authz-gate = { path = "../cms-authz-gate" }
 cms-infra = { path = "../cms-infra" }
 cms-platform-events = { path = "../cms-platform-events" }
 

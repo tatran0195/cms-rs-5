@@ -16,7 +16,7 @@ async fn require_system_admin(state: &AppState, auth: &AuthExtractor) -> Result<
         return Ok(());
     }
 
-    cms_authz_gate::require_workspace_access(
+    cms_authz::gate::require_workspace_access(
         state.authz_backend(),
         &auth.authz_context(),
         cms_authz::Relation::Admin,

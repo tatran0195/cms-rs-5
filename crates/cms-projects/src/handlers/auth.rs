@@ -107,7 +107,7 @@ pub async fn authorize_project(
         return Ok(project);
     }
 
-    cms_authz_gate::require_project_access(
+    cms_authz::gate::require_project_access(
         state.authz_backend(),
         &auth.authz_context(),
         project_uuid,

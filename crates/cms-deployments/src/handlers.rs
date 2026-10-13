@@ -84,7 +84,7 @@ pub async fn create_deployment_handler(
 ) -> Result<Json<DeploymentResponse>, AppError> {
     let project_uuid = uuid::Uuid::parse_str(&request.project_id)
         .map_err(|_| AppError::NotFound("Project not found".to_string()))?;
-    cms_authz_gate::require_project_access(
+    cms_authz::gate::require_project_access(
         state.authz_backend(),
         &auth.authz_context(),
         project_uuid,

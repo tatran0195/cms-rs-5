@@ -1,6 +1,4 @@
-#![forbid(unsafe_code)]
-
-//! `cms-authz-gate` — route-level authorization guards and parent reachability resolution.
+//! `cms-authz::gate` — route-level authorization guards and parent reachability resolution.
 //!
 //! Provides:
 //! - `require_project_access`: Evaluates ReBAC grant and returns `404 Not Found` on denial
@@ -9,7 +7,7 @@
 //! - `require_parent_access`: Single-hop traversal resolving child resources (pages, branches,
 //!   deployments) to their parent project and evaluating project access.
 
-use cms_authz::{AuthzBackend, AuthzContext, Relation, SYSTEM_WORKSPACE_ID};
+use crate::{AuthzBackend, AuthzContext, Relation, SYSTEM_WORKSPACE_ID};
 use cms_error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -125,9 +123,10 @@ pub async fn require_parent_access(
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
-    use cms_authz::TestAuthzBackend;
+    use crate::TestAuthzBackend;
 
     #[tokio::test]
     async fn test_require_project_access_allowed() {
@@ -142,7 +141,7 @@ mod tests {
                 "project",
                 project_id,
                 Relation::Editor,
-                cms_authz::Subject::User(user_id),
+                crate::Subject::User(user_id),
                 None,
             )
             .await
@@ -180,7 +179,7 @@ mod tests {
                 "workspace",
                 SYSTEM_WORKSPACE_ID,
                 Relation::Admin,
-                cms_authz::Subject::User(user_id),
+                crate::Subject::User(user_id),
                 None,
             )
             .await

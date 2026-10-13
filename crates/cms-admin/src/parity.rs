@@ -29,7 +29,7 @@ async fn require_admin(state: &AppState, user_id: &str) -> Result<(), AppError> 
         .map_err(|_| AppError::Unauthorized)?;
     let ctx = cms_authz::AuthzContext::new(user_uuid, "member".to_string(), false);
 
-    cms_authz_gate::require_workspace_access(
+    cms_authz::gate::require_workspace_access(
         state.authz_backend(),
         &ctx,
         cms_authz::Relation::Admin,

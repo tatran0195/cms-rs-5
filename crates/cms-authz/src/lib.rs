@@ -9,6 +9,7 @@
 pub mod backend_pg;
 pub mod backend_test;
 pub mod error;
+pub mod gate;
 pub mod registry;
 pub mod relations;
 

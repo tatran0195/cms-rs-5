@@ -22,7 +22,7 @@ use cms_authz::{
     AuthzBackend, AuthzContext, Relation, Subject, TestAuthzBackend,
     SYSTEM_WORKSPACE_ID,
 };
-use cms_authz_gate::require_project_access;
+use cms_authz::gate::require_project_access;
 use cms_error::AppError;
 use uuid::Uuid;
 

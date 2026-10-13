@@ -37,7 +37,7 @@ async fn ensure_admin_or_owner(state: &AppState, auth: &AuthExtractor) -> Result
     }
 
     // 2. ReBAC workspace admin/owner check
-    if cms_authz_gate::require_workspace_access(
+    if cms_authz::gate::require_workspace_access(
         state.authz_backend(),
         &auth.authz_context(),
         cms_authz::Relation::Admin,

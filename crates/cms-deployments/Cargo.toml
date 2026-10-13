@@ -13,7 +13,6 @@ cms-server-core = { path = "../cms-server-core" }
 cms-infra = { path = "../cms-infra" }
 cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
-cms-authz-gate = { path = "../cms-authz-gate" }
 
 axum = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
