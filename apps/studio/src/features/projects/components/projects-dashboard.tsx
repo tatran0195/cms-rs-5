@@ -1,5 +1,4 @@
-import { MagnifyingGlass } from "@cms/icons";
-import { Button, Heading, Text } from "@cms/ui";
+import { Button, Container, Heading, Input, Text } from "@cms/ui";
 import { useMemo, useState } from "react";
 import { useWorkspaceStore } from "../../workspace";
 import { ProjectCard } from "./project-card";
@@ -46,16 +45,14 @@ export function ProjectsDashboard() {
 							</Heading>
 
 							<div className="flex items-center gap-3">
-								<div className="relative">
-									<MagnifyingGlass className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-ui-fg-muted pointer-events-none" />
-									<input
-										type="text"
-										value={projectSearch}
-										onChange={(e) => setProjectSearch(e.target.value)}
-										placeholder="Search projects"
-										className="bg-ui-bg-base text-xs pl-8 pr-3 py-1.5 rounded-md border border-ui-border-base focus:outline-none focus:border-ui-border-interactive placeholder:text-ui-fg-muted text-ui-fg-base w-48 shadow-2xs"
-									/>
-								</div>
+								<Input
+									type="search"
+									size="small"
+									value={projectSearch}
+									onChange={(e) => setProjectSearch(e.target.value)}
+									placeholder="Search projects"
+									className="w-52"
+								/>
 
 								<Button
 									variant="primary"
@@ -75,7 +72,7 @@ export function ProjectsDashboard() {
 								))}
 							</div>
 						) : (
-							<div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-12 text-center flex flex-col items-center justify-center shadow-xs">
+							<Container className="p-12 text-center flex flex-col items-center justify-center border border-ui-border-base rounded-xl">
 								<Heading
 									level="h2"
 									className="text-sm font-semibold text-ui-fg-base"
@@ -93,7 +90,7 @@ export function ProjectsDashboard() {
 								>
 									Create Project
 								</Button>
-							</div>
+							</Container>
 						)}
 					</div>
 				</main>

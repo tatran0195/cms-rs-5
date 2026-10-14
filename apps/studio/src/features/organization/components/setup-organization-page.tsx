@@ -1,5 +1,14 @@
 import { ArrowRightOnRectangle, QuestionMark } from "@cms/icons";
-import { Button, Heading, Input, Text, toast } from "@cms/ui";
+import {
+	Button,
+	Divider,
+	Heading,
+	IconBadge,
+	Input,
+	Label,
+	Text,
+	toast,
+} from "@cms/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
 import { Controller, useForm } from "react-hook-form";
@@ -62,12 +71,16 @@ export function SetupOrganizationPage() {
 			{/* Main Center Content */}
 			<main className="flex-1 flex flex-col items-center justify-center px-4 -mt-16">
 				<div className="w-full max-w-xl flex flex-col items-center">
-					{/* Icon Header */}
-					<div className="h-10 w-10 rounded-full border border-ui-border-base bg-ui-bg-base flex items-center justify-center text-ui-fg-subtle mb-4 shadow-xs">
+					{/* Icon Header using IconBadge */}
+					<IconBadge
+						size="large"
+						color="grey"
+						className="rounded-full h-10 w-10 mb-4 shadow-xs"
+					>
 						<QuestionMark className="h-4 w-4" />
-					</div>
+					</IconBadge>
 
-					{/* Title & Subtitle */}
+					{/* Title & Subtitle using Heading and Text */}
 					<Heading
 						level="h1"
 						className="text-lg font-semibold text-ui-fg-base text-center"
@@ -78,29 +91,29 @@ export function SetupOrganizationPage() {
 						Specify the name of your organization
 					</Text>
 
-					{/* Dotted border container matching Screenshot 2 */}
-					<div className="w-full mt-10 pt-8 pb-8 border-t border-b border-dashed border-ui-border-base">
-						<form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+					{/* Dashed divider container using Divider from @cms/ui */}
+					<div className="w-full mt-8">
+						<Divider variant="dashed" />
+						<form onSubmit={handleSubmit(onSubmit)} className="py-8 space-y-8">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 								<div>
-									<Text className="text-xs font-medium text-ui-fg-base">
+									<Text size="small" weight="plus" className="text-ui-fg-base">
 										Setup your organization
 									</Text>
-									<Text
-										size="small"
-										className="text-ui-fg-muted text-xs mt-0.5"
-									>
+									<Text size="small" className="text-ui-fg-muted mt-0.5">
 										Specify the name of your organization
 									</Text>
 								</div>
 
 								<div className="space-y-1.5">
-									<label
+									<Label
+										size="xsmall"
+										weight="plus"
 										htmlFor="org-name"
-										className="block text-xs font-medium text-ui-fg-subtle"
+										className="text-ui-fg-subtle"
 									>
 										Organization name
-									</label>
+									</Label>
 									<Controller
 										name="name"
 										control={control}
@@ -108,38 +121,43 @@ export function SetupOrganizationPage() {
 											<Input
 												{...field}
 												id="org-name"
+												size="base"
 												aria-invalid={Boolean(errors.name)}
 												placeholder="Alex Rivera's projects"
-												className="bg-ui-bg-base text-xs"
+												className="bg-ui-bg-base"
 											/>
 										)}
 									/>
 									{errors.name && (
-										<p className="text-xs text-ui-fg-error">
+										<Text size="xsmall" className="text-ui-fg-error">
 											{errors.name.message}
-										</p>
+										</Text>
 									)}
 								</div>
 							</div>
 
-							<div className="pt-2">
+							<div>
 								<Button
 									type="submit"
 									variant="primary"
+									size="large"
 									isLoading={isSubmitting}
-									className="w-full h-10 text-xs font-medium bg-ui-fg-base text-ui-bg-base hover:bg-ui-fg-subtle"
+									className="w-full"
 								>
 									Create
 								</Button>
 							</div>
 						</form>
+						<Divider variant="dashed" />
 					</div>
 				</div>
 			</main>
 
 			{/* Footer Step Indicator */}
-			<footer className="w-full text-center py-6 text-[11px] text-ui-fg-muted font-mono">
-				Step 01 / 02
+			<footer className="w-full text-center py-6">
+				<Text size="xsmall" family="mono" className="text-ui-fg-muted">
+					Step 01 / 02
+				</Text>
 			</footer>
 		</div>
 	);

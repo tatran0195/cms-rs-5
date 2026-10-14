@@ -1,4 +1,5 @@
 import { Sparkles } from "@cms/icons";
+import { Avatar, Badge } from "@cms/ui";
 import { useAuth } from "../../auth";
 
 export function TopBar() {
@@ -7,19 +8,19 @@ export function TopBar() {
 
 	return (
 		<header className="h-12 border-b border-ui-border-base bg-ui-bg-base px-6 flex items-center justify-end gap-3 shrink-0">
-			{/* Agent Action Button */}
-			<button
-				type="button"
-				className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-ui-bg-subtle border border-ui-border-base hover:bg-ui-bg-component transition-colors text-ui-fg-subtle cursor-pointer"
+			{/* Agent Badge using Badge from @cms/ui */}
+			<Badge
+				size="small"
+				color="grey"
+				rounded="full"
+				className="gap-x-1.5 cursor-pointer hover:bg-ui-bg-subtle-hover transition-colors"
 			>
 				<Sparkles className="h-3.5 w-3.5 text-amber-500" />
 				<span>Agent</span>
-			</button>
+			</Badge>
 
-			{/* User Avatar */}
-			<div className="h-7 w-7 rounded-full bg-ui-bg-subtle border border-ui-border-base flex items-center justify-center text-xs font-semibold text-ui-fg-base select-none">
-				{initial.toUpperCase()}
-			</div>
+			{/* User Avatar using Avatar from @cms/ui */}
+			<Avatar size="small" variant="rounded" fallback={initial} />
 		</header>
 	);
 }

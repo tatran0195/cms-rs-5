@@ -9,7 +9,7 @@ export function ProjectPreviewThumbnail({
 		return (
 			<div className="w-full h-full min-h-[148px] bg-[#FAF8F5] p-3 rounded-lg flex flex-col justify-between border border-ui-border-base select-none shadow-xs">
 				<div className="flex items-center justify-between text-[11px] text-stone-500 border-b border-stone-200/70 pb-2">
-					<span className="font-serif tracking-wide font-medium text-stone-800">
+					<span className="font-sans tracking-wide font-medium text-stone-800">
 						Autumn Essentials
 					</span>
 					<div className="flex gap-1">

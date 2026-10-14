@@ -7,11 +7,10 @@ import {
 	CirclePlus,
 	Folder,
 	Key,
-	MagnifyingGlass,
 	SquareTwoStack,
 	Users,
 } from "@cms/icons";
-import { DropdownMenu, Kbd } from "@cms/ui";
+import { Avatar, Divider, DropdownMenu, Input, Kbd, Text } from "@cms/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useWorkspaceStore } from "../../workspace";
 
@@ -34,15 +33,17 @@ export function Sidebar({ searchQuery, onSearchChange }: SidebarProps) {
 					<DropdownMenu.Trigger asChild>
 						<button
 							type="button"
-							className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-ui-border-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
+							className="w-full flex items-center justify-between px-2 py-1.5 rounded-md border border-ui-border-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer outline-none focus-visible:shadow-borders-interactive-with-active"
 						>
 							<div className="flex items-center gap-2 truncate">
-								<div className="h-6 w-6 rounded bg-ui-bg-subtle border border-ui-border-base flex items-center justify-center text-xs font-semibold text-ui-fg-base shrink-0">
-									{activeWorkspace?.name.charAt(0) || "W"}
-								</div>
-								<span className="text-xs font-semibold text-ui-fg-base truncate">
+								<Avatar
+									size="xsmall"
+									variant="squared"
+									fallback={activeWorkspace?.name.charAt(0) || "W"}
+								/>
+								<Text size="small" weight="plus" className="truncate">
 									{activeWorkspace?.name || "Select Workspace"}
-								</span>
+								</Text>
 							</div>
 							<ChevronUpDown className="h-3.5 w-3.5 text-ui-fg-muted shrink-0" />
 						</button>
@@ -77,17 +78,17 @@ export function Sidebar({ searchQuery, onSearchChange }: SidebarProps) {
 					</DropdownMenu.Content>
 				</DropdownMenu>
 
-				{/* Quick Search Input */}
+				{/* Search Input using @cms/ui Input */}
 				<div className="mt-3 relative">
-					<MagnifyingGlass className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-ui-fg-muted pointer-events-none" />
-					<input
-						type="text"
+					<Input
+						type="search"
+						size="small"
+						placeholder="Search..."
 						value={searchQuery}
 						onChange={(e) => onSearchChange(e.target.value)}
-						placeholder="Search..."
-						className="w-full bg-ui-bg-subtle text-xs pl-8 pr-12 py-1.5 rounded-md border border-ui-border-base focus:outline-none focus:border-ui-border-interactive placeholder:text-ui-fg-muted text-ui-fg-base"
+						className="pr-12"
 					/>
-					<div className="absolute right-2 top-2 pointer-events-none">
+					<div className="absolute right-2 top-1.5 pointer-events-none">
 						<Kbd className="text-[9px] px-1 py-0.5">Ctrl K</Kbd>
 					</div>
 				</div>
@@ -100,72 +101,77 @@ export function Sidebar({ searchQuery, onSearchChange }: SidebarProps) {
 					className="flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-ui-fg-base bg-ui-bg-subtle"
 				>
 					<SquareTwoStack className="h-4 w-4 text-ui-fg-base" />
-					<span>Projects</span>
+					<Text size="small" weight="plus">
+						Projects
+					</Text>
 				</Link>
 
 				<button
 					type="button"
-					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
+					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
 				>
 					<BuildingStorefront className="h-4 w-4" />
-					<span>Usage</span>
+					<Text size="small">Usage</Text>
 				</button>
 
 				<button
 					type="button"
-					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
+					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
 				>
 					<Users className="h-4 w-4" />
-					<span>Team</span>
+					<Text size="small">Team</Text>
 				</button>
 
-				<div className="pt-2 pb-1">
-					<div className="h-px bg-ui-border-base mx-2" />
-				</div>
+				<Divider className="my-2" />
 
 				<button
 					type="button"
-					className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-xs font-medium text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
+					className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
 				>
 					<div className="flex items-center gap-2.5">
 						<Adjustments className="h-4 w-4" />
-						<span>Settings</span>
+						<Text size="small">Settings</Text>
 					</div>
 					<ChevronDown className="h-3 w-3 text-ui-fg-muted" />
 				</button>
 
 				<button
 					type="button"
-					className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-xs font-medium text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
+					className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
 				>
 					<div className="flex items-center gap-2.5">
 						<Key className="h-4 w-4" />
-						<span>Access keys</span>
+						<Text size="small">Access keys</Text>
 					</div>
 					<ChevronDown className="h-3 w-3 text-ui-fg-muted" />
 				</button>
 
 				<button
 					type="button"
-					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
+					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
 				>
 					<Users className="h-4 w-4" />
-					<span>Account</span>
+					<Text size="small">Account</Text>
 				</button>
 
 				<button
 					type="button"
-					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
+					className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-subtle transition-colors text-left cursor-pointer"
 				>
 					<Folder className="h-4 w-4" />
-					<span>Connections</span>
+					<Text size="small">Connections</Text>
 				</button>
 			</nav>
 
-			{/* Sidebar Footer */}
-			<div className="p-3 border-t border-ui-border-base text-[11px] text-ui-fg-muted flex items-center justify-between">
-				<span>Medusa Cloud v2</span>
-				<span className="font-mono text-[10px]">Ready</span>
+			{/* Sidebar Footer using Divider and Text */}
+			<Divider />
+			<div className="p-3 text-[11px] text-ui-fg-muted flex items-center justify-between">
+				<Text size="xsmall" className="text-ui-fg-muted">
+					Medusa Cloud v2
+				</Text>
+				<Text size="xsmall" family="mono" className="text-ui-fg-muted">
+					Ready
+				</Text>
 			</div>
 		</aside>
 	);
