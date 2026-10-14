@@ -155,7 +155,7 @@ metrics = "0.24.6"
 metrics-exporter-prometheus = "0.18.3"
 
 # Export generation
-printpdf = { version = "0.7" }
+printpdf = { version = "0.12" }
 epub-builder = { version = "0.8.3" }
 
 # Optional & feature dependencies
