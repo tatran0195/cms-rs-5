@@ -34,7 +34,6 @@
     "@cms/ui": "workspace:*",
     "@emotion/is-prop-valid": "^1.4.0",
     "@kapaai/react-sdk": "^0.14.0",
-    "@next/third-parties": "16.4.0",
     "@react-hook/resize-observer": "^2.0.2",
     "@segment/analytics-next": "^1.84.3",
     "@uidotdev/usehooks": "^2.4.1",
@@ -58,6 +57,7 @@
   },
   "devDependencies": {
     "@cms/tsconfig": "workspace:*",
+    "@tanstack/react-router": "^1.170.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "catalog:",
@@ -65,7 +65,6 @@
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.1.2",
     "clsx": "^2.1.1",
-    "next": "16.4.0",
     "schema-dts": "^2.1.0",
     "tailwindcss": "catalog:",
     "tsdown": "catalog:",
@@ -73,11 +72,16 @@
     "vitest": "^5.0.3"
   },
   "peerDependencies": {
+    "@tanstack/react-router": ">=1.0.0",
     "@types/react": "*",
     "@types/react-dom": "*",
-    "next": "*",
     "posthog-js": "^1.298.1",
     "react": "*",
     "react-dom": "*"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-router": {
+      "optional": true
+    }
   }
 }
