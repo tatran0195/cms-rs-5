@@ -4,55 +4,23 @@
 
 use std::sync::Arc;
 
+use crate::queries::DeploymentQueries;
 use cms_content::{BranchQueries, PageQueries};
 use cms_db::PgPool;
-use cms_projects::{DomainQueries, ProjectQueries, normalize_hostname};
-use crate::queries::DeploymentQueries;
 use cms_entity::{
     common::PaginatedResponse,
-    deployment::{
-        CreateDeploymentRequest, DeploymentResponse, DeploymentStatus, UpdateDeploymentRequest,
-    },
+    deployment::{DeploymentResponse, DeploymentStatus, UpdateDeploymentRequest},
     domain::{CreateDomainRequest, DomainResponse, UpdateDomainRequest},
 };
 use cms_error::AppError;
 use cms_infra::storage::Storage;
+use cms_projects::{DomainQueries, ProjectQueries, normalize_hostname};
 
 /// Deployment service providing core orchestration for project deployments.
 #[derive(Debug)]
 pub struct DeploymentService;
 
 impl DeploymentService {
-    /// Create a new deployment record.
-    pub async fn create_deployment(
-        pool: &PgPool,
-        _user_id: &str,
-        project_id: &str,
-        request: CreateDeploymentRequest,
-    ) -> Result<DeploymentResponse, AppError> {
-        // Verify project exists
-        let _project = ProjectQueries::get_by_id(pool, project_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        // Verify branch exists
-        let branch_id = request.branch_id.as_deref().unwrap_or("");
-        let branch = BranchQueries::get_by_id(pool, branch_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Branch not found".to_string()))?;
-        if branch.project_id != project_id {
-            return Err(AppError::Conflict(
-                "Branch does not belong to this project".to_string(),
-            ));
-        }
-
-        let deployment =
-            DeploymentQueries::create(pool, project_id, branch_id, DeploymentStatus::Pending)
-                .await?;
-
-        Ok(deployment.into())
-    }
-
     /// Create a publish record and durably enqueue its render job.
     #[allow(clippy::too_many_arguments)]
     pub async fn create_publish_deployment(
@@ -200,29 +168,58 @@ impl DeploymentService {
     /// Get deployment logs.
     pub async fn get_deployment_logs(
         pool: &PgPool,
-        user_id: &str,
+        _user_id: &str,
         deployment_id: &str,
     ) -> Result<serde_json::Value, AppError> {
-        let _ = Self::get_deployment(pool, user_id, deployment_id).await?;
-        Ok(serde_json::json!({ "logs": "Deployment completed successfully" }))
+        let deployment = DeploymentQueries::get_by_id(pool, deployment_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        Ok(serde_json::json!({
+            "build_logs": deployment.build_logs,
+            "error_message": deployment.error_message,
+        }))
     }
 
     /// Retry a deployment.
     pub async fn retry_deployment(
         pool: &PgPool,
-        _user_id: &str,
+        job_queue: &dyn cms_infra::queue::JobQueue,
+        queue_backend: &str,
+        user_id: &str,
         deployment_id: &str,
     ) -> Result<DeploymentResponse, AppError> {
-        let _deployment = DeploymentQueries::get_by_id(pool, deployment_id)
+        let target = DeploymentQueries::get_by_id(pool, deployment_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        // Reset deployment to pending so it can be re-processed
-        let updated =
-            DeploymentQueries::update_status(pool, deployment_id, DeploymentStatus::Pending)
-                .await?;
+        if target.status != DeploymentStatus::Failed {
+            return Err(AppError::InvalidInput(format!(
+                "Cannot retry deployment in {:?} state; only failed deployments can be retried",
+                target.status
+            )));
+        }
 
-        Ok(updated.into())
+        let branch_id = target
+            .branch_id
+            .as_deref()
+            .filter(|b| !b.is_empty())
+            .ok_or_else(|| AppError::Conflict("Deployment has no branch associated".to_string()))?;
+
+        let message = format!("Retry deployment {deployment_id}");
+        let fresh_deployment = Self::create_publish_deployment(
+            pool,
+            job_queue,
+            queue_backend,
+            &target.project_id,
+            branch_id,
+            user_id,
+            &message,
+            serde_json::json!({ "retry_of_deployment_id": deployment_id }),
+        )
+        .await?;
+
+        Ok(fresh_deployment.into())
     }
 
     /// Cancel a deployment.
@@ -271,13 +268,8 @@ impl DeploymentService {
             return Err(AppError::Conflict("Domain is already in use".to_string()));
         }
 
-        let domain = DomainQueries::create(
-            pool,
-            deployment_id,
-            &hostname,
-            request.is_primary,
-        )
-        .await?;
+        let domain =
+            DomainQueries::create(pool, deployment_id, &hostname, request.is_primary).await?;
 
         Ok(domain.into())
     }

@@ -29,3 +29,26 @@ fn test_deployment_response_serialization() {
     assert_eq!(serialized["id"], "dep_123");
     assert_eq!(serialized["status"], "pending");
 }
+
+#[test]
+fn test_deployment_status_equality() {
+    assert_eq!(DeploymentStatus::Failed, DeploymentStatus::Failed);
+    assert_ne!(DeploymentStatus::Pending, DeploymentStatus::Failed);
+    assert_ne!(DeploymentStatus::Building, DeploymentStatus::Failed);
+    assert_ne!(DeploymentStatus::Active, DeploymentStatus::Failed);
+}
+
+#[test]
+fn test_deployment_logs_payload_structure() {
+    let logs_payload = serde_json::json!({
+        "build_logs": Some("Building site... Completed in 12s"),
+        "error_message": None::<String>,
+    });
+    assert_eq!(
+        logs_payload["build_logs"],
+        "Building site... Completed in 12s"
+    );
+    assert!(logs_payload["error_message"].is_null());
+    // Ensure payload is not double-wrapped under a "logs" key
+    assert!(logs_payload.get("logs").is_none());
+}

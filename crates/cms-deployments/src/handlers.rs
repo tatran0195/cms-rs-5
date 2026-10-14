@@ -6,16 +6,41 @@ use axum::{
     Json,
     extract::{Path, Query, State},
 };
+use cms_content::BranchQueries;
 use cms_entity::{
     common::{Id, PaginatedResponse},
     deployment::{CreateDeploymentRequest, DeploymentResponse, ListDeploymentsQuery},
 };
-use cms_content::BranchQueries;
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
-use cms_auth::AuthUser;
 use crate::service::DeploymentService;
+use cms_auth::AuthUser;
+
+async fn authorize_deployment_access(
+    state: &AppState,
+    auth: &AuthUser,
+    deployment_id: &str,
+    relation: cms_authz::Relation,
+) -> Result<uuid::Uuid, AppError> {
+    let deployment_uuid = uuid::Uuid::parse_str(deployment_id)
+        .map_err(|_| AppError::NotFound("Deployment not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        cms_authz::gate::ParentLink::Deployment(deployment_uuid),
+        relation,
+    )
+    .await
+    .map_err(|err| match err {
+        AppError::NotFound(_) | AppError::Forbidden => {
+            AppError::NotFound("Deployment not found".to_string())
+        }
+        other => other,
+    })
+}
 
 /// List deployments for a project
 #[utoipa::path(
@@ -36,6 +61,7 @@ use crate::service::DeploymentService;
     responses(
         (status = 200, description = "List of deployments", body = PaginatedResponse<DeploymentResponse>),
         (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Project not found"),
         (status = 400, description = "Bad request"),
     )
 )]
@@ -44,12 +70,29 @@ pub async fn list_deployments_handler(
     auth: AuthUser,
     Query(query): Query<ListDeploymentsQuery>,
 ) -> Result<Json<PaginatedResponse<DeploymentResponse>>, AppError> {
-    let project_id = query.project_id.as_deref().unwrap_or("");
+    let project_str = query.project_id.as_deref().unwrap_or("");
+    let project_uuid = uuid::Uuid::parse_str(project_str)
+        .map_err(|_| AppError::NotFound("Project not found".to_string()))?;
+
+    cms_authz::gate::require_project_access(
+        state.authz_backend(),
+        &auth.authz_context(),
+        project_uuid,
+        cms_authz::Relation::Viewer,
+    )
+    .await
+    .map_err(|err| match err {
+        AppError::NotFound(_) | AppError::Forbidden => {
+            AppError::NotFound("Project not found".to_string())
+        }
+        other => other,
+    })?;
+
     let limit = query.limit.unwrap_or(20) as u64;
     let offset = query.offset.unwrap_or(0) as u64;
     let page = offset.checked_div(limit).unwrap_or(0).saturating_add(1);
     let result =
-        DeploymentService::list_deployments(state.db(), &auth.user_id, project_id, page, limit)
+        DeploymentService::list_deployments(state.db(), &auth.user_id, project_str, page, limit)
             .await?;
 
     Ok(Json(result))
@@ -71,6 +114,8 @@ pub async fn list_deployments_handler(
         (status = 400, description = "Bad request"),
         (status = 401, description = "Unauthorized"),
         (status = 403, description = "Forbidden - user may not have permission"),
+        (status = 404, description = "Project not found"),
+        (status = 409, description = "Conflict - project has no default branch"),
     )
 )]
 pub async fn create_deployment_handler(
@@ -95,10 +140,15 @@ pub async fn create_deployment_handler(
             .ok_or_else(|| AppError::NotFound("Branch not found".to_string()))?;
         branch.id
     } else {
-        BranchQueries::get_default(state.db(), &request.project_id)
+        let default_branch = BranchQueries::get_default(state.db(), &request.project_id)
             .await?
-            .map(|b| b.id)
-            .unwrap_or_default()
+            .ok_or_else(|| AppError::Conflict("Project has no default branch".to_string()))?;
+        if default_branch.project_id != request.project_id {
+            return Err(AppError::Conflict(
+                "Default branch does not belong to this project".to_string(),
+            ));
+        }
+        default_branch.id
     };
 
     let deployment = DeploymentService::create_publish_deployment(
@@ -140,6 +190,8 @@ pub async fn get_deployment_handler(
     auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
+    authorize_deployment_access(&state, &auth, &deployment_id, cms_authz::Relation::Viewer).await?;
+
     let deployment =
         DeploymentService::get_deployment(state.db(), &auth.user_id, &deployment_id).await?;
 
@@ -170,10 +222,12 @@ pub async fn get_deployment_logs_handler(
     auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
+    authorize_deployment_access(&state, &auth, &deployment_id, cms_authz::Relation::Viewer).await?;
+
     let logs =
         DeploymentService::get_deployment_logs(state.db(), &auth.user_id, &deployment_id).await?;
 
-    Ok(Json(serde_json::json!({ "logs": logs })))
+    Ok(Json(logs))
 }
 
 /// Retry a deployment
@@ -191,6 +245,7 @@ pub async fn get_deployment_logs_handler(
     ),
     responses(
         (status = 200, description = "Deployment retry initiated", body = DeploymentResponse),
+        (status = 400, description = "Bad request"),
         (status = 401, description = "Unauthorized"),
         (status = 403, description = "Forbidden - user may not have permission"),
         (status = 404, description = "Deployment not found"),
@@ -201,8 +256,16 @@ pub async fn retry_deployment_handler(
     auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
-    let deployment =
-        DeploymentService::retry_deployment(state.db(), &auth.user_id, &deployment_id).await?;
+    authorize_deployment_access(&state, &auth, &deployment_id, cms_authz::Relation::Editor).await?;
+
+    let deployment = DeploymentService::retry_deployment(
+        state.db(),
+        state.job_queue.as_ref(),
+        &state.config.queue.backend,
+        &auth.user_id,
+        &deployment_id,
+    )
+    .await?;
 
     Ok(Json(deployment))
 }
@@ -233,6 +296,8 @@ pub async fn cancel_deployment_handler(
     auth: AuthUser,
     Path(deployment_id): Path<Id>,
 ) -> Result<Json<DeploymentResponse>, AppError> {
+    authorize_deployment_access(&state, &auth, &deployment_id, cms_authz::Relation::Editor).await?;
+
     let deployment =
         DeploymentService::cancel_deployment(state.db(), &auth.user_id, &deployment_id).await?;
 

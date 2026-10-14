@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 use crate::common::Id;
 
 /// Deployment status
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, ts_rs::TS)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, ts_rs::TS,
+)]
 #[serde(rename_all = "lowercase")]
 #[sqlx(
     type_name = "\"DeploymentStatus\"",
