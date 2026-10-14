@@ -7,7 +7,7 @@ export default defineConfig({
   clean: true,
   dts: true,
   sourcemap: true,
-  suppressWarnings: [/module level directive "use client"/i],
+  suppressWarnings: [/module level directive/i],
   deps: {
     neverBundle: ['@cms/ui', '@cms/icons'],
   },

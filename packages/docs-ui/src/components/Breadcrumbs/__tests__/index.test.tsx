@@ -79,7 +79,7 @@ vi.mock("@/providers/SiteConfig", () => ({
   }),
 }));
 
-import type { Sidebar } from "../../types";
+import type { Sidebar } from "@/types";
 import { Breadcrumbs } from "..";
 
 beforeEach(() => {

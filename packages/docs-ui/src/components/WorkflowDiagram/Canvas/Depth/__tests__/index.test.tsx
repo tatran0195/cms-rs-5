@@ -1,4 +1,4 @@
-import type { WorkflowStepUi } from "../../types";
+import type { WorkflowStepUi } from "@/types";
 import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 

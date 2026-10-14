@@ -1,4 +1,4 @@
-import type { Sidebar } from "../../types";
+import type { Sidebar } from "@/types";
 import { render, waitFor } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";

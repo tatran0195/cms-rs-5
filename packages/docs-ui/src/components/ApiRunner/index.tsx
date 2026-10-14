@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownRightMini } from "@cms/icons";
-import type { ApiMethod, ApiTestingOptions } from "../../types";
+import type { ApiMethod, ApiTestingOptions } from "@/types";
 import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/Button";

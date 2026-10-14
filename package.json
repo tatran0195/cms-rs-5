@@ -30,6 +30,7 @@
     "@biomejs/biome": "^2.5.15",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.2",
     "autoprefixer": "^10.6.1",
     "css.escape": "^1.5.1",
     "indent-string": "^5.0.0",

@@ -1,4 +1,4 @@
-import type { WorkflowStepUi } from "../../types";
+import type { WorkflowStepUi } from "@/types";
 import { WorkflowDiagramArrow } from "../Arrow";
 
 export type WorkflowDiagramLineProps = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { TriangleRightMini } from "@cms/icons";
-import type { MenuItemSubMenu } from "../../types";
+import type { MenuItemSubMenu } from "@/types";
 import clsx from "clsx";
 import Link from "next/link";
 import { useState } from "react";

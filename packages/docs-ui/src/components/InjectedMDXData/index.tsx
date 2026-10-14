@@ -1,6 +1,6 @@
 "use client";
 
-import type { FrontMatter, ToCItem } from "../../types";
+import type { FrontMatter, ToCItem } from "@/types";
 import { useEffect } from "react";
 import { useSiteConfig } from "../../providers/SiteConfig";
 

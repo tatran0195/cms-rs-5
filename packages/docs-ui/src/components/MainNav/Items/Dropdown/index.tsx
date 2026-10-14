@@ -1,7 +1,7 @@
 "use client";
 
 import { TriangleDownMini } from "@cms/icons";
-import type { NavigationItemDropdown } from "../../types";
+import type { NavigationItemDropdown } from "@/types";
 import clsx from "clsx";
 import { useRef, useState } from "react";
 import { Menu } from "../../../Menu";

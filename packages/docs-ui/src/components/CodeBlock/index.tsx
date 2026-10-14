@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApiAuthType, ApiDataOptions, ApiMethod } from "../../types";
+import type { ApiAuthType, ApiDataOptions, ApiMethod } from "@/types";
 import clsx from "clsx";
 import {
   Highlight,

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUturnLeft, BarsThree, XMark } from "@cms/icons";
-import type { MenuItem } from "../../types";
+import type { MenuItem } from "@/types";
 import clsx from "clsx";
 import { useRef, useState } from "react";
 // @ts-expect-error can't install the types package because it doesn't support React v19

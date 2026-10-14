@@ -1,5 +1,5 @@
-import type { MenuItem, NavigationItem } from '../../types';
-import { navDropdownItems } from '..';
+import type { MenuItem, NavigationItem } from '../types';
+import { navDropdownItems } from '../constants';
 
 type Options = {
   basePath: string;

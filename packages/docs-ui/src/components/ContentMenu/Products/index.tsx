@@ -1,6 +1,6 @@
 "use client";
 
-import type { Product } from "../../types";
+import type { Product } from "@/types";
 import clsx from "clsx";
 import { useMemo } from "react";
 import { useSiteConfig } from "@/providers/SiteConfig";

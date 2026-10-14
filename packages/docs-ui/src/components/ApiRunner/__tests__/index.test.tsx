@@ -76,7 +76,7 @@ vi.mock("@/hooks/use-request-runner", () => ({
   },
 }));
 
-import type { ApiMethod } from "../../types";
+import type { ApiMethod } from "@/types";
 import { ApiRunner } from "../../ApiRunner";
 
 beforeEach(() => {

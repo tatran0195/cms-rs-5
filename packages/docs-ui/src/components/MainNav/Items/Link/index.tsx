@@ -1,6 +1,6 @@
 "use client";
 
-import type { NavigationItemLink } from "../../types";
+import type { NavigationItemLink } from "@/types";
 import clsx from "clsx";
 import type React from "react";
 import { LinkButton } from "../../../LinkButton";

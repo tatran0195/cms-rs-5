@@ -3,7 +3,7 @@
 // @refresh reset
 
 import { TriangleDownMini, TriangleUpMini } from "@cms/icons";
-import type { Sidebar } from "../../types";
+import type { Sidebar } from "@/types";
 import clsx from "clsx";
 import Link from "next/link";
 import type React from "react";

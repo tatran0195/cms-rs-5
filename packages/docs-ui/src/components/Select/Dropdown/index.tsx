@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckMini, EllipseMiniSolid } from "@cms/icons";
-import type { Ref } from "../../types";
+import type { Ref } from "@/types";
 import clsx from "clsx";
 import type React from "react";
 import { useCallback, useEffect, useRef } from "react";

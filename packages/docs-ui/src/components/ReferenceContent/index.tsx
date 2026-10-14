@@ -1,6 +1,6 @@
 "use client";
 
-import type { DocBlock, DocPage } from "../../types";
+import type { DocBlock, DocPage } from "@/types";
 import type React from "react";
 import { useEffect } from "react";
 import type { BadgeVariant } from "@/components/Badge";

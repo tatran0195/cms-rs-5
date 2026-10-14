@@ -1,4 +1,4 @@
-import type { MenuItem as MenuItemType } from "../../types";
+import type { MenuItem as MenuItemType } from "@/types";
 import clsx from "clsx";
 import React from "react";
 import { MenuAction } from "./Action";

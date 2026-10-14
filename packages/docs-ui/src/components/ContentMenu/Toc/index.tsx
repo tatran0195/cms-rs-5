@@ -1,6 +1,6 @@
 "use client";
 
-import type { ToCItem, ToCItemUi } from "../../types";
+import type { ToCItem, ToCItemUi } from "@/types";
 import clsx from "clsx";
 import Link from "next/link";
 import { useEffect } from "react";

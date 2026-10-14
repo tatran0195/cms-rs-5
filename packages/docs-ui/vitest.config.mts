@@ -8,8 +8,6 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
     alias: {
       '@': resolve(import.meta.dirname, './src'),
-      react: resolve(import.meta.dirname, '../../node_modules/react'),
-      'react-dom': resolve(import.meta.dirname, '../../node_modules/react-dom'),
     },
   },
   plugins: [react()],
@@ -20,6 +18,6 @@ export default defineConfig({
       },
     },
     environment: 'jsdom',
-    setupFiles: [resolve(import.meta.dirname, '../../vitest.setup.ts')],
+    setupFiles: [resolve(import.meta.dirname, './setup-test.ts')],
   },
 });

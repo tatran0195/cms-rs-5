@@ -2,7 +2,7 @@
 
 // @refresh reset
 
-import type { Sidebar } from "../../types";
+import type { Sidebar } from "@/types";
 import clsx from "clsx";
 import type React from "react";
 import { useMemo, useRef } from "react";

@@ -1,4 +1,4 @@
-import type { Sidebar } from "../../types";
+import type { Sidebar } from "@/types";
 import { fireEvent, render } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 

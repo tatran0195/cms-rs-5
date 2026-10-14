@@ -1,6 +1,6 @@
 "use client";
 
-import type { Workflow } from "../../types";
+import type { Workflow } from "@/types";
 import { Suspense } from "react";
 import { Loading } from "@/components/Loading";
 import { WorkflowDiagramCanvas } from "./Canvas";

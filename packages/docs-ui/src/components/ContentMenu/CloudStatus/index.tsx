@@ -1,6 +1,6 @@
 "use client";
 
-import type { CloudStatus, CloudStatusIndicator } from "../../types";
+import type { CloudStatus, CloudStatusIndicator } from "@/types";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { CLOUD_STATUS_PAGE_URL } from "../../../constants";

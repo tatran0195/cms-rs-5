@@ -1,6 +1,6 @@
 "use client";
 
-import type { CloudAnnouncement } from "../../types";
+import type { CloudAnnouncement } from "@/types";
 import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { useIsBrowser } from "../../../providers";

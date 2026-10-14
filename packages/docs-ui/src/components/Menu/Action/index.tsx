@@ -1,6 +1,6 @@
 "use client";
 
-import type { MenuItem, MenuItemAction } from "../../types";
+import type { MenuItem, MenuItemAction } from "@/types";
 import clsx from "clsx";
 
 export type MenuActionProps = {

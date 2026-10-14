@@ -1,6 +1,6 @@
 "use client";
 
-import type { MenuItemLink, MenuItem as MenuItemType } from "../../types";
+import type { MenuItemLink, MenuItem as MenuItemType } from "@/types";
 import clsx from "clsx";
 import Link from "next/link";
 

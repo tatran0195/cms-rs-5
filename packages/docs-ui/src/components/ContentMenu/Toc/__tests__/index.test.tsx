@@ -1,4 +1,4 @@
-import type { ToCItem } from "../../types";
+import type { ToCItem } from "@/types";
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import type React from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";

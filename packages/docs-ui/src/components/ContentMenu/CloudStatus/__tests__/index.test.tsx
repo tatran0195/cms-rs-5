@@ -1,4 +1,4 @@
-import type { CloudStatus } from "../../types";
+import type { CloudStatus } from "@/types";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 

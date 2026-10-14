@@ -1,6 +1,6 @@
 "use client";
 
-import type { DocWorkflowEvent } from "../../types";
+import type { DocWorkflowEvent } from "@/types";
 import { Badge } from "@/components/Badge";
 import { CodeBlock } from "@/components/CodeBlock";
 import { CopyGeneratedSnippetButton } from "@/components/CopyGeneratedSnippetButton";

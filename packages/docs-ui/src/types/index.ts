@@ -1,5 +1,13 @@
-export * from "./navigation"
-export * from "./navigation-dropdown"
-export * from "./sidebar"
-export * from "./toc"
-export * from "./menu"
+export * from './navigation.js';
+export * from './navigation-dropdown.js';
+export * from './sidebar.js';
+export * as Sidebar from './sidebar.js';
+export * from './toc.js';
+export * from './menu.js';
+export * from './config.js';
+export * from './frontmatter.js';
+export * from './workflow.js';
+export * from './reference.js';
+export * from './announcement.js';
+export * from './api-testing.js';
+export * as OpenAPI from './openapi.js';

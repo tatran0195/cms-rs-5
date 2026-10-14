@@ -1,6 +1,6 @@
 "use client";
 
-import type { Sidebar } from "../../types";
+import type { Sidebar } from "@/types";
 import type React from "react";
 import { DottedSeparator } from "@/components/DottedSeparator";
 import { SidebarItemCategory } from "./Category";

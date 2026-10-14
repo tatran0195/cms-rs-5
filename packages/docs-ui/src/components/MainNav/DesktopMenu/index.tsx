@@ -1,7 +1,7 @@
 "use client";
 
 import { BarsThree, Book, SidebarLeft, TimelineVertical } from "@cms/icons";
-import type { MenuItem } from "../../types";
+import type { MenuItem } from "@/types";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/Button";

@@ -1,4 +1,4 @@
-import type { MenuItem, NavigationItemDropdown } from "../../types";
+import type { MenuItem, NavigationItemDropdown } from "@/types";
 import { fireEvent, render } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";

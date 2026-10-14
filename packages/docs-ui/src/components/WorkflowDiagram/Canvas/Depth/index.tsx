@@ -1,6 +1,6 @@
 "use client";
 
-import type { WorkflowStepUi } from "../../types";
+import type { WorkflowStepUi } from "@/types";
 import { WorkflowDiagramLine } from "../../Common/Line";
 import { WorkflowDiagramStepNode } from "../../Common/Node";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import type { DocEvent } from "../../types";
+import type { DocEvent } from "@/types";
 import React from "react";
 import { Badge } from "@/components/Badge";
 import { CodeBlock } from "@/components/CodeBlock";

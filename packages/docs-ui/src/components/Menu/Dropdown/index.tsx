@@ -1,6 +1,6 @@
 "use client";
 
-import type { MenuItem } from "../../types";
+import type { MenuItem } from "@/types";
 import clsx from "clsx";
 import type React from "react";
 import { useRef, useState } from "react";

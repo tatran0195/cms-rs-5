@@ -1,7 +1,7 @@
 "use client";
 
 import { Bolt, InformationCircle } from "@cms/icons";
-import type { WorkflowStepUi } from "../../types";
+import type { WorkflowStepUi } from "@/types";
 import { Text } from "@cms/ui";
 import clsx from "clsx";
 import Link from "next/link";

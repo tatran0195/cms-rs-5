@@ -1,4 +1,4 @@
-import type { Workflow } from "../../types";
+import type { Workflow } from "@/types";
 import { render } from "@testing-library/react";
 import type React from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
