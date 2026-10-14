@@ -4,12 +4,13 @@
 //! and resolution state.
 
 use cms_db::PgPool;
-use crate::queries::{CommentQueries, PageQueries};
 use cms_entity::{
     comment::{CommentResponse, CommentWithReplies, CreateCommentRequest, UpdateCommentRequest},
     common::{MemberRole, PaginatedResponse},
 };
 use cms_error::AppError;
+
+use crate::queries::{CommentQueries, PageQueries};
 
 /// Business service for Comment operations.
 #[derive(Debug)]

@@ -18,9 +18,9 @@ use axum::{
     http::{HeaderMap, header, request::Parts},
 };
 use cms_deployments::DeploymentQueries;
-use cms_projects::{DomainQueries, ProjectQueries};
 use cms_entity::common::Id;
 use cms_error::AppError;
+use cms_projects::{DomainQueries, ProjectQueries};
 use ipnet::IpNet;
 use moka::future::Cache;
 use sqlx::PgPool;

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import type { MenuItem } from '@cms/types';
-import clsx from 'clsx';
-import type React from 'react';
-import { useRef, useState } from 'react';
-import { Button } from '@/components/Button';
-import { Menu } from '@/components/Menu';
-import { useClickOutside } from '@/hooks/use-click-outside';
+import type { MenuItem } from "../../types";
+import clsx from "clsx";
+import type React from "react";
+import { useRef, useState } from "react";
+import { Button } from "@/components/Button";
+import { Menu } from "@/components/Menu";
+import { useClickOutside } from "@/hooks/use-click-outside";
 
 type DropdownMenuProps = {
   dropdownButtonContent: React.ReactNode;
@@ -50,11 +50,11 @@ export const DropdownMenu = ({
   }
 
   return (
-    <div className={clsx('relative', className)} data-testid="dropdown-wrapper">
+    <div className={clsx("relative", className)} data-testid="dropdown-wrapper">
       <Button
         variant="transparent"
         onClick={() => changeOpenState(!open)}
-        className={clsx('!p-[6px] text-cms-fg-subtle', dropdownButtonClassName)}
+        className={clsx("!p-[6px] text-cms-fg-subtle", dropdownButtonClassName)}
         buttonRef={ref}
         data-testid="dropdown-button"
       >
@@ -62,7 +62,14 @@ export const DropdownMenu = ({
       </Button>
       {menuComponent}
       {!menuComponent && menuItems && (
-        <Menu items={menuItems} className={clsx('absolute right-0 top-[calc(100%+8px)] w-max', !open && 'hidden', menuClassName)} />
+        <Menu
+          items={menuItems}
+          className={clsx(
+            "absolute right-0 top-[calc(100%+8px)] w-max",
+            !open && "hidden",
+            menuClassName,
+          )}
+        />
       )}
     </div>
   );

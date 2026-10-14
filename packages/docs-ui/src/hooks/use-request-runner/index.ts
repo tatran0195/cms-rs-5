@@ -1,4 +1,4 @@
-import type { ApiTestingOptions } from '@cms/types';
+import type { ApiTestingOptions } from '../../types';
 
 export type useRequestRunnerProps = {
   pushLog: (...message: string[]) => void;

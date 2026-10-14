@@ -32,7 +32,10 @@ fn build_domain_subrouter(state: &Arc<AppState>) -> Router {
         .nest("/projects", cms_projects::project_router(Arc::clone(state)))
         .nest("/pages", cms_content::page_router(Arc::clone(state)))
         .nest("/branches", cms_content::branch_router(Arc::clone(state)))
-        .nest("/languages", cms_content::language_router(Arc::clone(state)))
+        .nest(
+            "/languages",
+            cms_content::language_router(Arc::clone(state)),
+        )
         .nest("/git", cms_git::router(Arc::clone(state)))
         .nest("/integrations", cms_integrations::router(Arc::clone(state)))
         .nest("/deployments", cms_deployments::router(Arc::clone(state)))
@@ -47,7 +50,10 @@ fn build_domain_subrouter(state: &Arc<AppState>) -> Router {
         .nest("/comments", cms_content::comment_router(Arc::clone(state)))
         .nest("/search", cms_search::router(Arc::clone(state)))
         .nest("/export", cms_reports::export_router(Arc::clone(state)))
-        .nest("/notifications", cms_notifications::router(Arc::clone(state)))
+        .nest(
+            "/notifications",
+            cms_notifications::router(Arc::clone(state)),
+        )
         .nest("/assets", cms_assets::router(Arc::clone(state)))
         .nest("/analytics", cms_analytics::router(Arc::clone(state)))
         .nest("/themes", cms_themes::router(Arc::clone(state)))
@@ -56,7 +62,10 @@ fn build_domain_subrouter(state: &Arc<AppState>) -> Router {
             cms_admin::platform_events::router(Arc::clone(state)),
         )
         .nest("/mcp", cms_mcp::router(Arc::clone(state)))
-        .nest("/members", cms_workspaces::members_router(Arc::clone(state)))
+        .nest(
+            "/members",
+            cms_workspaces::members_router(Arc::clone(state)),
+        )
         .nest(
             "/workspace",
             cms_workspaces::workspace_router(Arc::clone(state)),
@@ -106,7 +115,10 @@ pub fn create_api_router(state: Arc<AppState>) -> Router {
     );
 
     // Caddy on-demand TLS check internal endpoints
-    router = router.nest("/v1/internal", cms_projects::tls_check_router(Arc::clone(&state)));
+    router = router.nest(
+        "/v1/internal",
+        cms_projects::tls_check_router(Arc::clone(&state)),
+    );
     router = router.nest("/internal", cms_projects::tls_check_router(state));
 
     router
@@ -211,4 +223,3 @@ pub fn api_router(state: Arc<AppState>) -> Router {
     let router = create_api_router(Arc::clone(&state));
     apply_api_middleware(router, state)
 }
-

@@ -47,12 +47,15 @@ pub async fn create_integration_handler(
     let project_uuid =
         authorize_project_id(&state, &auth, &request.project_id, Relation::Editor).await?;
 
-    let integration =
-        IntegrationService::create_integration(state.db(), &auth.user_id, CreateProjectIntegrationRequest {
+    let integration = IntegrationService::create_integration(
+        state.db(),
+        &auth.user_id,
+        CreateProjectIntegrationRequest {
             project_id: project_uuid.to_string(),
             ..request
-        })
-        .await?;
+        },
+    )
+    .await?;
 
     Ok(Json(integration))
 }

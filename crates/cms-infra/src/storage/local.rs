@@ -279,20 +279,24 @@ mod tests {
         let storage = LocalFsStorage::new(dir.path().to_string_lossy().into_owned());
 
         // Relative parent traversal
-        assert!(storage
-            .put("../evil.txt", Bytes::from("payload"), "text/plain")
-            .await
-            .is_err());
+        assert!(
+            storage
+                .put("../evil.txt", Bytes::from("payload"), "text/plain")
+                .await
+                .is_err()
+        );
         assert!(storage.get("../evil.txt").await.is_err());
         assert!(storage.delete("foo/../../evil.txt").await.is_err());
         assert!(storage.exists("nested/../../../etc/passwd").await.is_err());
         assert!(storage.list("../").await.is_err());
 
         // Absolute path attempts
-        assert!(storage
-            .put("/root/file.txt", Bytes::from("payload"), "text/plain")
-            .await
-            .is_err());
+        assert!(
+            storage
+                .put("/root/file.txt", Bytes::from("payload"), "text/plain")
+                .await
+                .is_err()
+        );
     }
 
     #[tokio::test]

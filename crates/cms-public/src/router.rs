@@ -11,12 +11,12 @@ use axum::{
 use cms_server_core::app_state::AppState;
 
 use crate::handlers::{
-    answer_public_site_handler, authorize_custom_domain_tls_handler,
-    get_project_sitemap_handler, get_public_domains_resolve_handler,
-    get_public_git_preview_handler, get_public_invitation_handler, get_public_meta_handler,
-    get_public_page_handler, get_public_pages_handler, get_public_project_handler,
-    get_public_site_changelog_handler, get_public_site_changelog_rss_handler,
-    get_public_site_handler, get_public_site_llms_full_handler, get_public_site_llms_handler,
+    answer_public_site_handler, authorize_custom_domain_tls_handler, get_project_sitemap_handler,
+    get_public_domains_resolve_handler, get_public_git_preview_handler,
+    get_public_invitation_handler, get_public_meta_handler, get_public_page_handler,
+    get_public_pages_handler, get_public_project_handler, get_public_site_changelog_handler,
+    get_public_site_changelog_rss_handler, get_public_site_handler,
+    get_public_site_llms_full_handler, get_public_site_llms_handler,
     get_public_site_markdown_handler, get_public_site_openapi_handler,
     get_public_site_page_handler, get_public_site_robots_handler, get_public_site_sitemap_handler,
     list_public_pages_handler, post_public_marketing_events_handler,

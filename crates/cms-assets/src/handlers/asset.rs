@@ -15,8 +15,7 @@ use uuid::Uuid;
 
 use crate::{
     models::{
-        AssetResponse, DeleteAssetResponse, ListAssetsQuery, UpdateAssetRequest,
-        UploadAssetRequest,
+        AssetResponse, DeleteAssetResponse, ListAssetsQuery, UpdateAssetRequest, UploadAssetRequest,
     },
     services::AssetService,
 };

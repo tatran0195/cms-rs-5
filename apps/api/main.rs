@@ -133,11 +133,8 @@ async fn main() -> Result<(), AppError> {
 
     // Synchronize default recurring jobs into cms_scheduled_jobs and start distributed runner
     cms_scheduler::Scheduler::sync_registry(&state.pool, None).await?;
-    let scheduler_handle = cms_scheduler::Scheduler::spawn(
-        state.pool.clone(),
-        Arc::clone(&state.job_queue),
-        None,
-    );
+    let scheduler_handle =
+        cms_scheduler::Scheduler::spawn(state.pool.clone(), Arc::clone(&state.job_queue), None);
 
     // Build the full router with all middleware
     let api_router = api_router(Arc::clone(&state));

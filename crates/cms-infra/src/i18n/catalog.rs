@@ -556,7 +556,7 @@ mod tests {
         assert_eq!(f("en", 7), "7 days");
         assert_eq!(f("en", 0), "0 days");
         assert_eq!(f("ja", 1), "1 日間"); // ja has only `other`
-                                          // `de` has no bundle → default text, still correct for the count.
+        // `de` has no bundle → default text, still correct for the count.
         assert_eq!(f("de", 1), "1 day");
     }
 

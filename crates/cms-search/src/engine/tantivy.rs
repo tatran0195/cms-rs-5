@@ -23,27 +23,27 @@ use cms_entity::{
     search::{ProjectIndexStats, RagAnswer, SearchHit, SearchOptions},
 };
 use cms_error::AppError;
+use cms_infra::config::RagConfig;
+use cms_server_core::search::SearchEngine;
 use parking_lot::RwLock;
 use tantivy::{
+    Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument, Term,
     collector::TopDocs,
     directory::MmapDirectory,
     query::QueryParser,
     schema::{
-        Field, IndexRecordOption, NumericOptions, Schema, TextFieldIndexing, TextOptions, Value,
-        FAST, STORED, STRING,
+        FAST, Field, IndexRecordOption, NumericOptions, STORED, STRING, Schema, TextFieldIndexing,
+        TextOptions, Value,
     },
     snippet::SnippetGenerator,
-    Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument, Term,
 };
 
 #[cfg(feature = "vector")]
 use super::vector::{Embedder, ProjectVectorIndex, VectorMeta};
 use super::{
     markdown,
-    tokenizer::{JapaneseTokenizer, LinderaTantivyTokenizer, JAPANESE_TOKENIZER_NAME},
+    tokenizer::{JAPANESE_TOKENIZER_NAME, JapaneseTokenizer, LinderaTantivyTokenizer},
 };
-use cms_server_core::search::SearchEngine;
-use cms_infra::config::RagConfig;
 
 /// Schema fields for Tantivy project index
 #[derive(Debug, Clone, Copy)]

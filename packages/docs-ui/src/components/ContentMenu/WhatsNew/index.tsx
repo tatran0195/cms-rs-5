@@ -1,18 +1,20 @@
-'use client';
+"use client";
 
-import type { CloudAnnouncement } from '@cms/types';
-import clsx from 'clsx';
-import React, { useEffect, useMemo, useState } from 'react';
-import { useIsBrowser } from '../../../providers';
-import { useSiteConfig } from '../../../providers/SiteConfig';
-import { getAnnouncements } from '../../../utils/get-announcements';
-import { ContentMenuSection } from '../Section';
+import type { CloudAnnouncement } from "../../types";
+import clsx from "clsx";
+import React, { useEffect, useMemo, useState } from "react";
+import { useIsBrowser } from "../../../providers";
+import { useSiteConfig } from "../../../providers/SiteConfig";
+import { getAnnouncements } from "../../../utils/get-announcements";
+import { ContentMenuSection } from "../Section";
 
 export const ContentMenuWhatsNew = () => {
   const {
     config: { version },
   } = useSiteConfig();
-  const [announcements, setAnnouncements] = React.useState<CloudAnnouncement[]>([]);
+  const [announcements, setAnnouncements] = React.useState<CloudAnnouncement[]>(
+    [],
+  );
   // merge announcements with the version announcement so that:
   // - we only show three announcements in total
   // - if there's no version announcement, we show the announcements as-is
@@ -25,9 +27,9 @@ export const ContentMenuWhatsNew = () => {
 
     const versionAnnouncement: CloudAnnouncement = {
       id: `version-${version.number}`,
-      type: 'version',
+      type: "version",
       title: `v${version.number} is live`,
-      subtitle: 'See new features and improvements',
+      subtitle: "See new features and improvements",
       published_at: version.releaseDate,
       created_at: version.releaseDate,
       link_url: version.releaseUrl,
@@ -51,7 +53,7 @@ export const ContentMenuWhatsNew = () => {
       .then(setAnnouncements)
       .catch((e) => {
         // fail silently, we don't want to break the page if announcements can't be loaded
-        console.error('Failed to load announcements', e);
+        console.error("Failed to load announcements", e);
       });
   }, []);
 
@@ -70,7 +72,11 @@ export const ContentMenuWhatsNew = () => {
   );
 };
 
-const Announcement = ({ announcement }: { announcement: CloudAnnouncement }) => {
+const Announcement = ({
+  announcement,
+}: {
+  announcement: CloudAnnouncement;
+}) => {
   const { isBrowser } = useIsBrowser();
   const [isNew, setIsNew] = useState(false);
   useEffect(() => {
@@ -78,29 +84,38 @@ const Announcement = ({ announcement }: { announcement: CloudAnnouncement }) => 
       return;
     }
 
-    const hasSeenAnnouncement = localStorage.getItem(`seen-announcement-${announcement.id}`);
+    const hasSeenAnnouncement = localStorage.getItem(
+      `seen-announcement-${announcement.id}`,
+    );
 
     setIsNew(!hasSeenAnnouncement);
   }, [isBrowser, announcement.id]);
 
   const enableHasSeenAnnouncement = () => {
-    localStorage.setItem(`seen-announcement-${announcement.id}`, 'true');
+    localStorage.setItem(`seen-announcement-${announcement.id}`, "true");
     setIsNew(false);
   };
 
   return (
-    <div className="flex gap-docs_0.5 items-start last:[&_card]:!mb-0" onMouseOver={enableHasSeenAnnouncement}>
+    <div
+      className="flex gap-docs_0.5 items-start last:[&_card]:!mb-0"
+      onMouseOver={enableHasSeenAnnouncement}
+    >
       <AnnouncementTracker isNew={isNew} />
       <div
         className={clsx(
-          'flex flex-col px-docs_0.5 py-docs_0.25 rounded-docs_DEFAULT overflow-hidden relative',
-          'bg-cms-bg-component shadow-elevation-card-rest dark:shadow-elevation-card-rest-dark',
-          'hover:shadow-elevation-card-hover dark:hover:shadow-elevation-card-hover-dark',
-          'card mb-docs_0.75',
+          "flex flex-col px-docs_0.5 py-docs_0.25 rounded-docs_DEFAULT overflow-hidden relative",
+          "bg-cms-bg-component shadow-elevation-card-rest dark:shadow-elevation-card-rest-dark",
+          "hover:shadow-elevation-card-hover dark:hover:shadow-elevation-card-hover-dark",
+          "card mb-docs_0.75",
         )}
       >
-        <span className="text-2x-small-plus text-cms-fg-base truncate">{announcement.title}</span>
-        <span className="text-2x-small-plus text-cms-fg-subtle truncate">{announcement.subtitle}</span>
+        <span className="text-2x-small-plus text-cms-fg-base truncate">
+          {announcement.title}
+        </span>
+        <span className="text-2x-small-plus text-cms-fg-subtle truncate">
+          {announcement.subtitle}
+        </span>
         <a
           href={announcement.link_url}
           target="_blank"
@@ -116,14 +131,19 @@ const Announcement = ({ announcement }: { announcement: CloudAnnouncement }) => 
 
 const AnnouncementTracker = ({ isNew }: { isNew: boolean }) => (
   <div className="flex flex-col gap-docs_0.125 items-center h-full">
-    <div className={clsx('h-docs_0.75 w-docs_0.75 relative rounded-full')}>
-      <div className={clsx('absolute top-0 left-0 w-full h-full rounded-full opacity-20', isNew && 'bg-cms-tag-blue-icon')} />
+    <div className={clsx("h-docs_0.75 w-docs_0.75 relative rounded-full")}>
       <div
         className={clsx(
-          'w-[5px] h-[5px] rounded-full',
-          'border-[0.5px] border-cms-alphas-alpha-10',
-          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-          isNew ? 'bg-cms-tag-blue-icon' : 'bg-cms-fg-disabled',
+          "absolute top-0 left-0 w-full h-full rounded-full opacity-20",
+          isNew && "bg-cms-tag-blue-icon",
+        )}
+      />
+      <div
+        className={clsx(
+          "w-[5px] h-[5px] rounded-full",
+          "border-[0.5px] border-cms-alphas-alpha-10",
+          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+          isNew ? "bg-cms-tag-blue-icon" : "bg-cms-fg-disabled",
         )}
       />
     </div>

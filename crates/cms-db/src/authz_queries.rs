@@ -55,23 +55,21 @@ pub async fn resolve_theme_project(
     pool: &PgPool,
     theme_id: Uuid,
 ) -> Result<Option<Uuid>, AppError> {
-    if let Some(pid) = sqlx::query_scalar::<_, Uuid>(
-        r#"SELECT id::uuid FROM "Project" WHERE id = $1"#
-    )
-    .bind(theme_id.to_string())
-    .fetch_optional(pool)
-    .await
-    .map_err(|e| AppError::Database(e.into()))?
+    if let Some(pid) =
+        sqlx::query_scalar::<_, Uuid>(r#"SELECT id::uuid FROM "Project" WHERE id = $1"#)
+            .bind(theme_id.to_string())
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| AppError::Database(e.into()))?
     {
         return Ok(Some(pid));
     }
 
-    if let Ok(Some(pid)) = sqlx::query_scalar::<_, Uuid>(
-        r#"SELECT project_id::uuid FROM "Theme" WHERE id = $1"#
-    )
-    .bind(theme_id.to_string())
-    .fetch_optional(pool)
-    .await
+    if let Ok(Some(pid)) =
+        sqlx::query_scalar::<_, Uuid>(r#"SELECT project_id::uuid FROM "Theme" WHERE id = $1"#)
+            .bind(theme_id.to_string())
+            .fetch_optional(pool)
+            .await
     {
         return Ok(Some(pid));
     }
@@ -84,13 +82,11 @@ pub async fn resolve_git_connection_project(
     pool: &PgPool,
     id: Uuid,
 ) -> Result<Option<Uuid>, AppError> {
-    sqlx::query_scalar::<_, Uuid>(
-        r#"SELECT project_id::uuid FROM "GitConnection" WHERE id = $1"#
-    )
-    .bind(id.to_string())
-    .fetch_optional(pool)
-    .await
-    .map_err(|e| AppError::Database(e.into()))
+    sqlx::query_scalar::<_, Uuid>(r#"SELECT project_id::uuid FROM "GitConnection" WHERE id = $1"#)
+        .bind(id.to_string())
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| AppError::Database(e.into()))
 }
 
 /// Resolve the parent project for an integration.
@@ -99,7 +95,7 @@ pub async fn resolve_integration_project(
     id: Uuid,
 ) -> Result<Option<Uuid>, AppError> {
     sqlx::query_scalar::<_, Uuid>(
-        r#"SELECT project_id::uuid FROM "ProjectIntegration" WHERE id = $1"#
+        r#"SELECT project_id::uuid FROM "ProjectIntegration" WHERE id = $1"#,
     )
     .bind(id.to_string())
     .fetch_optional(pool)
@@ -108,16 +104,10 @@ pub async fn resolve_integration_project(
 }
 
 /// Resolve the parent project for an asset.
-pub async fn resolve_asset_project(
-    pool: &PgPool,
-    id: Uuid,
-) -> Result<Option<Uuid>, AppError> {
-    sqlx::query_scalar::<_, Uuid>(
-        r#"SELECT project_id::uuid FROM "Asset" WHERE id = $1"#
-    )
-    .bind(id.to_string())
-    .fetch_optional(pool)
-    .await
-    .map_err(|e| AppError::Database(e.into()))
+pub async fn resolve_asset_project(pool: &PgPool, id: Uuid) -> Result<Option<Uuid>, AppError> {
+    sqlx::query_scalar::<_, Uuid>(r#"SELECT project_id::uuid FROM "Asset" WHERE id = $1"#)
+        .bind(id.to_string())
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| AppError::Database(e.into()))
 }
-

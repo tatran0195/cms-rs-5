@@ -12,7 +12,6 @@
 
 use cms_entity::search::{RagAnswer, SearchHit};
 use cms_error::AppError;
-
 use cms_infra::config::RagConfig;
 
 /// Generate a RAG answer using the configured LLM provider.
@@ -84,7 +83,7 @@ pub async fn generate_rag_answer(
             return Err(AppError::SearchError(format!(
                 "Unknown RAG provider: '{}'. Use 'gemini', 'openai', or 'ollama'.",
                 other
-            )))
+            )));
         }
     };
 

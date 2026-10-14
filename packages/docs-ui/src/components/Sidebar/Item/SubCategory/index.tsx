@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 // @refresh reset
 
-import type { Sidebar } from '@cms/types';
-import clsx from 'clsx';
-import type React from 'react';
-import { useMemo, useRef } from 'react';
-import { Badge } from '@/components/Badge';
-import { SidebarItem } from '@/components/Sidebar/Item';
-import { SidebarItemTitle } from '@/components/Sidebar/Item/Title';
+import type { Sidebar } from "../../types";
+import clsx from "clsx";
+import type React from "react";
+import { useMemo, useRef } from "react";
+import { Badge } from "@/components/Badge";
+import { SidebarItem } from "@/components/Sidebar/Item";
+import { SidebarItemTitle } from "@/components/Sidebar/Item/Title";
 
 export type SidebarItemSubCategoryProps = {
   item: Sidebar.SidebarItemSubCategory;
@@ -16,37 +16,65 @@ export type SidebarItemSubCategoryProps = {
   isParentCategoryOpen?: boolean;
 } & React.AllHTMLAttributes<HTMLLIElement>;
 
-export const SidebarItemSubCategory = ({ item, className, nested = false, isParentCategoryOpen }: SidebarItemSubCategoryProps) => {
+export const SidebarItemSubCategory = ({
+  item,
+  className,
+  nested = false,
+  isParentCategoryOpen,
+}: SidebarItemSubCategoryProps) => {
   const ref = useRef<HTMLLIElement>(null);
 
-  const hasChildren = useMemo(() => !item.hideChildren && (item.children?.length || 0) > 0, [item.children, item.hideChildren]);
+  const hasChildren = useMemo(
+    () => !item.hideChildren && (item.children?.length || 0) > 0,
+    [item.children, item.hideChildren],
+  );
 
-  const isTitleOneWord = useMemo(() => item.title.split(' ').length === 1, [item.title]);
+  const isTitleOneWord = useMemo(
+    () => item.title.split(" ").length === 1,
+    [item.title],
+  );
 
   return (
     <li ref={ref}>
       <span className="block px-docs_0.75">
         <span
           className={clsx(
-            'py-docs_0.25 px-docs_0.5',
-            'block w-full',
-            !isTitleOneWord && 'break-words',
-            !nested && 'text-cms-fg-subtle',
-            nested && 'text-cms-fg-muted',
-            'text-compact-small-plus',
+            "py-docs_0.25 px-docs_0.5",
+            "block w-full",
+            !isTitleOneWord && "break-words",
+            !nested && "text-cms-fg-subtle",
+            nested && "text-cms-fg-muted",
+            "text-compact-small-plus",
             className,
           )}
           data-testid="sidebar-item-container"
         >
-          <SidebarItemTitle title={item.title} isTitleOneWord={isTitleOneWord} className={clsx(nested && 'pl-docs_1.5')} />
+          <SidebarItemTitle
+            title={item.title}
+            isTitleOneWord={isTitleOneWord}
+            className={clsx(nested && "pl-docs_1.5")}
+          />
           {item.additionalElms}
-          {item.badge && <Badge variant={item.badge.variant}>{item.badge.text}</Badge>}
+          {item.badge && (
+            <Badge variant={item.badge.variant}>{item.badge.text}</Badge>
+          )}
         </span>
       </span>
       {hasChildren && (
-        <ul className={clsx('ease-ease', 'flex flex-col gap-docs_0.125', 'pb-docs_0.5 pt-docs_0.125')}>
+        <ul
+          className={clsx(
+            "ease-ease",
+            "flex flex-col gap-docs_0.125",
+            "pb-docs_0.5 pt-docs_0.125",
+          )}
+        >
           {item.children?.map((childItem, index) => (
-            <SidebarItem item={childItem} key={index} nested={!item.childrenSameLevel} isParentCategoryOpen={isParentCategoryOpen} />
+            <SidebarItem
+              item={childItem}
+              key={index}
+              nested={!item.childrenSameLevel}
+              isParentCategoryOpen={isParentCategoryOpen}
+            />
           ))}
         </ul>
       )}

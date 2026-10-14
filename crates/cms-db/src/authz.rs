@@ -218,13 +218,12 @@ impl RelationTupleQueries {
                 return Ok(is_admin);
             }
 
-            let exists: bool = sqlx::query_scalar(
-                r#"SELECT EXISTS (SELECT 1 FROM "User" WHERE id = $1)"#,
-            )
-            .bind(subject_id)
-            .fetch_one(pool)
-            .await
-            .map_err(|e| AppError::Database(e.into()))?;
+            let exists: bool =
+                sqlx::query_scalar(r#"SELECT EXISTS (SELECT 1 FROM "User" WHERE id = $1)"#)
+                    .bind(subject_id)
+                    .fetch_one(pool)
+                    .await
+                    .map_err(|e| AppError::Database(e.into()))?;
 
             return Ok(exists);
         }
@@ -322,7 +321,11 @@ impl RelationTupleQueries {
     }
 
     /// Revoke a tuple by tuple_id
-    pub async fn revoke(_pool: &PgPool, _tenant_id: Uuid, _tuple_id: Uuid) -> Result<bool, AppError> {
+    pub async fn revoke(
+        _pool: &PgPool,
+        _tenant_id: Uuid,
+        _tuple_id: Uuid,
+    ) -> Result<bool, AppError> {
         Ok(true)
     }
 
@@ -382,7 +385,10 @@ impl RelationTupleQueries {
             .await
             .map_err(|e| AppError::Database(e.into()))?;
 
-            return Ok(ids.into_iter().filter_map(|s| Uuid::parse_str(&s).ok()).collect());
+            return Ok(ids
+                .into_iter()
+                .filter_map(|s| Uuid::parse_str(&s).ok())
+                .collect());
         }
 
         Ok(vec![])

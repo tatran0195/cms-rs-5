@@ -177,12 +177,7 @@ pub async fn mark_all_notifications_read_handler(
     State(state): State<NotificationState>,
     user: NotificationUser,
 ) -> Result<Json<SuccessResponse>, AppError> {
-    NotificationService::mark_all_as_read(
-        state.app_state.db(),
-        &state.hub,
-        &user.user_id,
-    )
-    .await?;
+    NotificationService::mark_all_as_read(state.app_state.db(), &state.hub, &user.user_id).await?;
 
     Ok(Json(SuccessResponse { success: true }))
 }
@@ -210,11 +205,8 @@ pub async fn get_notification_count_handler(
     State(state): State<NotificationState>,
     user: NotificationUser,
 ) -> Result<Json<NotificationCountResponse>, AppError> {
-    let result = NotificationService::get_notification_count(
-        state.app_state.db(),
-        &user.user_id,
-    )
-    .await?;
+    let result =
+        NotificationService::get_notification_count(state.app_state.db(), &user.user_id).await?;
 
     Ok(Json(result))
 }

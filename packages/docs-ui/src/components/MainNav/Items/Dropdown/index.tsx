@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { TriangleDownMini } from '@cms/icons';
-import type { NavigationItemDropdown } from '@cms/types';
-import clsx from 'clsx';
-import { useRef, useState } from 'react';
-import { Menu } from '../../../Menu';
-import { MainNavItemLink } from '../Link';
+import { TriangleDownMini } from "@cms/icons";
+import type { NavigationItemDropdown } from "../../types";
+import clsx from "clsx";
+import { useRef, useState } from "react";
+import { Menu } from "../../../Menu";
+import { MainNavItemLink } from "../Link";
 
 type MainNavItemDropdownProps = {
   item: NavigationItemDropdown;
@@ -14,7 +14,12 @@ type MainNavItemDropdownProps = {
   wrapperClassName?: string;
 };
 
-export const MainNavItemDropdown = ({ item, isActive, className, wrapperClassName }: MainNavItemDropdownProps) => {
+export const MainNavItemDropdown = ({
+  item,
+  isActive,
+  className,
+  wrapperClassName,
+}: MainNavItemDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -25,16 +30,16 @@ export const MainNavItemDropdown = ({ item, isActive, className, wrapperClassNam
           item={{
             ...item,
             link: item.link!,
-            type: 'link',
+            type: "link",
           }}
           isActive={isActive}
           icon={
             <TriangleDownMini
               className={clsx(
-                'transition-transform',
-                isOpen && 'rotate-180',
-                isActive && 'text-cms-fg-base hover:text-cms-fg-subtle',
-                !isActive && 'text-cms-fg-subtle hover:text-cms-fg-base',
+                "transition-transform",
+                isOpen && "rotate-180",
+                isActive && "text-cms-fg-base hover:text-cms-fg-subtle",
+                !isActive && "text-cms-fg-subtle hover:text-cms-fg-base",
               )}
             />
           }
@@ -46,10 +51,13 @@ export const MainNavItemDropdown = ({ item, isActive, className, wrapperClassNam
     return (
       <div
         className={clsx(
-          'cursor-pointer flex gap-docs_0.25 items-center py-docs_0.25',
-          isActive && 'text-cms-fg-base hover:text-cms-fg-subtle',
-          !isActive && ['text-cms-fg-subtle hover:text-cms-fg-base', isOpen && 'text-cms-fg-subtle'],
-          'hover:bg-cms-button-transparent-hover rounded-docs_sm px-docs_0.5',
+          "cursor-pointer flex gap-docs_0.25 items-center py-docs_0.25",
+          isActive && "text-cms-fg-base hover:text-cms-fg-subtle",
+          !isActive && [
+            "text-cms-fg-subtle hover:text-cms-fg-base",
+            isOpen && "text-cms-fg-subtle",
+          ],
+          "hover:bg-cms-button-transparent-hover rounded-docs_sm px-docs_0.5",
           className,
         )}
         tabIndex={-1}
@@ -60,10 +68,10 @@ export const MainNavItemDropdown = ({ item, isActive, className, wrapperClassNam
         </span>
         <TriangleDownMini
           className={clsx(
-            'transition-transform',
-            isOpen && 'rotate-180',
-            isActive && 'text-cms-fg-base hover:text-cms-fg-subtle',
-            !isActive && 'text-cms-fg-subtle hover:text-cms-fg-base',
+            "transition-transform",
+            isOpen && "rotate-180",
+            isActive && "text-cms-fg-base hover:text-cms-fg-subtle",
+            !isActive && "text-cms-fg-subtle hover:text-cms-fg-base",
           )}
           data-testid="triangle-icon"
         />
@@ -73,7 +81,7 @@ export const MainNavItemDropdown = ({ item, isActive, className, wrapperClassNam
 
   return (
     <div
-      className={clsx('relative z-10', wrapperClassName)}
+      className={clsx("relative z-10", wrapperClassName)}
       ref={ref}
       onMouseOver={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
@@ -81,7 +89,11 @@ export const MainNavItemDropdown = ({ item, isActive, className, wrapperClassNam
     >
       {getItemContent()}
       <div className="absolute top-full -left-docs_0.75 pt-docs_0.25">
-        <Menu className={clsx('min-w-[190px]', !isOpen && 'hidden')} items={item.children} itemsOnClick={() => setIsOpen(false)} />
+        <Menu
+          className={clsx("min-w-[190px]", !isOpen && "hidden")}
+          items={item.children}
+          itemsOnClick={() => setIsOpen(false)}
+        />
       </div>
     </div>
   );

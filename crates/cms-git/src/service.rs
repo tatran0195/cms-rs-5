@@ -3,10 +3,6 @@
 //! Domain service for Git repository connections and synchronization.
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
-use crate::queries::{
-    GitConflictQueries, GitConnectionQueries, GitFileStateQueries, GitPreviewQueries,
-    GitPullRequestQueries, GitSyncOperationQueries,
-};
 use cms_content::{BranchQueries, PageQueries};
 use cms_db::PgPool;
 use cms_entity::{
@@ -19,6 +15,11 @@ use cms_entity::{
 };
 use cms_error::AppError;
 use cms_projects::ProjectQueries;
+
+use crate::queries::{
+    GitConflictQueries, GitConnectionQueries, GitFileStateQueries, GitPreviewQueries,
+    GitPullRequestQueries, GitSyncOperationQueries,
+};
 
 /// Git integration service.
 #[derive(Debug)]

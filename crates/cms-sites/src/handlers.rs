@@ -6,9 +6,9 @@ use axum::{
     response::{Html, IntoResponse, Response},
 };
 use cms_deployments::{DeploymentQueries, DeploymentSnapshotPageListing};
-use cms_projects::{DomainQueries, ProjectQueries};
 use cms_entity::deployment::DeploymentSnapshotContent;
 use cms_error::AppError;
+use cms_projects::{DomainQueries, ProjectQueries};
 
 use crate::{
     SitesAppState,
@@ -106,28 +106,21 @@ pub async fn load_published_site_snapshot(
     }
 
     let snapshot = if let Some(preferred_deployment_id) = preferred_deployment_id {
-        DeploymentQueries::get_snapshot_by_deployment(
-            state.db(),
-            preferred_deployment_id,
-        )
-        .await?
-        .filter(|snapshot| snapshot.project_id == project_id)
-        .ok_or_else(|| AppError::NotFound("Domain release is not published".to_string()))?
+        DeploymentQueries::get_snapshot_by_deployment(state.db(), preferred_deployment_id)
+            .await?
+            .filter(|snapshot| snapshot.project_id == project_id)
+            .ok_or_else(|| AppError::NotFound("Domain release is not published".to_string()))?
     } else {
         let releases =
-            DeploymentQueries::get_latest_branch_releases(state.db(), project_id)
-                .await?;
+            DeploymentQueries::get_latest_branch_releases(state.db(), project_id).await?;
         let default_release = releases
             .iter()
             .find(|release| release.is_default)
             .ok_or_else(|| AppError::NotFound("No default-branch release found".to_string()))?;
-        DeploymentQueries::get_snapshot_by_deployment(
-            state.db(),
-            &default_release.deployment_id,
-        )
-        .await?
-        .filter(|snapshot| snapshot.project_id == project_id)
-        .ok_or_else(|| AppError::NotFound("Published release not found".to_string()))?
+        DeploymentQueries::get_snapshot_by_deployment(state.db(), &default_release.deployment_id)
+            .await?
+            .filter(|snapshot| snapshot.project_id == project_id)
+            .ok_or_else(|| AppError::NotFound("Published release not found".to_string()))?
     };
     let deployment_id = snapshot.deployment_id.clone();
     let content: DeploymentSnapshotContent = serde_json::from_value(snapshot.snapshot)?;
@@ -172,12 +165,8 @@ pub async fn load_published_site_page_listing(
     state: &Arc<SitesAppState>,
     site: &PublishedSiteSnapshot,
 ) -> Result<Vec<DeploymentSnapshotPageListing>, AppError> {
-    DeploymentQueries::get_snapshot_page_listing(
-        state.db(),
-        &site.deployment_id,
-        &site.language_id,
-    )
-    .await
+    DeploymentQueries::get_snapshot_page_listing(state.db(), &site.deployment_id, &site.language_id)
+        .await
 }
 
 /// Get markdown renderer from app state
@@ -263,9 +252,7 @@ pub async fn wildcard_handler(
 
         let project = match ProjectQueries::get_by_id(state.db(), project_ref).await? {
             Some(p) => Some(p),
-            None => {
-                ProjectQueries::get_by_slug_global(state.db(), project_ref).await?
-            }
+            None => ProjectQueries::get_by_slug_global(state.db(), project_ref).await?,
         };
 
         let Some(project) = project else {
@@ -339,14 +326,13 @@ pub async fn serve_project_index(
     let base_url = site_base_url(state, resolution, &site.project);
     match root_page_id {
         Some(page_id) => {
-            let page = DeploymentQueries::get_snapshot_page(
-                state.db(),
-                &site.deployment_id,
-                &page_id,
-            )
-            .await?
-            .filter(|page| page.is_published && page.kind.eq_ignore_ascii_case("PAGE"))
-            .ok_or_else(|| AppError::NotFound("Published root page not found".to_string()))?;
+            let page =
+                DeploymentQueries::get_snapshot_page(state.db(), &site.deployment_id, &page_id)
+                    .await?
+                    .filter(|page| page.is_published && page.kind.eq_ignore_ascii_case("PAGE"))
+                    .ok_or_else(|| {
+                        AppError::NotFound("Published root page not found".to_string())
+                    })?;
             let html = render_page(
                 state,
                 &page,

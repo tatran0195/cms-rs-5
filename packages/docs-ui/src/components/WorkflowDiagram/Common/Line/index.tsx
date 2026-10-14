@@ -1,5 +1,5 @@
-import type { WorkflowStepUi } from '@cms/types';
-import { WorkflowDiagramArrow } from '../Arrow';
+import type { WorkflowStepUi } from "../../types";
+import { WorkflowDiagramArrow } from "../Arrow";
 
 export type WorkflowDiagramLineProps = {
   step: WorkflowStepUi[];

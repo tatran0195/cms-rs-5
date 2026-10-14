@@ -50,7 +50,10 @@ pub async fn list_mcp_audit_events_handler(
     axum::extract::State(state): axum::extract::State<Arc<cms_server_core::app_state::AppState>>,
     auth: cms_auth::AuthExtractor,
     axum::extract::Query(query): axum::extract::Query<cms_entity::mcp::ListMcpAuditEventsQuery>,
-) -> Result<axum::Json<cms_entity::common::PaginatedResponse<cms_entity::mcp::McpAuditEventResponse>>, cms_error::AppError> {
+) -> Result<
+    axum::Json<cms_entity::common::PaginatedResponse<cms_entity::mcp::McpAuditEventResponse>>,
+    cms_error::AppError,
+> {
     let result = McpService::list_audit_events(
         state.db(),
         &auth.user.id,
@@ -76,7 +79,10 @@ pub fn router(state: Arc<cms_server_core::app_state::AppState>) -> axum::Router 
     );
 
     axum::Router::new()
-        .route("/audit-events", axum::routing::get(list_mcp_audit_events_handler))
+        .route(
+            "/audit-events",
+            axum::routing::get(list_mcp_audit_events_handler),
+        )
         .with_state(state)
         .fallback_service(mcp_service)
 }

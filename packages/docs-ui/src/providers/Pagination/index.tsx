@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import type { Sidebar } from '@cms/types';
-import { usePrevious } from '@uidotdev/usehooks';
-import type React from 'react';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { isSidebarItemLink } from '../../utils/sidebar-utils';
-import { useSidebar } from '../Sidebar';
+import type { Sidebar } from "../../types";
+import { usePrevious } from "@uidotdev/usehooks";
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { isSidebarItemLink } from "../../utils/sidebar-utils";
+import { useSidebar } from "../Sidebar";
 
 export type Page = {
   title: string;
@@ -19,7 +19,9 @@ export type PaginationContextType = {
   previousPage?: Page;
 };
 
-export const PaginationContext = createContext<PaginationContextType | null>(null);
+export const PaginationContext = createContext<PaginationContextType | null>(
+  null,
+);
 
 type SidebarItemWithParent = Sidebar.InteractiveSidebarItem & {
   parent?: Sidebar.InteractiveSidebarItem;
@@ -41,7 +43,9 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
   const [nextPage, setNextPage] = useState<Page | undefined>();
   const [prevPage, setPrevPage] = useState<Page | undefined>();
 
-  const getFirstChild = (item: Sidebar.InteractiveSidebarItem): SidebarItemWithParent | undefined => {
+  const getFirstChild = (
+    item: Sidebar.InteractiveSidebarItem,
+  ): SidebarItemWithParent | undefined => {
     const children = getChildrenWithPages(item);
     if (!children?.length) {
       return undefined;
@@ -55,18 +59,26 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
       : getFirstChild(children[0]);
   };
 
-  const getChildrenWithPages = (item: Sidebar.InteractiveSidebarItem): SidebarItemWithParent[] | undefined =>
+  const getChildrenWithPages = (
+    item: Sidebar.InteractiveSidebarItem,
+  ): SidebarItemWithParent[] | undefined =>
     item.children?.filter(
-      (childItem) => isSidebarItemLink(childItem) || (childItem.type !== 'separator' && getChildrenWithPages(childItem)?.length),
+      (childItem) =>
+        isSidebarItemLink(childItem) ||
+        (childItem.type !== "separator" &&
+          getChildrenWithPages(childItem)?.length),
     ) as SidebarItemWithParent[];
 
-  const getPrevItem = (items: Sidebar.SidebarItem[], index: number): SidebarItemWithParent | undefined => {
+  const getPrevItem = (
+    items: Sidebar.SidebarItem[],
+    index: number,
+  ): SidebarItemWithParent | undefined => {
     let foundItem: SidebarItemWithParent | undefined;
     items
       .slice(0, index)
       .reverse()
       .some((item) => {
-        if (item.type === 'separator') {
+        if (item.type === "separator") {
           return false;
         }
         if (item.children?.length) {
@@ -87,10 +99,13 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
     return foundItem;
   };
 
-  const getNextItem = (items: Sidebar.SidebarItem[], index: number): SidebarItemWithParent | undefined => {
+  const getNextItem = (
+    items: Sidebar.SidebarItem[],
+    index: number,
+  ): SidebarItemWithParent | undefined => {
     let foundItem: SidebarItemWithParent | undefined;
     items.slice(index + 1).some((item) => {
-      if (item.type === 'separator') {
+      if (item.type === "separator") {
         return false;
       }
 
@@ -112,7 +127,9 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
     return foundItem;
   };
 
-  const searchItems = (currentItems: Sidebar.SidebarItem[]): SearchItemsResult => {
+  const searchItems = (
+    currentItems: Sidebar.SidebarItem[],
+  ): SearchItemsResult => {
     const result: SearchItemsResult = {
       foundActive: false,
     };
@@ -133,14 +150,16 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
         return true;
       }
 
-      if (item.type !== 'separator' && item.children?.length) {
+      if (item.type !== "separator" && item.children?.length) {
         const childrenResult = searchItems(item.children);
 
         if (childrenResult.foundActive) {
           result.prevItem = childrenResult.prevItem;
           result.nextItem = childrenResult.nextItem;
           if (!result.prevItem) {
-            result.prevItem = isSidebarItemLink(item) ? item : getPrevItem(currentItems, index);
+            result.prevItem = isSidebarItemLink(item)
+              ? item
+              : getPrevItem(currentItems, index);
           }
 
           if (!result.nextItem && index !== currentItems.length - 1) {
@@ -159,13 +178,18 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
 
   useEffect(() => {
     if (activePath !== previousActivePath) {
-      const sidebarItems = shownSidebar && 'items' in shownSidebar ? shownSidebar.items : shownSidebar?.children || [];
+      const sidebarItems =
+        shownSidebar && "items" in shownSidebar
+          ? shownSidebar.items
+          : shownSidebar?.children || [];
       const result = searchItems(sidebarItems);
       setPrevPage(
         result.prevItem
           ? {
               title: result.prevItem.title,
-              link: isSidebarItemLink(result.prevItem) ? result.prevItem.path : '',
+              link: isSidebarItemLink(result.prevItem)
+                ? result.prevItem.path
+                : "",
               parentTitle: result.prevItem.parent?.title,
             }
           : undefined,
@@ -174,7 +198,9 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
         result.nextItem
           ? {
               title: result.nextItem.title,
-              link: isSidebarItemLink(result.nextItem) ? result.nextItem.path : '',
+              link: isSidebarItemLink(result.nextItem)
+                ? result.nextItem.path
+                : "",
               parentTitle: result.nextItem?.parent?.title,
             }
           : undefined,
@@ -183,7 +209,9 @@ export const PaginationProvider = ({ children }: PaginationProviderProps) => {
   }, [
     activePath,
     previousActivePath,
-    shownSidebar && 'items' in shownSidebar ? shownSidebar.items : shownSidebar?.children,
+    shownSidebar && "items" in shownSidebar
+      ? shownSidebar.items
+      : shownSidebar?.children,
     shownSidebar,
     searchItems,
   ]);
@@ -204,7 +232,7 @@ export const usePagination = (): PaginationContextType => {
   const context = useContext(PaginationContext);
 
   if (!context) {
-    throw new Error('usePagination must be used inside a PaginationProvider');
+    throw new Error("usePagination must be used inside a PaginationProvider");
   }
 
   return context;

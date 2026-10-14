@@ -11,8 +11,8 @@
 pub mod api_keys;
 pub mod claims;
 pub mod cookies;
-pub mod handlers;
 pub mod extractors;
+pub mod handlers;
 pub mod lockout;
 pub mod mfa;
 pub mod middleware;

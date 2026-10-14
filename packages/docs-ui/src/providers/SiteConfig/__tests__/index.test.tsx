@@ -1,52 +1,66 @@
-import type { DocsConfig } from '@cms/types';
-import { cleanup, fireEvent, render } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { SiteConfigProvider, useSiteConfig } from '../index';
+import type { DocsConfig } from "../../types";
+import { cleanup, fireEvent, render } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { SiteConfigProvider, useSiteConfig } from "../index";
 
 // mock global config
-vi.mock('@/global-config', () => ({
+vi.mock("@/global-config", () => ({
   globalConfig: {
-    baseUrl: 'https://global.example.com',
-    basePath: '/global',
+    baseUrl: "https://global.example.com",
+    basePath: "/global",
   },
 }));
 
-vi.mock('../..', () => ({
-  GITHUB_ISSUES_LINK: 'https://github.com/test/issues',
+vi.mock("../..", () => ({
+  GITHUB_ISSUES_LINK: "https://github.com/test/issues",
 }));
 
 // mock BrowserProvider
-vi.mock('@/providers/BrowserProvider', () => ({
+vi.mock("@/providers/BrowserProvider", () => ({
   useIsBrowser: () => ({
     isBrowser: true,
   }),
 }));
 
 const TestComponent = () => {
-  const { config, setConfig, frontmatter, setFrontmatter, toc, setToc, isInProduct, productView } = useSiteConfig();
+  const {
+    config,
+    setConfig,
+    frontmatter,
+    setFrontmatter,
+    toc,
+    setToc,
+    isInProduct,
+    productView,
+  } = useSiteConfig();
   return (
     <div>
       <div data-testid="base-url">{config.baseUrl}</div>
       <div data-testid="project-title">{config.project.title}</div>
-      <div data-testid="frontmatter-title">{frontmatter.title || 'none'}</div>
+      <div data-testid="frontmatter-title">{frontmatter.title || "none"}</div>
       <div data-testid="version-number">{config.version?.number}</div>
       <div data-testid="release-url">{config.version?.releaseUrl}</div>
       <div data-testid="toc-length">{toc?.length || 0}</div>
-      <div data-testid="ai-assistant-feature">{String(config.features?.aiAssistant ?? false)}</div>
+      <div data-testid="ai-assistant-feature">
+        {String(config.features?.aiAssistant ?? false)}
+      </div>
       <div data-testid="is-in-product">{String(isInProduct)}</div>
-      <div data-testid="product-view">{productView || 'none'}</div>
+      <div data-testid="product-view">{productView || "none"}</div>
       <button
         data-testid="update-config"
         onClick={() =>
           setConfig((prev) => ({
             ...prev,
-            baseUrl: 'https://updated.example.com',
+            baseUrl: "https://updated.example.com",
           }))
         }
       >
         Update Config
       </button>
-      <button data-testid="update-frontmatter" onClick={() => setFrontmatter({ title: 'Updated Title' })}>
+      <button
+        data-testid="update-frontmatter"
+        onClick={() => setFrontmatter({ title: "Updated Title" })}
+      >
         Update Frontmatter
       </button>
       <button
@@ -54,8 +68,8 @@ const TestComponent = () => {
         onClick={() =>
           setToc([
             {
-              title: 'Item 1',
-              id: 'item1',
+              title: "Item 1",
+              id: "item1",
               level: 1,
             },
           ])
@@ -67,7 +81,7 @@ const TestComponent = () => {
   );
 };
 
-describe('SiteConfigProvider', () => {
+describe("SiteConfigProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -76,43 +90,45 @@ describe('SiteConfigProvider', () => {
     cleanup();
   });
 
-  describe('rendering', () => {
-    test('renders children', () => {
+  describe("rendering", () => {
+    test("renders children", () => {
       const { container } = render(
         <SiteConfigProvider>
           <div>Test</div>
         </SiteConfigProvider>,
       );
-      expect(container).toHaveTextContent('Test');
+      expect(container).toHaveTextContent("Test");
     });
   });
 
-  describe('useSiteConfig hook', () => {
-    test('initializes with default config', () => {
+  describe("useSiteConfig hook", () => {
+    test("initializes with default config", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('base-url')).toHaveTextContent('https://global.example.com');
-      expect(getByTestId('project-title')).toHaveTextContent('');
+      expect(getByTestId("base-url")).toHaveTextContent(
+        "https://global.example.com",
+      );
+      expect(getByTestId("project-title")).toHaveTextContent("");
     });
 
-    test('merges provided config with defaults', () => {
+    test("merges provided config with defaults", () => {
       const config: DocsConfig = {
-        baseUrl: 'https://custom.example.com',
-        basePath: '/custom',
+        baseUrl: "https://custom.example.com",
+        basePath: "/custom",
         project: {
-          title: 'Custom Project',
-          key: 'custom',
+          title: "Custom Project",
+          key: "custom",
         },
         sidebars: [],
-        logo: '',
+        logo: "",
         version: {
-          number: '1.0.0',
-          releaseUrl: 'https://github.com/test/releases/tag/1.0.0',
-          releaseDate: '2024-01-01',
+          number: "1.0.0",
+          releaseUrl: "https://github.com/test/releases/tag/1.0.0",
+          releaseDate: "2024-01-01",
         },
       };
 
@@ -122,94 +138,102 @@ describe('SiteConfigProvider', () => {
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('base-url')).toHaveTextContent('https://custom.example.com');
-      expect(getByTestId('project-title')).toHaveTextContent('Custom Project');
-      expect(getByTestId('version-number')).toHaveTextContent('1.0.0');
-      expect(getByTestId('release-url')).toHaveTextContent('https://github.com/test/releases/tag/1.0.0');
+      expect(getByTestId("base-url")).toHaveTextContent(
+        "https://custom.example.com",
+      );
+      expect(getByTestId("project-title")).toHaveTextContent("Custom Project");
+      expect(getByTestId("version-number")).toHaveTextContent("1.0.0");
+      expect(getByTestId("release-url")).toHaveTextContent(
+        "https://github.com/test/releases/tag/1.0.0",
+      );
     });
 
-    test('initializes with empty frontmatter', () => {
+    test("initializes with empty frontmatter", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('frontmatter-title')).toHaveTextContent('none');
+      expect(getByTestId("frontmatter-title")).toHaveTextContent("none");
     });
 
-    test('initializes with null toc', () => {
+    test("initializes with null toc", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('toc-length')).toHaveTextContent('0');
+      expect(getByTestId("toc-length")).toHaveTextContent("0");
     });
 
-    test('setConfig updates config', () => {
+    test("setConfig updates config", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      fireEvent.click(getByTestId('update-config'));
+      fireEvent.click(getByTestId("update-config"));
 
-      expect(getByTestId('base-url')).toHaveTextContent('https://updated.example.com');
+      expect(getByTestId("base-url")).toHaveTextContent(
+        "https://updated.example.com",
+      );
     });
 
-    test('setFrontmatter updates frontmatter', () => {
+    test("setFrontmatter updates frontmatter", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      fireEvent.click(getByTestId('update-frontmatter'));
+      fireEvent.click(getByTestId("update-frontmatter"));
 
-      expect(getByTestId('frontmatter-title')).toHaveTextContent('Updated Title');
+      expect(getByTestId("frontmatter-title")).toHaveTextContent(
+        "Updated Title",
+      );
     });
 
-    test('setToc updates toc', () => {
+    test("setToc updates toc", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      fireEvent.click(getByTestId('update-toc'));
+      fireEvent.click(getByTestId("update-toc"));
 
-      expect(getByTestId('toc-length')).toHaveTextContent('1');
+      expect(getByTestId("toc-length")).toHaveTextContent("1");
     });
 
-    test('enables ai assistant feature by default', () => {
+    test("enables ai assistant feature by default", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('ai-assistant-feature')).toHaveTextContent('true');
+      expect(getByTestId("ai-assistant-feature")).toHaveTextContent("true");
     });
 
-    test('allows overriding ai assistant feature via config', () => {
+    test("allows overriding ai assistant feature via config", () => {
       const config: DocsConfig = {
-        baseUrl: '',
+        baseUrl: "",
         project: {
-          title: '',
-          key: '',
+          title: "",
+          key: "",
         },
         sidebars: [],
-        logo: '',
+        logo: "",
         features: {
           aiAssistant: false,
         },
         version: {
-          number: '1.0.0',
-          releaseUrl: '',
-          releaseDate: '',
+          number: "1.0.0",
+          releaseUrl: "",
+          releaseDate: "",
         },
       };
 
@@ -219,37 +243,39 @@ describe('SiteConfigProvider', () => {
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('ai-assistant-feature')).toHaveTextContent('false');
+      expect(getByTestId("ai-assistant-feature")).toHaveTextContent("false");
     });
 
-    test('throws error when used outside provider', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    test("throws error when used outside provider", () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       expect(() => {
         render(<TestComponent />);
-      }).toThrow('useSiteConfig must be used inside a SiteConfigProvider');
+      }).toThrow("useSiteConfig must be used inside a SiteConfigProvider");
 
       consoleSpy.mockRestore();
     });
   });
 
-  describe('product view properties', () => {
-    test('initializes with isInProduct false when no product view', () => {
+  describe("product view properties", () => {
+    test("initializes with isInProduct false when no product view", () => {
       const { getByTestId } = render(
         <SiteConfigProvider>
           <TestComponent />
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('is-in-product')).toHaveTextContent('false');
-      expect(getByTestId('product-view')).toHaveTextContent('none');
+      expect(getByTestId("is-in-product")).toHaveTextContent("false");
+      expect(getByTestId("product-view")).toHaveTextContent("none");
     });
 
-    test('detects bloom product view from URL search params', () => {
+    test("detects bloom product view from URL search params", () => {
       // Mock location.search
       delete (global as any).location;
       (global as any).location = {
-        search: '?view=bloom',
+        search: "?view=bloom",
       };
 
       const { getByTestId } = render(
@@ -258,15 +284,15 @@ describe('SiteConfigProvider', () => {
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('is-in-product')).toHaveTextContent('true');
-      expect(getByTestId('product-view')).toHaveTextContent('bloom');
+      expect(getByTestId("is-in-product")).toHaveTextContent("true");
+      expect(getByTestId("product-view")).toHaveTextContent("bloom");
     });
 
-    test('ignores invalid product view from URL', () => {
+    test("ignores invalid product view from URL", () => {
       // Mock location.search with invalid view
       delete (global as any).location;
       (global as any).location = {
-        search: '?view=invalid',
+        search: "?view=invalid",
       };
 
       const { getByTestId } = render(
@@ -275,15 +301,15 @@ describe('SiteConfigProvider', () => {
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('is-in-product')).toHaveTextContent('false');
-      expect(getByTestId('product-view')).toHaveTextContent('none');
+      expect(getByTestId("is-in-product")).toHaveTextContent("false");
+      expect(getByTestId("product-view")).toHaveTextContent("none");
     });
 
-    test('handles missing view parameter', () => {
+    test("handles missing view parameter", () => {
       // Mock location.search without view parameter
       delete (global as any).location;
       (global as any).location = {
-        search: '?other=param',
+        search: "?other=param",
       };
 
       const { getByTestId } = render(
@@ -292,15 +318,15 @@ describe('SiteConfigProvider', () => {
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('is-in-product')).toHaveTextContent('false');
-      expect(getByTestId('product-view')).toHaveTextContent('none');
+      expect(getByTestId("is-in-product")).toHaveTextContent("false");
+      expect(getByTestId("product-view")).toHaveTextContent("none");
     });
 
-    test('handles empty search params', () => {
+    test("handles empty search params", () => {
       // Mock location.search as empty
       delete (global as any).location;
       (global as any).location = {
-        search: '',
+        search: "",
       };
 
       const { getByTestId } = render(
@@ -309,8 +335,8 @@ describe('SiteConfigProvider', () => {
         </SiteConfigProvider>,
       );
 
-      expect(getByTestId('is-in-product')).toHaveTextContent('false');
-      expect(getByTestId('product-view')).toHaveTextContent('none');
+      expect(getByTestId("is-in-product")).toHaveTextContent("false");
+      expect(getByTestId("product-view")).toHaveTextContent("none");
     });
   });
 });

@@ -3,8 +3,7 @@
 use std::sync::Arc;
 
 use cms_content::{BranchQueries, LanguageQueries, PageQueries};
-use cms_db::{search_index::SearchIndexRunQueries, PgPool};
-use cms_projects::ProjectQueries;
+use cms_db::{PgPool, search_index::SearchIndexRunQueries};
 use cms_entity::{
     common::PaginatedResponse,
     search::{
@@ -14,6 +13,7 @@ use cms_entity::{
     },
 };
 use cms_error::AppError;
+use cms_projects::ProjectQueries;
 
 use super::SearchEngine;
 
@@ -361,7 +361,7 @@ pub async fn process_search_job(
         _ => {
             return Err(AppError::InvalidInput(
                 "Unknown search job type".to_string(),
-            ))
+            ));
         }
     }
 

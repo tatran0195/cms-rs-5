@@ -10,7 +10,7 @@
 use std::{borrow::Cow, sync::Arc};
 
 use lindera::{
-    dictionary::{load_dictionary, Dictionary},
+    dictionary::{Dictionary, load_dictionary},
     mode::{Mode, Penalty},
     segmenter::Segmenter,
 };
@@ -359,7 +359,7 @@ impl std::fmt::Debug for LinderaTokenStream {
             .field("index", &self.index)
             .field("total_tokens", &self.tokens.len())
             .finish()
-        }
+    }
 }
 
 impl TokenStream for LinderaTokenStream {

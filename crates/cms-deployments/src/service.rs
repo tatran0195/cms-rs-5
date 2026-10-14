@@ -4,7 +4,6 @@
 
 use std::sync::Arc;
 
-use crate::queries::DeploymentQueries;
 use cms_content::{BranchQueries, PageQueries};
 use cms_db::PgPool;
 use cms_entity::{
@@ -15,6 +14,8 @@ use cms_entity::{
 use cms_error::AppError;
 use cms_infra::storage::Storage;
 use cms_projects::{DomainQueries, ProjectQueries, normalize_hostname};
+
+use crate::queries::DeploymentQueries;
 
 /// Deployment service providing core orchestration for project deployments.
 #[derive(Debug)]

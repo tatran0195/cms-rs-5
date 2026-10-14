@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { ChevronDoubleRight, ExclamationCircle } from '@cms/icons';
-import type { Sidebar } from '@cms/types';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import slugify from 'slugify';
+import { ChevronDoubleRight, ExclamationCircle } from "@cms/icons";
+import type { Sidebar } from "../../types";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import slugify from "slugify";
 import {
   Card,
   CardList,
@@ -18,14 +18,16 @@ import {
   SearchInput,
   useIsBrowser,
   useSidebar,
-} from '../..';
-import { isSidebarItemLink } from '../../utils/sidebar-utils';
+} from "../..";
+import { isSidebarItemLink } from "../../utils/sidebar-utils";
 
-type HeadingComponent = (props: React.HTMLAttributes<HTMLHeadingElement>) => React.JSX.Element;
+type HeadingComponent = (
+  props: React.HTMLAttributes<HTMLHeadingElement>,
+) => React.JSX.Element;
 
 export type UseChildDocsProps = {
   onlyTopLevel?: boolean;
-  type?: 'sidebar' | 'item';
+  type?: "sidebar" | "item";
   hideItems?: string[];
   showItems?: string[];
   hideTitle?: boolean;
@@ -46,7 +48,7 @@ export const useChildDocs = ({
   onlyTopLevel = false,
   hideItems = [],
   showItems,
-  type = 'sidebar',
+  type = "sidebar",
   hideTitle = false,
   hideDescription = false,
   titleLevel = 2,
@@ -54,55 +56,80 @@ export const useChildDocs = ({
   endChildLevel = -1,
   itemsPerRow,
   defaultItemsPerRow,
-  search: { enable: enableSearch = false, storageKey = 'child-docs', ...searchProps } = { enable: false },
+  search: {
+    enable: enableSearch = false,
+    storageKey = "child-docs",
+    ...searchProps
+  } = { enable: false },
 }: UseChildDocsProps) => {
   const { shownSidebar, activeItem, getSidebarFirstLinkChild } = useSidebar();
   const { isBrowser } = useIsBrowser();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [localSearch, setLocalSearch] = useState<LocalSearch<Sidebar.SidebarItemLink> | undefined>();
-  const TitleHeaderComponent = useCallback((level: number): HeadingComponent => {
-    switch (level) {
-      case 3:
-        return H3;
-      case 4:
-        return H4;
-      case 5:
-        return MDXComponents.h5 as HeadingComponent;
-      case 6:
-        return MDXComponents.h6 as HeadingComponent;
-      default:
-        return H2;
-    }
-  }, []);
-  const filterType = useMemo(() => (showItems !== undefined ? 'show' : hideItems.length > 0 ? 'hide' : 'all'), [showItems, hideItems]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [localSearch, setLocalSearch] = useState<
+    LocalSearch<Sidebar.SidebarItemLink> | undefined
+  >();
+  const TitleHeaderComponent = useCallback(
+    (level: number): HeadingComponent => {
+      switch (level) {
+        case 3:
+          return H3;
+        case 4:
+          return H4;
+        case 5:
+          return MDXComponents.h5 as HeadingComponent;
+        case 6:
+          return MDXComponents.h6 as HeadingComponent;
+        default:
+          return H2;
+      }
+    },
+    [],
+  );
+  const filterType = useMemo(
+    () =>
+      showItems !== undefined ? "show" : hideItems.length > 0 ? "hide" : "all",
+    [showItems, hideItems],
+  );
 
   const filterCondition = (item: Sidebar.SidebarItem): boolean => {
-    if (item.type === 'separator') {
+    if (item.type === "separator") {
       return false;
     }
     switch (filterType) {
-      case 'hide':
-        return (!isSidebarItemLink(item) || !hideItems.includes(item.path)) && !hideItems.includes(item.title);
-      case 'show':
-        return Boolean((isSidebarItemLink(item) && showItems?.includes(item.path)) || showItems?.includes(item.title));
-      case 'all':
+      case "hide":
+        return (
+          (!isSidebarItemLink(item) || !hideItems.includes(item.path)) &&
+          !hideItems.includes(item.title)
+        );
+      case "show":
+        return Boolean(
+          (isSidebarItemLink(item) && showItems?.includes(item.path)) ||
+          showItems?.includes(item.title),
+        );
+      case "all":
         return true;
     }
   };
 
-  const filterItems = (items: Sidebar.SidebarItem[]): Sidebar.InteractiveSidebarItem[] =>
+  const filterItems = (
+    items: Sidebar.SidebarItem[],
+  ): Sidebar.InteractiveSidebarItem[] =>
     (items.filter(filterCondition) as Sidebar.InteractiveSidebarItem[])
       .map((item) => ({ ...item }))
       .map((item) => {
-        if (item.children && filterType === 'hide') {
+        if (item.children && filterType === "hide") {
           item.children = filterItems(item.children);
         }
 
         return item;
       });
 
-  const filterNonInteractiveItems = (items: Sidebar.SidebarItem[] | undefined): Sidebar.InteractiveSidebarItem[] =>
-    (items?.filter((item) => item.type !== 'separator' && !item.hideFromChildItems) as Sidebar.InteractiveSidebarItem[]) || [];
+  const filterNonInteractiveItems = (
+    items: Sidebar.SidebarItem[] | undefined,
+  ): Sidebar.InteractiveSidebarItem[] =>
+    (items?.filter(
+      (item) => item.type !== "separator" && !item.hideFromChildItems,
+    ) as Sidebar.InteractiveSidebarItem[]) || [];
 
   const getChildrenForLevel = ({
     item,
@@ -111,7 +138,11 @@ export const useChildDocs = ({
     item: Sidebar.InteractiveSidebarItem;
     currentLevel?: number;
   }): Sidebar.InteractiveSidebarItem[] | undefined => {
-    if ((endChildLevel > 0 && currentLevel > endChildLevel) || !item.children || item.hideFromChildItems) {
+    if (
+      (endChildLevel > 0 && currentLevel > endChildLevel) ||
+      !item.children ||
+      item.hideFromChildItems
+    ) {
       return;
     }
     if (currentLevel >= startChildLevel) {
@@ -138,17 +169,24 @@ export const useChildDocs = ({
 
   const filteredItems = useMemo(() => {
     let targetItems =
-      type === 'sidebar'
-        ? shownSidebar && 'items' in shownSidebar
+      type === "sidebar"
+        ? shownSidebar && "items" in shownSidebar
           ? shownSidebar.items
           : shownSidebar?.children || []
         : [...(activeItem?.children || [])];
-    if (filterType !== 'all' && targetItems) {
+    if (filterType !== "all" && targetItems) {
       targetItems = filterItems(targetItems);
     }
 
     return filterNonInteractiveItems(targetItems);
-  }, [shownSidebar, type, activeItem, filterType, filterItems, filterNonInteractiveItems]);
+  }, [
+    shownSidebar,
+    type,
+    activeItem,
+    filterType,
+    filterItems,
+    filterNonInteractiveItems,
+  ]);
 
   const searchableItems = useMemo(() => {
     const searchableItems: Sidebar.SidebarItemLink[] = [];
@@ -160,7 +198,9 @@ export const useChildDocs = ({
         if (isSidebarItemLink(item)) {
           searchableItems.push(item);
         } else {
-          const firstChild = item.children?.find((child) => isSidebarItemLink(child));
+          const firstChild = item.children?.find((child) =>
+            isSidebarItemLink(child),
+          );
           if (firstChild) {
             searchableItems.push(firstChild as Sidebar.SidebarItemLink);
           }
@@ -169,7 +209,9 @@ export const useChildDocs = ({
     } else {
       filteredItems?.forEach((item) => {
         const childItems: Sidebar.SidebarItemLink[] =
-          (getChildrenForLevel({ item })?.filter((childItem) => isSidebarItemLink(childItem)) as Sidebar.SidebarItemLink[]) || [];
+          (getChildrenForLevel({ item })?.filter((childItem) =>
+            isSidebarItemLink(childItem),
+          ) as Sidebar.SidebarItemLink[]) || [];
         searchableItems.push(...childItems);
       });
     }
@@ -189,21 +231,24 @@ export const useChildDocs = ({
     setLocalSearch(
       getLocalSearch<Sidebar.SidebarItemLink>({
         docs: searchableItems,
-        searchableFields: ['title', 'description'],
+        searchableFields: ["title", "description"],
         options: {
-          storeFields: ['title', 'description', 'path', 'type'],
+          storeFields: ["title", "description", "path", "type"],
           searchOptions: {
             boost: { title: 2 },
             prefix: true,
             fuzzy: 0.2,
           },
-          idField: 'path',
+          idField: "path",
         },
       }),
     );
   }, [searchableItems, enableSearch, localSearch]);
 
-  const searchResult = useMemo(() => localSearch?.search(searchQuery) || [], [localSearch, searchQuery]);
+  const searchResult = useMemo(
+    () => localSearch?.search(searchQuery) || [],
+    [localSearch, searchQuery],
+  );
 
   useEffect(() => {
     if (!isBrowser || !enableSearch) {
@@ -231,9 +276,13 @@ export const useChildDocs = ({
     items?.forEach((childItem) => {
       const href = isSidebarItemLink(childItem)
         ? childItem.path
-        : childItem.type === 'sidebar'
+        : childItem.type === "sidebar"
           ? getSidebarFirstLinkChild(childItem)?.path
-          : (childItem.children?.find((item) => isSidebarItemLink(item)) as Sidebar.SidebarItemLink)?.path;
+          : (
+              childItem.children?.find((item) =>
+                isSidebarItemLink(item),
+              ) as Sidebar.SidebarItemLink
+            )?.path;
 
       if (!href) {
         return;
@@ -250,7 +299,7 @@ export const useChildDocs = ({
         items={itemsToShowEntries.map(([href, childItem]) => ({
           title: childItem.title,
           href,
-          rightIcon: childItem.type === 'ref' ? ChevronDoubleRight : undefined,
+          rightIcon: childItem.type === "ref" ? ChevronDoubleRight : undefined,
           text: childItem.description,
         }))}
         itemsPerRow={itemsPerRow}
@@ -270,9 +319,17 @@ export const useChildDocs = ({
   }) =>
     items?.map((item, key) => {
       const itemChildren = getChildrenForLevel({ item, currentLevel });
-      const HeadingComponent = itemChildren?.length ? TitleHeaderComponent(headerLevel) : undefined;
-      const linkChildren = itemChildren?.filter((item) => isSidebarItemLink(item) || item.type === 'sidebar') || [];
-      const categoryChildren = itemChildren?.filter((child) => child.type === 'category' || child.type === 'sub-category') || [];
+      const HeadingComponent = itemChildren?.length
+        ? TitleHeaderComponent(headerLevel)
+        : undefined;
+      const linkChildren =
+        itemChildren?.filter(
+          (item) => isSidebarItemLink(item) || item.type === "sidebar",
+        ) || [];
+      const categoryChildren =
+        itemChildren?.filter(
+          (child) => child.type === "category" || child.type === "sub-category",
+        ) || [];
       const showLinkAsCard = !HeadingComponent && isSidebarItemLink(item);
 
       return (
@@ -281,9 +338,15 @@ export const useChildDocs = ({
             <>
               {!hideTitle && (
                 <>
-                  <HeadingComponent id={slugify(item.title.toLowerCase())}>{item.title}</HeadingComponent>
+                  <HeadingComponent id={slugify(item.title.toLowerCase())}>
+                    {item.title}
+                  </HeadingComponent>
                   {!hideDescription && item.description && (
-                    <MarkdownContent allowedElements={['a', 'code', 'ul', 'ol', 'p']}>{item.description}</MarkdownContent>
+                    <MarkdownContent
+                      allowedElements={["a", "code", "ul", "ol", "p"]}
+                    >
+                      {item.description}
+                    </MarkdownContent>
                   )}
                 </>
               )}
@@ -293,12 +356,17 @@ export const useChildDocs = ({
                     linkChildren.map((childItem) => {
                       const href = isSidebarItemLink(childItem)
                         ? childItem.path
-                        : getSidebarFirstLinkChild(childItem as Sidebar.SidebarItemSidebar)?.path;
+                        : getSidebarFirstLinkChild(
+                            childItem as Sidebar.SidebarItemSidebar,
+                          )?.path;
                       return {
                         title: childItem.title,
                         href,
                         text: childItem.description,
-                        rightIcon: childItem.type === 'ref' ? ChevronDoubleRight : undefined,
+                        rightIcon:
+                          childItem.type === "ref"
+                            ? ChevronDoubleRight
+                            : undefined,
                       };
                     }) || []
                   }
@@ -317,7 +385,12 @@ export const useChildDocs = ({
             </>
           )}
           {showLinkAsCard && (
-            <Card title={item.title} href={item.path} text={item.description} rightIcon={item.type === 'ref' ? ChevronDoubleRight : undefined} />
+            <Card
+              title={item.title}
+              href={item.path}
+              text={item.description}
+              rightIcon={item.type === "ref" ? ChevronDoubleRight : undefined}
+            />
           )}
         </React.Fragment>
       );
@@ -334,7 +407,7 @@ export const useChildDocs = ({
               title: item.title,
               href: item.path,
               text: item.description,
-              rightIcon: item.type === 'ref' ? ChevronDoubleRight : undefined,
+              rightIcon: item.type === "ref" ? ChevronDoubleRight : undefined,
               highlightText: item.terms,
             }))}
             itemsPerRow={itemsPerRow}
@@ -345,8 +418,12 @@ export const useChildDocs = ({
         {!searchResult.length && (
           <div className="flex flex-col justify-center items-center gap-docs_0.75">
             <ExclamationCircle className="text-cms-fg-subtle" />
-            <span className="text-compact-small-plus text-cms-fg-base text-center">No results found matching your query.</span>
-            <span className="text-compact-small text-cms-fg-subtle text-center">Try searching with another term or clearing the search.</span>
+            <span className="text-compact-small-plus text-cms-fg-base text-center">
+              No results found matching your query.
+            </span>
+            <span className="text-compact-small text-cms-fg-subtle text-center">
+              Try searching with another term or clearing the search.
+            </span>
           </div>
         )}
       </>
@@ -355,7 +432,13 @@ export const useChildDocs = ({
 
   const getElms = () => (
     <>
-      {enableSearch && <SearchInput value={searchQuery || ''} onChange={setSearchQuery} {...searchProps} />}
+      {enableSearch && (
+        <SearchInput
+          value={searchQuery || ""}
+          onChange={setSearchQuery}
+          {...searchProps}
+        />
+      )}
       {searchQuery && getSearchResultElms()}
       {!searchQuery &&
         (onlyTopLevel

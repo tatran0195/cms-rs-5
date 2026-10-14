@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import type { ToCItem, ToCItemUi } from '@cms/types';
-import clsx from 'clsx';
-import Link from 'next/link';
-import { useEffect } from 'react';
-import { type ActiveOnScrollItem, useActiveOnScroll } from '../../../hooks/use-active-on-scroll';
-import { useScrollController } from '../../../hooks/use-scroll-utils';
-import { useSiteConfig } from '../../../providers/SiteConfig';
-import { Loading } from '../../Loading';
-import { ContentMenuSection } from '../Section';
+import type { ToCItem, ToCItemUi } from "../../types";
+import clsx from "clsx";
+import Link from "next/link";
+import { useEffect } from "react";
+import {
+  type ActiveOnScrollItem,
+  useActiveOnScroll,
+} from "../../../hooks/use-active-on-scroll";
+import { useScrollController } from "../../../hooks/use-scroll-utils";
+import { useSiteConfig } from "../../../providers/SiteConfig";
+import { Loading } from "../../Loading";
+import { ContentMenuSection } from "../Section";
 
 export const ContentMenuToc = () => {
   const { toc: items, frontmatter, setToc } = useSiteConfig();
@@ -25,11 +28,14 @@ export const ContentMenuToc = () => {
     for (const anchor of clone.querySelectorAll(`a[href^="#"]`)) {
       anchor.remove();
     }
-    return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+    return (clone.textContent || "").replace(/\s+/g, " ").trim();
   };
 
-  const formatHeadingObject = ({ heading, children }: ActiveOnScrollItem): ToCItemUi => {
-    const level = Number.parseInt(heading.tagName.replace('H', ''), 10);
+  const formatHeadingObject = ({
+    heading,
+    children,
+  }: ActiveOnScrollItem): ToCItemUi => {
+    const level = Number.parseInt(heading.tagName.replace("H", ""), 10);
     return {
       title: formatHeadingContent(heading),
       id: heading.id,
@@ -40,22 +46,28 @@ export const ContentMenuToc = () => {
   };
 
   useEffect(() => {
-    if (frontmatter.generate_toc && generatedItems && items?.length !== generatedItems.length) {
+    if (
+      frontmatter.generate_toc &&
+      generatedItems &&
+      items?.length !== generatedItems.length
+    ) {
       const tocItems: ToCItem[] = generatedItems.map(formatHeadingObject);
       setToc(tocItems);
     }
   }, [frontmatter, generatedItems, setToc, items?.length, formatHeadingObject]);
 
   useEffect(() => {
-    const activeElement = document.querySelector(`.toc-item a[href='#${activeItemId}']`) as HTMLAnchorElement;
+    const activeElement = document.querySelector(
+      `.toc-item a[href='#${activeItemId}']`,
+    ) as HTMLAnchorElement;
     if (!activeElement) {
       return;
     }
 
     activeElement.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'nearest',
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest",
     });
   }, [activeItemId]);
 
@@ -66,7 +78,13 @@ export const ContentMenuToc = () => {
   return (
     <ContentMenuSection title="On this page">
       <div className="h-max max-h-full overflow-y-hidden flex relative flex-col">
-        {items !== null && <TocList items={items} activeItemId={activeItemId} className="relative overflow-y-auto py-docs_0.75 px-docs_1" />}
+        {items !== null && (
+          <TocList
+            items={items}
+            activeItemId={activeItemId}
+            className="relative overflow-y-auto py-docs_0.75 px-docs_1"
+          />
+        )}
         {items === null && <EmptyTocItems />}
       </div>
     </ContentMenuSection>
@@ -99,14 +117,15 @@ const TocItem = ({ item, activeItemId }: TocItemProps) => {
       <Link
         href={`#${item.id}`}
         className={clsx(
-          'block w-full relative py-docs_0.25',
-          item.id !== activeItemId && 'text-cms-fg-subtle hover:text-cms-fg-base text-x-small',
-          item.id === activeItemId && 'text-cms-fg-base text-x-small-plus',
-          'truncate',
+          "block w-full relative py-docs_0.25",
+          item.id !== activeItemId &&
+            "text-cms-fg-subtle hover:text-cms-fg-base text-x-small",
+          item.id === activeItemId && "text-cms-fg-base text-x-small-plus",
+          "truncate",
         )}
         onClick={(e) => {
           e.preventDefault();
-          history.pushState({}, '', `#${item.id}`);
+          history.pushState({}, "", `#${item.id}`);
           const elm = document.getElementById(item.id) as HTMLElement;
           scrollToElement(elm);
         }}
@@ -126,6 +145,10 @@ const TocItem = ({ item, activeItemId }: TocItemProps) => {
 
 const EmptyTocItems = () => (
   <div className="animate-pulse" data-testid="empty-toc-items">
-    <Loading count={5} className="!py-docs_0.75 !px-docs_1 !my-0" barClassName="!h-docs_0.5" />
+    <Loading
+      count={5}
+      className="!py-docs_0.75 !px-docs_1 !my-0"
+      barClassName="!h-docs_0.5"
+    />
   </div>
 );

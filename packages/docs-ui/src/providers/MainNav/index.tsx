@@ -1,11 +1,15 @@
-'use client';
+"use client";
 
-import type { MenuItem, NavigationItem, NavigationItemDropdown } from '@cms/types';
-import { usePathname } from 'next/navigation';
-import type React from 'react';
-import { createContext, useContext, useMemo } from 'react';
-import { useSidebar } from '../Sidebar';
-import { useSiteConfig } from '../SiteConfig';
+import type {
+  MenuItem,
+  NavigationItem,
+  NavigationItemDropdown,
+} from "../../types";
+import { usePathname } from "next/navigation";
+import type React from "react";
+import { createContext, useContext, useMemo } from "react";
+import { useSidebar } from "../Sidebar";
+import { useSiteConfig } from "../SiteConfig";
 
 export type MainNavContext = {
   navItems: NavigationItem[];
@@ -29,23 +33,38 @@ export type MainNavProviderProps = {
   additionalMenuItems?: MenuItem[];
 };
 
-export const MainNavProvider = ({ navItems, logo, logoUrl, helpNavItem, children, additionalMenuItems }: MainNavProviderProps) => {
+export const MainNavProvider = ({
+  navItems,
+  logo,
+  logoUrl,
+  helpNavItem,
+  children,
+  additionalMenuItems,
+}: MainNavProviderProps) => {
   const pathname = usePathname();
   const { shownSidebar } = useSidebar();
   const { config } = useSiteConfig();
-  const currentUrl = useMemo(() => `${config.baseUrl}${config.basePath}${pathname}`.replace(/\/$/, ''), [pathname, config.baseUrl, config.basePath]);
+  const currentUrl = useMemo(
+    () => `${config.baseUrl}${config.basePath}${pathname}`.replace(/\/$/, ""),
+    [pathname, config.baseUrl, config.basePath],
+  );
 
-  const dropdownHasActiveItem = (items: NavigationItemDropdown['children']): boolean =>
+  const dropdownHasActiveItem = (
+    items: NavigationItemDropdown["children"],
+  ): boolean =>
     items.some((childItem) => {
-      if (childItem.type !== 'link' && childItem.type !== 'sub-menu') {
+      if (childItem.type !== "link" && childItem.type !== "sub-menu") {
         return false;
       }
 
-      if (childItem.sidebar_id && shownSidebar?.sidebar_id === childItem.sidebar_id) {
+      if (
+        childItem.sidebar_id &&
+        shownSidebar?.sidebar_id === childItem.sidebar_id
+      ) {
         return true;
       }
 
-      if (childItem.type === 'sub-menu') {
+      if (childItem.type === "sub-menu") {
         return dropdownHasActiveItem(childItem.items);
       }
 
@@ -64,7 +83,7 @@ export const MainNavProvider = ({ navItems, logo, logoUrl, helpNavItem, children
         isItemActive = currentUrl.startsWith(item.link);
       }
 
-      if (item.type === 'dropdown' && !isItemActive) {
+      if (item.type === "dropdown" && !isItemActive) {
         isItemActive = dropdownHasActiveItem(item.children);
       }
 
@@ -103,7 +122,7 @@ export const useMainNav = () => {
   const context = useContext(MainNavContext);
 
   if (!context) {
-    throw new Error('useMainNav must be used within a MainNavProvider');
+    throw new Error("useMainNav must be used within a MainNavProvider");
   }
 
   return context;

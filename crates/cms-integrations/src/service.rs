@@ -3,9 +3,6 @@
 //! Domain service for project integrations and webhook verification.
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
-use crate::queries::{
-    IntegrationAuditEventQueries, IntegrationIdempotencyRecordQueries, ProjectIntegrationQueries,
-};
 use cms_db::PgPool;
 use cms_entity::integration::{
     CreateProjectIntegrationRequest, IntegrationProvider, ProjectIntegrationResponse,
@@ -13,7 +10,13 @@ use cms_entity::integration::{
 };
 use cms_error::AppError;
 
-use crate::ssrf::is_private_or_restricted_ip;
+use crate::{
+    queries::{
+        IntegrationAuditEventQueries, IntegrationIdempotencyRecordQueries,
+        ProjectIntegrationQueries,
+    },
+    ssrf::is_private_or_restricted_ip,
+};
 
 /// Integration service
 #[derive(Debug)]

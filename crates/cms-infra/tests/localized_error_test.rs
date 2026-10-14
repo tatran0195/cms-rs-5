@@ -1,6 +1,6 @@
 use axum::response::IntoResponse;
 use cms_error::AppError;
-use cms_infra::i18n::{with_locale, Locale};
+use cms_infra::i18n::{Locale, with_locale};
 
 #[tokio::test]
 async fn test_error_localization_in_japanese() {

@@ -398,9 +398,11 @@ mod tests {
         let admin_origin = AdminOriginConfig::default();
         assert!(admin_origin.enforce);
         assert!(admin_origin.allow_localhost);
-        assert!(admin_origin
-            .allowed_origins
-            .contains(&"https://admin.cms.com".to_string()));
+        assert!(
+            admin_origin
+                .allowed_origins
+                .contains(&"https://admin.cms.com".to_string())
+        );
     }
 
     #[test]
@@ -487,8 +489,13 @@ mod tests {
     fn test_env_var_override() {
         let temp_dir = tempfile::tempdir().expect("tempdir");
         let toml_path = temp_dir.path().join("test_override.toml");
-        std::fs::write(&toml_path, "[server]\nport = 9999\n[database]\nmax_pool_size = 77\n").expect("write toml");
-        let config = Config::load_from_path(toml_path.to_str().unwrap()).expect("Config::load_from_path should succeed");
+        std::fs::write(
+            &toml_path,
+            "[server]\nport = 9999\n[database]\nmax_pool_size = 77\n",
+        )
+        .expect("write toml");
+        let config = Config::load_from_path(toml_path.to_str().unwrap())
+            .expect("Config::load_from_path should succeed");
         assert_eq!(config.server.port, 9999);
         assert_eq!(config.database.max_pool_size, 77);
     }
@@ -563,10 +570,12 @@ mod tests {
         config.database.url = "postgres://postgres:postgres@localhost:5432/cms".to_string();
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("default 'postgres'"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("default 'postgres'")
+        );
     }
 
     #[test]
@@ -575,10 +584,12 @@ mod tests {
         config.database.url = "postgres://cms_user@localhost:5432/cms".to_string();
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("password cannot be empty"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("password cannot be empty")
+        );
     }
 
     #[test]
@@ -587,9 +598,11 @@ mod tests {
         config.queue.backend = "memory".to_string();
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Queue backend cannot be in-memory"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Queue backend cannot be in-memory")
+        );
     }
 }

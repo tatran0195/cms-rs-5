@@ -3,9 +3,9 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use cms_error::AppError;
 use lettre::{
-    message::{header::ContentType, Attachment, Mailbox, MultiPart, SinglePart},
-    transport::smtp::authentication::Credentials,
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+    message::{Attachment, Mailbox, MultiPart, SinglePart, header::ContentType},
+    transport::smtp::authentication::Credentials,
 };
 use tokio::sync::Mutex;
 

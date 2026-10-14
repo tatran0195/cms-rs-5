@@ -66,7 +66,7 @@ impl Embedder {
                     "Unsupported embedding model: '{}'. Use 'multilingual-e5-small' or \
                      'multilingual-e5-base'.",
                     other
-                )))
+                )));
             }
         };
 

@@ -4,8 +4,6 @@
 //! cycle detection, and reordering.
 
 use cms_db::{PgPool, platform_event::PlatformEventQueries};
-use cms_projects::ProjectQueries;
-use crate::queries::{BranchQueries, LanguageQueries, PageQueries};
 use cms_entity::{
     common::PaginatedResponse,
     page::{
@@ -14,6 +12,9 @@ use cms_entity::{
     },
 };
 use cms_error::AppError;
+use cms_projects::ProjectQueries;
+
+use crate::queries::{BranchQueries, LanguageQueries, PageQueries};
 
 /// Business service for Page operations.
 #[derive(Debug)]

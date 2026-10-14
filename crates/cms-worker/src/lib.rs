@@ -120,9 +120,7 @@ pub async fn process_job(
     use cms_infra::queue::JobType;
 
     match job.job_type {
-        JobType::Analytics => {
-            cms_analytics::process_analytics_job(&state.db, &job.payload).await
-        }
+        JobType::Analytics => cms_analytics::process_analytics_job(&state.db, &job.payload).await,
         JobType::Email => {
             cms_infra::mailer::process_email_job_with_renderer(
                 Arc::clone(&state.mailer),
@@ -132,21 +130,29 @@ pub async fn process_job(
             .await
         }
         JobType::Export => {
-            cms_reports::process_export_job(&state.db, Arc::clone(&state.storage), &job.payload).await
+            cms_reports::process_export_job(&state.db, Arc::clone(&state.storage), &job.payload)
+                .await
         }
         JobType::Git => cms_git::process_git_job(&state.db, &job.payload).await,
         JobType::Publish => {
-            cms_deployments::process_deployment_job(&state.db, Arc::clone(&state.storage), &job.payload)
-                .await
+            cms_deployments::process_deployment_job(
+                &state.db,
+                Arc::clone(&state.storage),
+                &job.payload,
+            )
+            .await
         }
         JobType::Search => {
-            cms_search::process_search_job(&state.db, Arc::clone(&state.search), &job.payload)
-                .await
+            cms_search::process_search_job(&state.db, Arc::clone(&state.search), &job.payload).await
         }
         JobType::Usage => Ok(()),
         JobType::Reaper => {
-            cms_infra::queue::process_reaper_job(&state.db, Arc::clone(&state.job_queue), &job.payload)
-                .await
+            cms_infra::queue::process_reaper_job(
+                &state.db,
+                Arc::clone(&state.job_queue),
+                &job.payload,
+            )
+            .await
         }
     }
 }
@@ -161,12 +167,12 @@ pub mod app_state {
         Email, EmailRenderer, Mailer, NoopMailer, SmtpMailer,
         create_mailer_with_noop_fallback as create_mailer,
     };
-    use cms_search::{SearchEngine, create_search_engine};
     use cms_infra::{
         config::Config,
         queue::JobQueue,
         storage::{Storage, create_storage},
     };
+    use cms_search::{SearchEngine, create_search_engine};
 
     #[derive(Clone)]
     pub struct WorkerState {

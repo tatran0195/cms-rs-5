@@ -8,6 +8,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
+use cms_auth::AuthUser;
 use cms_authz::Relation;
 use cms_entity::{
     common::ApiResponse,
@@ -18,7 +19,6 @@ use cms_server_core::app_state::AppState;
 use validator::Validate;
 
 use super::auth::authorize_project;
-use cms_auth::AuthUser;
 use crate::services::DomainService;
 
 /// List domains for a project

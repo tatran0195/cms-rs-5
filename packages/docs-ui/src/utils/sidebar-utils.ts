@@ -1,12 +1,12 @@
-import type { Sidebar } from '@cms/types';
+import type { SidebarItem, SidebarItemLink, SidebarItemSidebar, SidebarItemCategory } from '../types';
 
 export const isSidebarItemLink = (
-  item: Sidebar.SidebarItem | undefined,
+  item: SidebarItem | undefined,
   options?: {
     checkRef?: boolean;
     checkExternal?: boolean;
   },
-): item is Sidebar.SidebarItemLink => {
+): item is SidebarItemLink => {
   const { checkRef = true, checkExternal = true } = options || {};
 
   return item !== undefined && (item.type === 'link' || (checkRef && item.type === 'ref') || (checkExternal && item.type === 'external'));
@@ -17,8 +17,8 @@ export const areSidebarItemsEqual = ({
   itemB,
   compareTitles = true,
 }: {
-  itemA: Sidebar.SidebarItem;
-  itemB: Sidebar.SidebarItem;
+  itemA: SidebarItem;
+  itemB: SidebarItem;
   compareTitles?: boolean;
 }): boolean => {
   if (itemA.type !== itemB.type) {
@@ -29,15 +29,15 @@ export const areSidebarItemsEqual = ({
     case 'separator':
       return true;
     case 'sidebar':
-      return itemA.sidebar_id === (itemB as Sidebar.SidebarItemSidebar).sidebar_id;
+      return itemA.sidebar_id === (itemB as SidebarItemSidebar).sidebar_id;
     case 'category':
     case 'sub-category':
-      return compareTitles ? itemA.title === (itemB as Sidebar.SidebarItemCategory).title : false;
+      return compareTitles ? itemA.title === (itemB as SidebarItemCategory).title : false;
     case 'link':
     case 'ref':
     case 'external': {
-      const hasSameTitle = !compareTitles || itemA.title === (itemB as Sidebar.SidebarItemLink).title;
-      const hasSamePath = itemA.path === (itemB as Sidebar.SidebarItemLink).path;
+      const hasSameTitle = !compareTitles || itemA.title === (itemB as SidebarItemLink).title;
+      const hasSamePath = itemA.path === (itemB as SidebarItemLink).path;
 
       return hasSameTitle && hasSamePath;
     }
@@ -50,12 +50,12 @@ export const findSidebarItem = ({
   checkChildren = true,
   compareTitles = true,
 }: {
-  sidebarItems: Sidebar.SidebarItem[];
-  item: Sidebar.SidebarItem;
+  sidebarItems: SidebarItem[];
+  item: SidebarItem;
   checkChildren?: boolean;
   compareTitles?: boolean;
-}): Sidebar.SidebarItem | undefined => {
-  let foundItem: Sidebar.SidebarItem | undefined;
+}): SidebarItem | undefined => {
+  let foundItem: SidebarItem | undefined;
   sidebarItems.some((i) => {
     if (areSidebarItemsEqual({ itemA: i, itemB: item, compareTitles })) {
       foundItem = i;
@@ -81,16 +81,16 @@ export const getSidebarItemWithHistory = ({
   checkChildren = true,
   compareTitles = true,
 }: {
-  sidebarItems: Sidebar.SidebarItem[];
-  item: Sidebar.SidebarItem;
+  sidebarItems: SidebarItem[];
+  item: SidebarItem;
   sidebarHistory?: string[];
   checkChildren?: boolean;
   compareTitles?: boolean;
 }): {
-  item: Sidebar.SidebarItem | undefined;
+  item: SidebarItem | undefined;
   sidebarHistory: string[];
 } => {
-  let foundItem: Sidebar.SidebarItem | undefined;
+  let foundItem: SidebarItem | undefined;
   sidebarItems.some((i) => {
     if (areSidebarItemsEqual({ itemA: i, itemB: item, compareTitles })) {
       foundItem = i;

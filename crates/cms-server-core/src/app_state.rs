@@ -21,9 +21,8 @@ use cms_infra::{
     queue::JobQueue,
     storage::Storage,
 };
-use crate::search::SearchEngine;
 
-use crate::middleware::rate_limit::SlidingRateLimiter;
+use crate::{middleware::rate_limit::SlidingRateLimiter, search::SearchEngine};
 
 /// Application state shared across all HTTP handlers and services.
 #[derive(Clone)]

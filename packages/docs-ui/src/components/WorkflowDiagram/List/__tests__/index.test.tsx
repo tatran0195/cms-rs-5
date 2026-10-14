@@ -1,18 +1,19 @@
-import type { Workflow } from '@cms/types';
-import { render } from '@testing-library/react';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import type { Workflow } from "../../types";
+import { render } from "@testing-library/react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 // mock utilities
 const mockCreateNodeClusters = vi.fn();
 const mockGetNextCluster = vi.fn();
 
-vi.mock('@/utils/workflow-diagram-utils', () => ({
+vi.mock("@/utils/workflow-diagram-utils", () => ({
   createNodeClusters: (steps: unknown) => mockCreateNodeClusters(steps),
-  getNextCluster: (clusters: unknown, depth: number) => mockGetNextCluster(clusters, depth),
+  getNextCluster: (clusters: unknown, depth: number) =>
+    mockGetNextCluster(clusters, depth),
 }));
 
 // mock components
-vi.mock('@/components/WorkflowDiagram/List/Depth', () => ({
+vi.mock("@/components/WorkflowDiagram/List/Depth", () => ({
   WorkflowDiagramListDepth: ({ cluster }: { cluster: unknown[] }) => (
     <div data-testid="list-depth" data-cluster-size={cluster.length}>
       Depth
@@ -20,7 +21,7 @@ vi.mock('@/components/WorkflowDiagram/List/Depth', () => ({
   ),
 }));
 
-vi.mock('@/components/WorkflowDiagram/Common/Legend', () => ({
+vi.mock("@/components/WorkflowDiagram/Common/Legend", () => ({
   WorkflowDiagramLegend: ({ hideLegend }: { hideLegend?: boolean }) => (
     <div data-testid="legend" data-hide={hideLegend}>
       Legend
@@ -28,15 +29,15 @@ vi.mock('@/components/WorkflowDiagram/Common/Legend', () => ({
   ),
 }));
 
-import { WorkflowDiagramList } from '../../List';
+import { WorkflowDiagramList } from "../../List";
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockCreateNodeClusters.mockReturnValue({
     1: [
       {
-        name: 'test.step1',
-        type: 'step',
+        name: "test.step1",
+        type: "step",
         depth: 1,
         expandable: false,
       },
@@ -45,14 +46,14 @@ beforeEach(() => {
   mockGetNextCluster.mockReturnValue([]);
 });
 
-describe('rendering', () => {
-  test('renders depth components for each cluster', () => {
+describe("rendering", () => {
+  test("renders depth components for each cluster", () => {
     const workflow: Workflow = {
-      name: 'test-workflow',
+      name: "test-workflow",
       steps: [
         {
-          name: 'test.step1',
-          type: 'step',
+          name: "test.step1",
+          type: "step",
           depth: 1,
         },
       ],
@@ -60,16 +61,16 @@ describe('rendering', () => {
     mockCreateNodeClusters.mockReturnValue({
       1: [
         {
-          name: 'test.step1',
-          type: 'step',
+          name: "test.step1",
+          type: "step",
           depth: 1,
           expandable: false,
         },
       ],
       2: [
         {
-          name: 'test.step2',
-          type: 'step',
+          name: "test.step2",
+          type: "step",
           depth: 2,
           expandable: false,
         },
@@ -80,13 +81,13 @@ describe('rendering', () => {
     expect(depths).toHaveLength(2);
   });
 
-  test('renders legend', () => {
+  test("renders legend", () => {
     const workflow: Workflow = {
-      name: 'test-workflow',
+      name: "test-workflow",
       steps: [
         {
-          name: 'test.step1',
-          type: 'step',
+          name: "test.step1",
+          type: "step",
           depth: 1,
         },
       ],
@@ -96,29 +97,31 @@ describe('rendering', () => {
     expect(legend).toBeInTheDocument();
   });
 
-  test('passes hideLegend to legend', () => {
+  test("passes hideLegend to legend", () => {
     const workflow: Workflow = {
-      name: 'test-workflow',
+      name: "test-workflow",
       steps: [
         {
-          name: 'test.step1',
-          type: 'step',
+          name: "test.step1",
+          type: "step",
           depth: 1,
         },
       ],
     };
-    const { container } = render(<WorkflowDiagramList workflow={workflow} hideLegend={true} />);
+    const { container } = render(
+      <WorkflowDiagramList workflow={workflow} hideLegend={true} />,
+    );
     const legend = container.querySelector("[data-testid='legend']");
-    expect(legend).toHaveAttribute('data-hide', 'true');
+    expect(legend).toHaveAttribute("data-hide", "true");
   });
 
-  test('calls createNodeClusters with workflow steps', () => {
+  test("calls createNodeClusters with workflow steps", () => {
     const workflow: Workflow = {
-      name: 'test-workflow',
+      name: "test-workflow",
       steps: [
         {
-          name: 'test.step1',
-          type: 'step',
+          name: "test.step1",
+          type: "step",
           depth: 1,
         },
       ],

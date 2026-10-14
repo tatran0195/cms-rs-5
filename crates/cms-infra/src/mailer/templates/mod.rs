@@ -147,12 +147,14 @@ mod tests {
         let out = engine.render_transactional(&p).unwrap();
         assert!(out.html.contains("token=abc&amp;next=&lt;home&gt;"));
         assert!(!out.html.contains("next=<home>"));
-        assert!(out
-            .html
-            .contains("src=\"https://cdn.example.com/custom-logo.png\""));
-        assert!(out
-            .text
-            .contains("https://example.com/v?token=abc&next=<home>"));
+        assert!(
+            out.html
+                .contains("src=\"https://cdn.example.com/custom-logo.png\"")
+        );
+        assert!(
+            out.text
+                .contains("https://example.com/v?token=abc&next=<home>")
+        );
     }
 
     #[test]

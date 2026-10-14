@@ -14,8 +14,8 @@ pub async fn authorize_page(
     page_id: &str,
     relation: Relation,
 ) -> Result<Uuid, AppError> {
-    let page_uuid = Uuid::parse_str(page_id)
-        .map_err(|_| AppError::NotFound("Page not found".to_string()))?;
+    let page_uuid =
+        Uuid::parse_str(page_id).map_err(|_| AppError::NotFound("Page not found".to_string()))?;
 
     cms_authz::gate::require_parent_access(
         state.db(),

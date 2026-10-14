@@ -1,4 +1,4 @@
-import type { MenuItem, NavigationItem } from '@cms/types';
+import type { MenuItem, NavigationItem } from '../../types';
 import { navDropdownItems } from '..';
 
 type Options = {

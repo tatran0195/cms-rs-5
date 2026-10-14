@@ -7,4 +7,3 @@ pub mod project;
 pub use domain::*;
 pub use member::*;
 pub use project::*;
-

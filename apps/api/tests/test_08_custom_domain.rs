@@ -65,13 +65,8 @@ async fn test_08_custom_domain_lifecycle_and_tls_verification() -> anyhow::Resul
     wait_for_deployment_ready(&ctx.state, dep_id).await?;
 
     let custom_hostname = format!("docs-{}.example.invalid", Uuid::new_v4().simple());
-    let custom_domain = cms_projects::DomainQueries::create(
-        ctx.state.db(),
-        dep_id,
-        &custom_hostname,
-        true,
-    )
-    .await?;
+    let custom_domain =
+        cms_projects::DomainQueries::create(ctx.state.db(), dep_id, &custom_hostname, true).await?;
 
     expect_status(
         request(

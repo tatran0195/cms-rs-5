@@ -9,7 +9,7 @@ pub mod message;
 pub use catalog::{Audit, Catalog, CatalogBuilder, CatalogError, I18nError};
 pub use context::{current_locale, with_locale};
 pub use errors::{embedded_catalog, error_code_to_key, localize_error};
-pub use locale::{accept_language_tags, Direction, Locale, LocaleError};
+pub use locale::{Direction, Locale, LocaleError, accept_language_tags};
 pub use message::{Args, Message, ParseError};
 
 /// Localize an AppError code and details using the task-local locale and embedded catalog

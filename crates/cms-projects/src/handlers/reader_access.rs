@@ -6,6 +6,7 @@ use axum::{
     Json,
     extract::{Path, State},
 };
+use cms_auth::AuthUser;
 use cms_authz::Relation;
 use cms_entity::{
     common::ApiResponse,
@@ -20,7 +21,6 @@ use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
 use super::auth::authorize_project;
-use cms_auth::AuthUser;
 use crate::services::ReaderAccessService;
 
 /// Get project reader access configuration
@@ -180,13 +180,14 @@ pub async fn test_reader_jwt_handler(
 ) -> Result<Json<ApiResponse<ProjectJwtTestResponse>>, AppError> {
     authorize_project(&state, &auth, &project_id, Relation::Viewer).await?;
 
-    let provider = crate::queries::reader_access::JwtAccessProviderQueries::get_by_issuer_and_audience(
-        state.db(),
-        &project_id,
-        &project_id,
-    )
-    .await?
-    .is_some();
+    let provider =
+        crate::queries::reader_access::JwtAccessProviderQueries::get_by_issuer_and_audience(
+            state.db(),
+            &project_id,
+            &project_id,
+        )
+        .await?
+        .is_some();
 
     Ok(Json(ApiResponse::new(ProjectJwtTestResponse {
         configured: provider,

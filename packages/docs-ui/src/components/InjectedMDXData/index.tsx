@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import type { FrontMatter, ToCItem } from '@cms/types';
-import { useEffect } from 'react';
-import { useSiteConfig } from '../../providers/SiteConfig';
+import type { FrontMatter, ToCItem } from "../../types";
+import { useEffect } from "react";
+import { useSiteConfig } from "../../providers/SiteConfig";
 
 type InjectedMDXDataProps = {
   frontmatter: FrontMatter;

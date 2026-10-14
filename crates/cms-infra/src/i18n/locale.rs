@@ -141,11 +141,7 @@ impl Locale {
             Some(script) => RTL_SCRIPTS.contains(&script),
             None => RTL_LANGUAGES.contains(&self.language()),
         };
-        if rtl {
-            Direction::Rtl
-        } else {
-            Direction::Ltr
-        }
+        if rtl { Direction::Rtl } else { Direction::Ltr }
     }
 
     /// The tag with its last subtag removed (`zh-Hant-TW` → `zh-Hant` → `zh` → `None`).

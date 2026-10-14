@@ -1,26 +1,29 @@
-'use client';
+"use client";
 
-import { Bolt, InformationCircle } from '@cms/icons';
-import type { WorkflowStepUi } from '@cms/types';
-import { Text } from '@cms/ui';
-import clsx from 'clsx';
-import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { CodeBlock } from '@/components/CodeBlock';
-import { MarkdownContent } from '@/components/MarkdownContent';
-import { Tooltip } from '@/components/Tooltip';
-import { getBrowser } from '@/utils/os-browser-utils';
+import { Bolt, InformationCircle } from "@cms/icons";
+import type { WorkflowStepUi } from "../../types";
+import { Text } from "@cms/ui";
+import clsx from "clsx";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CodeBlock } from "@/components/CodeBlock";
+import { MarkdownContent } from "@/components/MarkdownContent";
+import { Tooltip } from "@/components/Tooltip";
+import { getBrowser } from "@/utils/os-browser-utils";
 
 export type WorkflowDiagramNodeProps = {
   step: WorkflowStepUi;
 };
 
 export const WorkflowDiagramStepNode = ({ step }: WorkflowDiagramNodeProps) => {
-  const stepId = step.name.split('.').pop();
+  const stepId = step.name.split(".").pop();
   const [offset, setOffset] = useState<number | undefined>(undefined);
   const ref = useRef<HTMLSpanElement>(null);
 
-  const description = useMemo(() => step.description?.replaceAll(/:::[a-z]*/g, '') || '', [step.description]);
+  const description = useMemo(
+    () => step.description?.replaceAll(/:::[a-z]*/g, "") || "",
+    [step.description],
+  );
 
   useEffect(() => {
     if (!ref.current) {
@@ -28,8 +31,8 @@ export const WorkflowDiagramStepNode = ({ step }: WorkflowDiagramNodeProps) => {
     }
 
     // find parent
-    const diagramParent = ref.current.closest('.workflow-list-diagram');
-    const nodeParent = ref.current.closest('.workflow-node-group');
+    const diagramParent = ref.current.closest(".workflow-list-diagram");
+    const nodeParent = ref.current.closest(".workflow-node-group");
 
     if (!diagramParent || !nodeParent) {
       return;
@@ -41,20 +44,22 @@ export const WorkflowDiagramStepNode = ({ step }: WorkflowDiagramNodeProps) => {
     const diagramBoundingRect = diagramParent.getBoundingClientRect();
     const browser = getBrowser();
 
-    if (browser === 'Safari') {
+    if (browser === "Safari") {
       // React Tooltip has a bug in Safari where the offset is not calculated correctly
       // when place is set.
       const firstChildBoundingRect = firstChild.getBoundingClientRect();
       setOffset(diagramBoundingRect.width - firstChildBoundingRect.width + 20);
     } else {
-      setOffset(Math.max(diagramBoundingRect.width - nodeBoundingRect.width + 10, 10));
+      setOffset(
+        Math.max(diagramBoundingRect.width - nodeBoundingRect.width + 10, 10),
+      );
     }
   }, []);
 
   const unindentLines = (str: string) => {
     let minIndent = 4;
     return str
-      .split('\n')
+      .split("\n")
       .reverse()
       .map((line, index) => {
         const trimmedStartLine = line.trimStart();
@@ -63,13 +68,13 @@ export const WorkflowDiagramStepNode = ({ step }: WorkflowDiagramNodeProps) => {
           minIndent = numberOfSpaces || minIndent;
         }
         if (numberOfSpaces >= minIndent) {
-          return ' '.repeat(numberOfSpaces - 4) + trimmedStartLine;
+          return " ".repeat(numberOfSpaces - 4) + trimmedStartLine;
         }
 
         return line;
       })
       .reverse()
-      .join('\n');
+      .join("\n");
   };
 
   return (
@@ -79,7 +84,10 @@ export const WorkflowDiagramStepNode = ({ step }: WorkflowDiagramNodeProps) => {
         <>
           <h4 className="text-compact-x-small-plus">{step.name}</h4>
           {description && (
-            <MarkdownContent allowedElements={['a', 'strong', 'code']} unwrapDisallowed={true}>
+            <MarkdownContent
+              allowedElements={["a", "strong", "code"]}
+              unwrapDisallowed={true}
+            >
               {description}
             </MarkdownContent>
           )}
@@ -108,13 +116,13 @@ export const WorkflowDiagramStepNode = ({ step }: WorkflowDiagramNodeProps) => {
       >
         <div
           className={clsx(
-            'shadow-borders-base flex w-fit bg-cms-bg-base',
-            'items-center rounded-docs_sm py-docs_0.125 px-docs_0.5',
-            (step.type === 'hook' || step.when) && 'gap-x-docs_0.125',
+            "shadow-borders-base flex w-fit bg-cms-bg-base",
+            "items-center rounded-docs_sm py-docs_0.125 px-docs_0.5",
+            (step.type === "hook" || step.when) && "gap-x-docs_0.125",
           )}
           data-step-id={step.name}
         >
-          {step.type === 'hook' && (
+          {step.type === "hook" && (
             <div className="flex size-[20px] items-center justify-center text-cms-tag-orange-icon">
               <Bolt />
             </div>
@@ -124,7 +132,13 @@ export const WorkflowDiagramStepNode = ({ step }: WorkflowDiagramNodeProps) => {
               <InformationCircle />
             </div>
           )}
-          <Text size="xsmall" leading="compact" weight="plus" className="select-none" data-testid="step-name">
+          <Text
+            size="xsmall"
+            leading="compact"
+            weight="plus"
+            className="select-none"
+            data-testid="step-name"
+          >
             {stepId}
           </Text>
         </div>

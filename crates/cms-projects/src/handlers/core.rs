@@ -7,6 +7,7 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
+use cms_auth::AuthUser;
 use cms_authz::Relation;
 use cms_entity::{
     common::{ApiResponse, PaginatedResponse},
@@ -21,7 +22,6 @@ use uuid::Uuid;
 use validator::Validate;
 
 use super::auth::authorize_project;
-use cms_auth::AuthUser;
 use crate::services::ProjectService;
 
 /// List all projects for the authenticated user

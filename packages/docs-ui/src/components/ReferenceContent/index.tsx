@@ -1,71 +1,89 @@
-'use client';
+"use client";
 
-import type { DocBlock, DocPage } from '@cms/types';
-import type React from 'react';
-import { useEffect } from 'react';
-import type { BadgeVariant } from '@/components/Badge';
-import { BadgesList } from '@/components/BadgesList';
-import { CodeBlock } from '@/components/CodeBlock';
-import { CodeTabs } from '@/components/CodeTabs';
-import { CodeTab } from '@/components/CodeTabs/Item';
-import { H1 } from '@/components/Heading/H1';
-import { MarkdownContent } from '@/components/MarkdownContent';
-import { Note } from '@/components/Note';
-import { SourceCodeLink } from '@/components/SourceCodeLink';
-import { TypeList } from '@/components/TypeList';
-import { WorkflowDiagram } from '@/components/WorkflowDiagram';
-import { useSiteConfig } from '@/providers/SiteConfig';
-import { ReferenceEventsListing } from './EventsListing';
-import { DocHeading, Mdx } from './shared';
-import { ReferenceWorkflowEvents } from './WorkflowEvents';
+import type { DocBlock, DocPage } from "../../types";
+import type React from "react";
+import { useEffect } from "react";
+import type { BadgeVariant } from "@/components/Badge";
+import { BadgesList } from "@/components/BadgesList";
+import { CodeBlock } from "@/components/CodeBlock";
+import { CodeTabs } from "@/components/CodeTabs";
+import { CodeTab } from "@/components/CodeTabs/Item";
+import { H1 } from "@/components/Heading/H1";
+import { MarkdownContent } from "@/components/MarkdownContent";
+import { Note } from "@/components/Note";
+import { SourceCodeLink } from "@/components/SourceCodeLink";
+import { TypeList } from "@/components/TypeList";
+import { WorkflowDiagram } from "@/components/WorkflowDiagram";
+import { useSiteConfig } from "@/providers/SiteConfig";
+import { ReferenceEventsListing } from "./EventsListing";
+import { DocHeading, Mdx } from "./shared";
+import { ReferenceWorkflowEvents } from "./WorkflowEvents";
 
 export type ReferenceContentProps = {
   page: DocPage;
 };
 
-const noteTypeMap: Record<string, React.ComponentProps<typeof Note>['type']> = {
-  note: 'default',
-  default: 'default',
-  warning: 'warning',
-  success: 'success',
-  error: 'error',
-  check: 'check',
-  soon: 'soon',
+const noteTypeMap: Record<string, React.ComponentProps<typeof Note>["type"]> = {
+  note: "default",
+  default: "default",
+  warning: "warning",
+  success: "success",
+  error: "error",
+  check: "check",
+  soon: "soon",
 };
 
 const Block = ({ block }: { block: DocBlock }) => {
   switch (block.kind) {
-    case 'markdown':
+    case "markdown":
       return <MarkdownContent>{block.html}</MarkdownContent>;
-    case 'heading':
+    case "heading":
       return (
         <DocHeading level={block.level} id={block.id}>
           {block.text}
         </DocHeading>
       );
-    case 'typeList':
-      return <TypeList types={block.types} sectionTitle={block.sectionTitle} expandUrl={block.expandUrl} openedLevel={block.openedLevel} />;
-    case 'workflowDiagram':
+    case "typeList":
+      return (
+        <TypeList
+          types={block.types}
+          sectionTitle={block.sectionTitle}
+          expandUrl={block.expandUrl}
+          openedLevel={block.openedLevel}
+        />
+      );
+    case "workflowDiagram":
       return <WorkflowDiagram workflow={block.workflow} />;
-    case 'codeTabs':
+    case "codeTabs":
       return (
         <CodeTabs group="reference">
           {block.tabs.map((tab, index) => (
-            <CodeTab key={index} label={tab.label} value={`${tab.label}-${index}`}>
-              <CodeBlock source={tab.code} lang={tab.language} title={tab.title} />
+            <CodeTab
+              key={index}
+              label={tab.label}
+              value={`${tab.label}-${index}`}
+            >
+              <CodeBlock
+                source={tab.code}
+                lang={tab.language}
+                title={tab.title}
+              />
             </CodeTab>
           ))}
         </CodeTabs>
       );
-    case 'note':
+    case "note":
       return (
-        <Note type={noteTypeMap[block.variant || 'note'] || 'default'} title={block.title}>
+        <Note
+          type={noteTypeMap[block.variant || "note"] || "default"}
+          title={block.title}
+        >
           <MarkdownContent>{block.html}</MarkdownContent>
         </Note>
       );
-    case 'sourceCodeLink':
+    case "sourceCodeLink":
       return <SourceCodeLink link={block.link} />;
-    case 'linkList': {
+    case "linkList": {
       const { ul: Ul, li: Li, a: Anchor } = Mdx;
       return (
         <Ul>
@@ -78,21 +96,21 @@ const Block = ({ block }: { block: DocBlock }) => {
         </Ul>
       );
     }
-    case 'workflowEvents':
+    case "workflowEvents":
       return <ReferenceWorkflowEvents events={block.events} />;
-    case 'eventsListing':
+    case "eventsListing":
       return <ReferenceEventsListing categories={block.categories} />;
-    case 'badges':
+    case "badges":
       return (
         <BadgesList
           className="mb-docs_0.5"
           badges={block.badges.map((badge) => ({
-            variant: (badge.variant as BadgeVariant) || 'neutral',
+            variant: (badge.variant as BadgeVariant) || "neutral",
             children: badge.label,
           }))}
         />
       );
-    case 'table':
+    case "table":
       return null;
     default:
       return null;

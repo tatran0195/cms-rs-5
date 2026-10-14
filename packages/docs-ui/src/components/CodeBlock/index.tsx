@@ -1,23 +1,31 @@
-'use client';
+"use client";
 
-import type { ApiAuthType, ApiDataOptions, ApiMethod } from '@cms/types';
-import clsx from 'clsx';
-import { Highlight, type HighlightProps, type Token, themes } from 'prism-react-renderer';
-import type React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ApiAuthType, ApiDataOptions, ApiMethod } from "../../types";
+import clsx from "clsx";
+import {
+  Highlight,
+  type HighlightProps,
+  type Token,
+  themes,
+} from "prism-react-renderer";
+import type React from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 // @ts-expect-error can't install the types package because it doesn't support React v19
-import { CSSTransition } from 'react-transition-group';
-import { ApiRunner } from '@/components/ApiRunner';
-import { DocsTrackingEvents } from '@/constants';
-import { type HighlightProps as CollapsibleHighlightProps, useCollapsibleCodeLines } from '@/hooks/use-collapsible-code-lines';
-import { useAnalytics } from '@/providers/Analytics';
-import { useColorMode } from '@/providers/ColorMode';
-import { CodeBlockActions, type CodeBlockActionsProps } from './Actions';
-import { CodeBlockCollapsibleButton } from './Collapsible/Button';
-import { CodeBlockCollapsibleFade } from './Collapsible/Fade';
-import { CodeBlockHeader, type CodeBlockHeaderMeta } from './Header';
-import { CodeBlockInline } from './Inline';
-import { CodeBlockLine } from './Line';
+import { CSSTransition } from "react-transition-group";
+import { ApiRunner } from "@/components/ApiRunner";
+import { DocsTrackingEvents } from "@/constants";
+import {
+  type HighlightProps as CollapsibleHighlightProps,
+  useCollapsibleCodeLines,
+} from "@/hooks/use-collapsible-code-lines";
+import { useAnalytics } from "@/providers/Analytics";
+import { useColorMode } from "@/providers/ColorMode";
+import { CodeBlockActions, type CodeBlockActionsProps } from "./Actions";
+import { CodeBlockCollapsibleButton } from "./Collapsible/Button";
+import { CodeBlockCollapsibleFade } from "./Collapsible/Fade";
+import { CodeBlockHeader, type CodeBlockHeaderMeta } from "./Header";
+import { CodeBlockInline } from "./Inline";
+import { CodeBlockLine } from "./Line";
 
 export type Highlight = {
   line: number;
@@ -51,7 +59,7 @@ export type CodeBlockMetaFields = {
   wrapperClassName?: string;
 } & CodeBlockHeaderMeta;
 
-export type CodeBlockStyle = 'loud' | 'subtle' | 'inline';
+export type CodeBlockStyle = "loud" | "subtle" | "inline";
 
 export type CodeBlockProps = {
   source: string;
@@ -60,7 +68,7 @@ export type CodeBlockProps = {
   className?: string;
   blockStyle?: CodeBlockStyle;
   children?: React.ReactNode;
-  style?: React.HTMLAttributes<HTMLDivElement>['style'];
+  style?: React.HTMLAttributes<HTMLDivElement>["style"];
   animateTokenHighlights?: boolean;
   overrideColors?: {
     bg?: string;
@@ -71,21 +79,21 @@ export type CodeBlockProps = {
     boxShadow?: string;
   };
 } & CodeBlockMetaFields &
-  Omit<HighlightProps, 'code' | 'language' | 'children'>;
+  Omit<HighlightProps, "code" | "language" | "children">;
 
 export const CodeBlock = ({
   source,
   hasTabs = false,
-  lang = '',
+  lang = "",
   wrapperClassName,
   innerClassName,
   className,
   overrideColors = {},
   collapsed = false,
-  title = '',
+  title = "",
   highlights = [],
   apiTesting = false,
-  blockStyle = 'loud',
+  blockStyle = "loud",
   noCopy = false,
   noReport = false,
   noLineNumbers = false,
@@ -99,10 +107,10 @@ export const CodeBlock = ({
   noAskAi = false,
   ...rest
 }: CodeBlockProps) => {
-  if (!source && typeof children === 'string') {
+  if (!source && typeof children === "string") {
     source = children;
   }
-  if (blockStyle === 'inline') {
+  if (blockStyle === "inline") {
     return <CodeBlockInline source={source} />;
   }
 
@@ -114,12 +122,15 @@ export const CodeBlock = ({
   const apiRunnerRef = useRef<HTMLDivElement>(null);
   const [scrollable, setScrollable] = useState(false);
   const isTerminalCode = useMemo(
-    () => (isTerminal === undefined ? lang === 'bash' && !source.startsWith('curl') : isTerminal),
+    () =>
+      isTerminal === undefined
+        ? lang === "bash" && !source.startsWith("curl")
+        : isTerminal,
     [isTerminal, lang, source.startsWith],
   );
   const codeTitle = useMemo(() => {
     if (forceNoTitle) {
-      return '';
+      return "";
     }
 
     if (title) {
@@ -127,18 +138,24 @@ export const CodeBlock = ({
     }
 
     if (hasTabs) {
-      return '';
+      return "";
     }
 
     if (isTerminalCode) {
-      return 'Terminal';
+      return "Terminal";
     }
 
-    return 'Code';
+    return "Code";
   }, [title, isTerminalCode, hasTabs, forceNoTitle]);
-  const hasInnerCodeBlock = useMemo(() => hasTabs || codeTitle.length > 0, [hasTabs, codeTitle]);
+  const hasInnerCodeBlock = useMemo(
+    () => hasTabs || codeTitle.length > 0,
+    [hasTabs, codeTitle],
+  );
   const canShowApiTesting = useMemo(
-    () => apiTesting !== undefined && rest.testApiMethod !== undefined && rest.testApiUrl !== undefined,
+    () =>
+      apiTesting !== undefined &&
+      rest.testApiMethod !== undefined &&
+      rest.testApiUrl !== undefined,
     [apiTesting, rest],
   );
 
@@ -146,7 +163,10 @@ export const CodeBlock = ({
     () =>
       clsx(
         overrideColors.bg,
-        !overrideColors.bg && [blockStyle === 'loud' && 'bg-cms-contrast-bg-base', blockStyle === 'subtle' && 'bg-cms-bg-component'],
+        !overrideColors.bg && [
+          blockStyle === "loud" && "bg-cms-contrast-bg-base",
+          blockStyle === "subtle" && "bg-cms-bg-component",
+        ],
       ),
     [blockStyle, overrideColors],
   );
@@ -155,20 +175,27 @@ export const CodeBlock = ({
     () =>
       clsx(
         overrideColors.lineNumbersBg,
-        !overrideColors.lineNumbersBg && [blockStyle === 'loud' && 'text-cms-contrast-fg-secondary', blockStyle === 'subtle' && 'text-cms-fg-muted'],
+        !overrideColors.lineNumbersBg && [
+          blockStyle === "loud" && "text-cms-contrast-fg-secondary",
+          blockStyle === "subtle" && "text-cms-fg-muted",
+        ],
       ),
     [blockStyle, overrideColors],
   );
 
-  const borderColor = useMemo(() => clsx(overrideColors.border, !overrideColors.border && 'border-0'), [overrideColors]);
+  const borderColor = useMemo(
+    () => clsx(overrideColors.border, !overrideColors.border && "border-0"),
+    [overrideColors],
+  );
 
   const boxShadow = useMemo(
     () =>
       clsx(
         overrideColors.boxShadow,
         !overrideColors.boxShadow && [
-          blockStyle === 'loud' && 'shadow-elevation-code-block dark:shadow-elevation-code-block-dark',
-          blockStyle === 'subtle' && 'shadow-none',
+          blockStyle === "loud" &&
+            "shadow-elevation-code-block dark:shadow-elevation-code-block-dark",
+          blockStyle === "subtle" && "shadow-none",
         ],
       ),
     [blockStyle, overrideColors],
@@ -179,8 +206,11 @@ export const CodeBlock = ({
       clsx(
         overrideColors.innerBg,
         !overrideColors.innerBg && [
-          blockStyle === 'loud' && [hasInnerCodeBlock && 'bg-cms-contrast-bg-subtle', !hasInnerCodeBlock && 'bg-cms-contrast-bg-base'],
-          blockStyle === 'subtle' && bgColor,
+          blockStyle === "loud" && [
+            hasInnerCodeBlock && "bg-cms-contrast-bg-subtle",
+            !hasInnerCodeBlock && "bg-cms-contrast-bg-base",
+          ],
+          blockStyle === "subtle" && bgColor,
         ],
       ),
     [blockStyle, bgColor, hasInnerCodeBlock, overrideColors],
@@ -191,11 +221,12 @@ export const CodeBlock = ({
       clsx(
         overrideColors.innerBorder,
         !overrideColors.innerBorder && [
-          blockStyle === 'loud' && [
-            hasInnerCodeBlock && 'border border-solid border-cms-contrast-border-bot rounded-docs_DEFAULT',
-            !hasInnerCodeBlock && 'border-transparent rounded-docs_DEFAULT',
+          blockStyle === "loud" && [
+            hasInnerCodeBlock &&
+              "border border-solid border-cms-contrast-border-bot rounded-docs_DEFAULT",
+            !hasInnerCodeBlock && "border-transparent rounded-docs_DEFAULT",
           ],
-          blockStyle === 'subtle' && 'border-transparent rounded-docs_DEFAULT',
+          blockStyle === "subtle" && "border-transparent rounded-docs_DEFAULT",
         ],
       ),
     [blockStyle, hasInnerCodeBlock, overrideColors],
@@ -205,7 +236,7 @@ export const CodeBlock = ({
     const lowerLang = lang.toLowerCase();
 
     // due to a hydration error in json, for now we just assign it to plain
-    return lowerLang === 'json' ? 'plain' : lowerLang;
+    return lowerLang === "json" ? "plain" : lowerLang;
   }, [lang]);
 
   const transformedHighlights: Highlight[] = highlights
@@ -216,10 +247,16 @@ export const CodeBlock = ({
       tooltipText: highlight.length >= 3 ? highlight[2] : undefined,
     }));
 
-  const getLines = (tokens: Token[][], highlightProps: CollapsibleHighlightProps, lineNumberOffset = 0) =>
+  const getLines = (
+    tokens: Token[][],
+    highlightProps: CollapsibleHighlightProps,
+    lineNumberOffset = 0,
+  ) =>
     tokens.map((line, i) => {
       const offsettedLineNumber = i + lineNumberOffset;
-      const highlightedLines = transformedHighlights.filter((highlight) => highlight.line - 1 === offsettedLineNumber);
+      const highlightedLines = transformedHighlights.filter(
+        (highlight) => highlight.line - 1 === offsettedLineNumber,
+      );
 
       return (
         <CodeBlockLine
@@ -254,7 +291,9 @@ export const CodeBlock = ({
       return;
     }
 
-    setScrollable(codeContainerRef.current.scrollWidth < codeRef.current.clientWidth);
+    setScrollable(
+      codeContainerRef.current.scrollWidth < codeRef.current.clientWidth,
+    );
   }, []);
 
   const trackCopy = () => {
@@ -268,7 +307,7 @@ export const CodeBlock = ({
     });
   };
 
-  const actionsProps: Omit<CodeBlockActionsProps, 'inHeader'> = useMemo(
+  const actionsProps: Omit<CodeBlockActionsProps, "inHeader"> = useMemo(
     () => ({
       source,
       canShowApiTesting,
@@ -281,13 +320,27 @@ export const CodeBlock = ({
       showGradientBg: scrollable,
       noAskAi,
     }),
-    [source, canShowApiTesting, noReport, noCopy, collapsibleType, collapsibleResult, hasInnerCodeBlock, scrollable, noAskAi, blockStyle],
+    [
+      source,
+      canShowApiTesting,
+      noReport,
+      noCopy,
+      collapsibleType,
+      collapsibleResult,
+      hasInnerCodeBlock,
+      scrollable,
+      noAskAi,
+      blockStyle,
+    ],
   );
 
   const codeTheme = useMemo(() => {
-    const prismTheme = blockStyle === 'loud' || colorMode === 'dark' ? themes.vsDark : themes.vsLight;
+    const prismTheme =
+      blockStyle === "loud" || colorMode === "dark"
+        ? themes.vsDark
+        : themes.vsLight;
 
-    if (blockStyle === 'subtle') {
+    if (blockStyle === "subtle") {
       return prismTheme;
     }
 
@@ -295,7 +348,10 @@ export const CodeBlock = ({
       ...prismTheme,
       plain: {
         ...prismTheme,
-        color: colorMode === 'light' ? 'rgba(255, 255, 255, 0.88)' : 'rgba(250, 250, 250, 1)',
+        color:
+          colorMode === "light"
+            ? "rgba(255, 255, 255, 0.88)"
+            : "rgba(250, 250, 250, 1)",
       },
     };
   }, [blockStyle, colorMode]);
@@ -308,11 +364,11 @@ export const CodeBlock = ({
     <>
       <div
         className={clsx(
-          hasInnerCodeBlock && 'rounded-docs_lg',
-          !hasInnerCodeBlock && 'rounded-docs_DEFAULT',
+          hasInnerCodeBlock && "rounded-docs_lg",
+          !hasInnerCodeBlock && "rounded-docs_DEFAULT",
           !hasTabs && boxShadow,
-          blockStyle === 'loud' && 'code-block-highlight',
-          blockStyle === 'subtle' && 'code-block-highlight-light',
+          blockStyle === "loud" && "code-block-highlight",
+          blockStyle === "subtle" && "code-block-highlight-light",
           wrapperClassName,
         )}
         data-testid="code-block"
@@ -332,22 +388,40 @@ export const CodeBlock = ({
         )}
         <div
           className={clsx(
-            'relative mb-docs_1',
-            'w-full max-w-full border code-block-elm',
+            "relative mb-docs_1",
+            "w-full max-w-full border code-block-elm",
             bgColor,
             borderColor,
-            collapsed && 'max-h-[400px] overflow-auto',
-            hasInnerCodeBlock && 'p-[5px] !pt-0 rounded-b-docs_lg',
-            !hasInnerCodeBlock && 'rounded-docs_DEFAULT',
+            collapsed && "max-h-[400px] overflow-auto",
+            hasInnerCodeBlock && "p-[5px] !pt-0 rounded-b-docs_lg",
+            !hasInnerCodeBlock && "rounded-docs_DEFAULT",
             className,
           )}
           style={style}
           data-testid="code-block-inner"
         >
-          <Highlight theme={codeTheme} code={source.trim()} language={language} {...rest}>
-            {({ className: preClassName, style: { backgroundColor: _, ...style }, tokens, ...rest }) => (
-              <div className={clsx(innerBorderClasses, innerBgColor, 'relative', innerClassName)} ref={codeContainerRef}>
-                {collapsibleType === 'start' && (
+          <Highlight
+            theme={codeTheme}
+            code={source.trim()}
+            language={language}
+            {...rest}
+          >
+            {({
+              className: preClassName,
+              style: { backgroundColor: _, ...style },
+              tokens,
+              ...rest
+            }) => (
+              <div
+                className={clsx(
+                  innerBorderClasses,
+                  innerBgColor,
+                  "relative",
+                  innerClassName,
+                )}
+                ref={codeContainerRef}
+              >
+                {collapsibleType === "start" && (
                   <>
                     <CodeBlockCollapsibleButton
                       type={collapsibleType}
@@ -355,23 +429,37 @@ export const CodeBlock = ({
                       className={innerBorderClasses}
                       {...collapsibleResult}
                     />
-                    <CodeBlockCollapsibleFade type={collapsibleType} collapsed={collapsibleResult.collapsed} hasHeader={hasInnerCodeBlock} />
+                    <CodeBlockCollapsibleFade
+                      type={collapsibleType}
+                      collapsed={collapsibleResult.collapsed}
+                      hasHeader={hasInnerCodeBlock}
+                    />
                   </>
                 )}
                 <pre
-                  style={{ ...style, fontStretch: '100%' }}
+                  style={{ ...style, fontStretch: "100%" }}
                   className={clsx(
-                    'relative !my-0 break-words bg-transparent !outline-none',
-                    'overflow-auto break-words p-0 pr-docs_0.25',
-                    'rounded-docs_DEFAULT',
-                    !hasInnerCodeBlock && tokens.length <= 1 && 'px-docs_1 py-[6px]',
-                    (noLineNumbers || (tokens.length <= 1 && !isTerminalCode)) && 'pl-docs_1',
+                    "relative !my-0 break-words bg-transparent !outline-none",
+                    "overflow-auto break-words p-0 pr-docs_0.25",
+                    "rounded-docs_DEFAULT",
+                    !hasInnerCodeBlock &&
+                      tokens.length <= 1 &&
+                      "px-docs_1 py-[6px]",
+                    (noLineNumbers ||
+                      (tokens.length <= 1 && !isTerminalCode)) &&
+                      "pl-docs_1",
                     preClassName,
                   )}
                   onCopy={trackCopy}
                 >
-                  <code className={clsx('text-code-body font-monospace table min-w-full print:whitespace-pre-wrap', 'py-docs_0.75')} ref={codeRef}>
-                    {collapsibleType === 'start' &&
+                  <code
+                    className={clsx(
+                      "text-code-body font-monospace table min-w-full print:whitespace-pre-wrap",
+                      "py-docs_0.75",
+                    )}
+                    ref={codeRef}
+                  >
+                    {collapsibleType === "start" &&
                       getCollapsedLinesElm({
                         tokens,
                         highlightProps: rest,
@@ -380,19 +468,28 @@ export const CodeBlock = ({
                       tokens,
                       highlightProps: rest,
                     })}
-                    {collapsibleType === 'end' &&
+                    {collapsibleType === "end" &&
                       getCollapsedLinesElm({
                         tokens,
                         highlightProps: rest,
                       })}
                   </code>
                 </pre>
-                {!hasInnerCodeBlock && (!noCopy || !noReport || canShowApiTesting || !noAskAi) && (
-                  <CodeBlockActions {...actionsProps} inHeader={false} isSingleLine={tokens.length <= 1} />
-                )}
-                {collapsibleType === 'end' && isCollapsible(tokens) && (
+                {!hasInnerCodeBlock &&
+                  (!noCopy || !noReport || canShowApiTesting || !noAskAi) && (
+                    <CodeBlockActions
+                      {...actionsProps}
+                      inHeader={false}
+                      isSingleLine={tokens.length <= 1}
+                    />
+                  )}
+                {collapsibleType === "end" && isCollapsible(tokens) && (
                   <>
-                    <CodeBlockCollapsibleFade type={collapsibleType} collapsed={collapsibleResult.collapsed} hasHeader={hasInnerCodeBlock} />
+                    <CodeBlockCollapsibleFade
+                      type={collapsibleType}
+                      collapsed={collapsibleResult.collapsed}
+                      hasHeader={hasInnerCodeBlock}
+                    />
                     <CodeBlockCollapsibleButton
                       type={collapsibleType}
                       expandButtonLabel={expandButtonLabel}
@@ -412,8 +509,8 @@ export const CodeBlock = ({
           in={showTesting}
           timeout={150}
           classNames={{
-            enter: 'animate-fadeIn animate-fastest',
-            exit: 'animate-fadeOut animate-fastest',
+            enter: "animate-fadeIn animate-fastest",
+            exit: "animate-fadeOut animate-fastest",
           }}
           nodeRef={apiRunnerRef}
         >

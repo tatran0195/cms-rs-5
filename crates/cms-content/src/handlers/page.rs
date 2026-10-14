@@ -6,14 +6,13 @@ use axum::{
     Json,
     extract::{Path, Query, State},
 };
+use cms_auth::AuthUser;
 use cms_entity::{
     common::{Id, PaginatedResponse},
     page::{CreatePageRequest, ListPagesQuery, PageListItem, PageResponse, UpdatePageRequest},
 };
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
-
-use cms_auth::AuthUser;
 
 use crate::services::page::PageService;
 

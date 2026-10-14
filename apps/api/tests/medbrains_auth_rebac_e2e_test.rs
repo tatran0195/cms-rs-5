@@ -189,8 +189,8 @@ fn test_e2e_oauth_pkce_flow() {
     assert!(!nonce.is_empty());
 
     // Provider catalog
-    let github_provider = cms_auth::oauth::oauth_provider_spec("github")
-        .expect("github provider must be in catalog");
+    let github_provider =
+        cms_auth::oauth::oauth_provider_spec("github").expect("github provider must be in catalog");
     assert_eq!(github_provider.code, "github");
     assert!(github_provider.auth_url.contains("github.com"));
 
@@ -213,8 +213,7 @@ fn test_e2e_oauth_pkce_flow() {
 
     // Tampered state fails
     assert!(
-        cms_auth::oauth::decode_callback_state::<StatePayload>("invalid.tampered.state")
-            .is_err()
+        cms_auth::oauth::decode_callback_state::<StatePayload>("invalid.tampered.state").is_err()
     );
 }
 

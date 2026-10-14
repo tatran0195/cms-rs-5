@@ -2,10 +2,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use axum::{
-    Json,
-    extract::State,
-};
+use axum::{Json, extract::State};
 use cms_auth::{ProjectEditor, ProjectViewer};
 use cms_entity::common::ApiResponse;
 use cms_error::AppError;

@@ -215,10 +215,7 @@ impl DomainQueries {
         let id = Uuid::new_v4().to_string();
         let verification_token = format!("cmsrs-v1-{}", Uuid::new_v4().simple());
         let now = Utc::now();
-        let mut transaction = pool
-            .begin()
-            .await
-            .map_err(AppError::Database)?;
+        let mut transaction = pool.begin().await.map_err(AppError::Database)?;
 
         let deployment_exists =
             sqlx::query(r#"SELECT id FROM "Deployment" WHERE id = $1 FOR UPDATE"#)
@@ -266,10 +263,7 @@ impl DomainQueries {
         .await
         .map_err(map_domain_write_error)?;
 
-        transaction
-            .commit()
-            .await
-            .map_err(AppError::Database)?;
+        transaction.commit().await.map_err(AppError::Database)?;
 
         Ok(row.into())
     }
@@ -579,13 +573,12 @@ impl DomainQueries {
         pool: &PgPool,
         deployment_id: &str,
     ) -> Result<Option<String>, AppError> {
-        let row: Option<String> = sqlx::query_scalar(
-            r#"SELECT project_id FROM "Deployment" WHERE id = $1"#,
-        )
-        .bind(deployment_id)
-        .fetch_optional(pool)
-        .await
-        .map_err(AppError::Database)?;
+        let row: Option<String> =
+            sqlx::query_scalar(r#"SELECT project_id FROM "Deployment" WHERE id = $1"#)
+                .bind(deployment_id)
+                .fetch_optional(pool)
+                .await
+                .map_err(AppError::Database)?;
 
         Ok(row)
     }
@@ -607,10 +600,7 @@ impl DomainQueries {
     }
 
     /// Get all domains across deployments for a project
-    pub async fn get_by_project(
-        pool: &PgPool,
-        project_id: &str,
-    ) -> Result<Vec<Domain>, AppError> {
+    pub async fn get_by_project(pool: &PgPool, project_id: &str) -> Result<Vec<Domain>, AppError> {
         let rows = sqlx::query_as::<_, DomainRow>(
             r#"
             SELECT domain.*

@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
 use cms_auth::AuthExtractor;
 use cms_entity::{

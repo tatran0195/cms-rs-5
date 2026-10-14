@@ -6,6 +6,7 @@ use axum::{
     Json,
     extract::{Path, State},
 };
+use cms_auth::AuthUser;
 use cms_authz::Relation;
 use cms_entity::{
     common::{ApiResponse, SuccessResponse},
@@ -18,7 +19,6 @@ use cms_error::AppError;
 use cms_server_core::app_state::AppState;
 
 use super::auth::authorize_project;
-use cms_auth::AuthUser;
 use crate::services::MemberService;
 
 /// List project members

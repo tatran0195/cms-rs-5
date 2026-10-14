@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import type { DocEvent } from '@cms/types';
-import React from 'react';
-import { Badge } from '@/components/Badge';
-import { CodeBlock } from '@/components/CodeBlock';
-import { CopyGeneratedSnippetButton } from '@/components/CopyGeneratedSnippetButton';
-import { MarkdownContent } from '@/components/MarkdownContent';
-import { Table } from '@/components/Table';
-import { Tooltip } from '@/components/Tooltip';
-import { DocHeading, Mdx } from './shared';
+import type { DocEvent } from "../../types";
+import React from "react";
+import { Badge } from "@/components/Badge";
+import { CodeBlock } from "@/components/CodeBlock";
+import { CopyGeneratedSnippetButton } from "@/components/CopyGeneratedSnippetButton";
+import { MarkdownContent } from "@/components/MarkdownContent";
+import { Table } from "@/components/Table";
+import { Tooltip } from "@/components/Tooltip";
+import { DocHeading, Mdx } from "./shared";
 
 export type ReferenceEventsListingProps = {
   categories: { title?: string; events: DocEvent[] }[];
@@ -20,7 +20,7 @@ function EventBadges({ event }: { event: DocEvent }) {
   return (
     <>
       {event.deprecated ? (
-        <Tooltip text={event.deprecatedMessage || 'Deprecated'}>
+        <Tooltip text={event.deprecatedMessage || "Deprecated"}>
           <Badge variant="orange">Deprecated</Badge>
         </Tooltip>
       ) : null}
@@ -40,23 +40,32 @@ function EventDetail({ event, level }: { event: DocEvent; level: number }) {
   return (
     <>
       <div className="flex items-center justify-between flex-wrap">
-        <DocHeading level={level} id={event.id} className="flex flex-wrap justify-center gap-docs_0.25">
+        <DocHeading
+          level={level}
+          id={event.id}
+          className="flex flex-wrap justify-center gap-docs_0.25"
+        >
           {event.name}
           <EventBadges event={event} />
         </DocHeading>
         <CopyGeneratedSnippetButton
           tooltipText="Copy subscriber for event"
           type="subscriber"
-          options={{ event: event.name, payload: event.payload || '' }}
+          options={{ event: event.name, payload: event.payload || "" }}
         />
       </div>
-      {event.description ? <MarkdownContent>{event.description}</MarkdownContent> : null}
+      {event.description ? (
+        <MarkdownContent>{event.description}</MarkdownContent>
+      ) : null}
       {event.payload ? (
         <>
           <DocHeading level={level + 1} id={`${event.id}-payload`}>
             Payload
           </DocHeading>
-          <CodeBlock source={(fence?.[2] ?? event.payload).trim()} lang={fence?.[1] || 'ts'} />
+          <CodeBlock
+            source={(fence?.[2] ?? event.payload).trim()}
+            lang={fence?.[1] || "ts"}
+          />
         </>
       ) : null}
       {event.workflows?.length ? (
@@ -81,7 +90,9 @@ function EventDetail({ event, level }: { event: DocEvent; level: number }) {
  * Renders the full events reference (the `eventsListing` block): a per-category
  * summary table followed by each event's details (payload, emitting workflows).
  */
-export const ReferenceEventsListing = ({ categories }: ReferenceEventsListingProps) => {
+export const ReferenceEventsListing = ({
+  categories,
+}: ReferenceEventsListingProps) => {
   const multi = categories.length > 1;
   const summaryLevel = multi ? 3 : 2;
   const eventLevel = multi ? 3 : 2;
@@ -93,8 +104,8 @@ export const ReferenceEventsListing = ({ categories }: ReferenceEventsListingPro
         const categorySlug =
           (category.title || `category-${index}`)
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '') || `category-${index}`;
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "") || `category-${index}`;
         return (
           <React.Fragment key={index}>
             {multi && category.title ? (
@@ -118,10 +129,14 @@ export const ReferenceEventsListing = ({ categories }: ReferenceEventsListingPro
                     <Table.Cell>
                       <Anchor href={`#${event.id}`}>
                         <Code>{event.name}</Code>
-                      </Anchor>{' '}
+                      </Anchor>{" "}
                       <EventBadges event={event} />
                     </Table.Cell>
-                    <Table.Cell>{event.description ? <MarkdownContent>{event.description}</MarkdownContent> : null}</Table.Cell>
+                    <Table.Cell>
+                      {event.description ? (
+                        <MarkdownContent>{event.description}</MarkdownContent>
+                      ) : null}
+                    </Table.Cell>
                   </Table.Row>
                 ))}
               </Table.Body>

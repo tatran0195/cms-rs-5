@@ -3,9 +3,10 @@
 use cms_error::AppError;
 use sqlx::PgPool;
 
-use crate::queries::domain::{DomainQueries, normalize_hostname};
-
-use crate::models::{Domain, SpaDomainResponse};
+use crate::{
+    models::{Domain, SpaDomainResponse},
+    queries::domain::{DomainQueries, normalize_hostname},
+};
 
 /// Domain service
 #[derive(Debug)]
@@ -22,9 +23,10 @@ impl DomainService {
             .await?
             .ok_or_else(|| AppError::NotFound("Domain not found".to_string()))?;
 
-        let deployment_project_id = DomainQueries::get_deployment_project_id(pool, &domain.deployment_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+        let deployment_project_id =
+            DomainQueries::get_deployment_project_id(pool, &domain.deployment_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         if deployment_project_id != project_id {
             return Err(AppError::Forbidden);

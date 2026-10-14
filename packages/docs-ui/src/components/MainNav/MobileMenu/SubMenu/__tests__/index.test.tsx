@@ -1,28 +1,28 @@
-import type { MenuItem } from '@cms/types';
-import { fireEvent, render } from '@testing-library/react';
-import type React from 'react';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import type { MenuItem } from "../../types";
+import { fireEvent, render } from "@testing-library/react";
+import type React from "react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 // mock data
 const mockMenu: MenuItem[] = [
   {
-    type: 'link' as const,
-    title: 'Getting Started',
-    link: '/docs/getting-started',
+    type: "link" as const,
+    title: "Getting Started",
+    link: "/docs/getting-started",
   },
   {
-    type: 'sub-menu' as const,
-    title: 'Advanced',
+    type: "sub-menu" as const,
+    title: "Advanced",
     items: [
       {
-        type: 'link' as const,
-        title: 'API Reference',
-        link: '/docs/api',
+        type: "link" as const,
+        title: "API Reference",
+        link: "/docs/api",
       },
     ],
   },
   {
-    type: 'divider' as const,
+    type: "divider" as const,
   },
 ];
 
@@ -31,7 +31,7 @@ const mockSetSelectedMenus = vi.fn();
 const mockOnOpenLink = vi.fn();
 
 // mock components
-vi.mock('next/link', () => ({
+vi.mock("next/link", () => ({
   default: ({
     href,
     className,
@@ -60,52 +60,72 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-import { MainNavMobileSubMenu } from '../../SubMenu';
+import { MainNavMobileSubMenu } from "../../SubMenu";
 
 beforeEach(() => {
   mockSetSelectedMenus.mockClear();
   mockOnOpenLink.mockClear();
 });
 
-describe('rendering', () => {
-  test('renders menu title', () => {
+describe("rendering", () => {
+  test("renders menu title", () => {
     const { container } = render(
-      <MainNavMobileSubMenu menu={mockMenu} title="Docs" setSelectedMenus={mockSetSelectedMenus} onOpenLink={mockOnOpenLink} />,
+      <MainNavMobileSubMenu
+        menu={mockMenu}
+        title="Docs"
+        setSelectedMenus={mockSetSelectedMenus}
+        onOpenLink={mockOnOpenLink}
+      />,
     );
     const title = container.querySelector("[data-testid='menu-title']");
     expect(title).toBeInTheDocument();
-    expect(title).toHaveTextContent('Docs');
+    expect(title).toHaveTextContent("Docs");
     const link = container.querySelector("[data-testid='link-item']");
     expect(link).toBeInTheDocument();
-    expect(link).toHaveTextContent('Getting Started');
-    expect(link).toHaveAttribute('href', '/docs/getting-started');
+    expect(link).toHaveTextContent("Getting Started");
+    expect(link).toHaveAttribute("href", "/docs/getting-started");
     const subMenu = container.querySelector("[data-testid='sub-menu-item']");
     expect(subMenu).toBeInTheDocument();
-    expect(subMenu).toHaveTextContent('Advanced');
+    expect(subMenu).toHaveTextContent("Advanced");
   });
 
-  test('filters out divider items', () => {
+  test("filters out divider items", () => {
     const { container } = render(
-      <MainNavMobileSubMenu menu={mockMenu} title="Docs" setSelectedMenus={mockSetSelectedMenus} onOpenLink={mockOnOpenLink} />,
+      <MainNavMobileSubMenu
+        menu={mockMenu}
+        title="Docs"
+        setSelectedMenus={mockSetSelectedMenus}
+        onOpenLink={mockOnOpenLink}
+      />,
     );
-    const listItems = container.querySelectorAll('li');
+    const listItems = container.querySelectorAll("li");
     expect(listItems).toHaveLength(2); // Only link and sub-menu, not divider
   });
 });
 
-describe('interaction', () => {
-  test('calls onOpenLink when link is clicked', () => {
+describe("interaction", () => {
+  test("calls onOpenLink when link is clicked", () => {
     const { container } = render(
-      <MainNavMobileSubMenu menu={mockMenu} title="Docs" setSelectedMenus={mockSetSelectedMenus} onOpenLink={mockOnOpenLink} />,
+      <MainNavMobileSubMenu
+        menu={mockMenu}
+        title="Docs"
+        setSelectedMenus={mockSetSelectedMenus}
+        onOpenLink={mockOnOpenLink}
+      />,
     );
     const link = container.querySelector("[data-testid='link-item']");
     fireEvent.click(link!);
     expect(mockOnOpenLink).toHaveBeenCalledTimes(1);
   });
 
-  test('sets selected menu when sub-menu is clicked', () => {
+  test("sets selected menu when sub-menu is clicked", () => {
     const { container } = render(
-      <MainNavMobileSubMenu menu={mockMenu} title="Docs" setSelectedMenus={mockSetSelectedMenus} onOpenLink={mockOnOpenLink} />,
+      <MainNavMobileSubMenu
+        menu={mockMenu}
+        title="Docs"
+        setSelectedMenus={mockSetSelectedMenus}
+        onOpenLink={mockOnOpenLink}
+      />,
     );
     const subMenu = container.querySelector("[data-testid='sub-menu-item']");
     fireEvent.click(subMenu!);

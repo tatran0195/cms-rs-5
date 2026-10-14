@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { ArrowUturnLeft, BarsThree, XMark } from '@cms/icons';
-import type { MenuItem } from '@cms/types';
-import clsx from 'clsx';
-import { useRef, useState } from 'react';
+import { ArrowUturnLeft, BarsThree, XMark } from "@cms/icons";
+import type { MenuItem } from "../../types";
+import clsx from "clsx";
+import { useRef, useState } from "react";
 // @ts-expect-error can't install the types package because it doesn't support React v19
-import { CSSTransition, SwitchTransition } from 'react-transition-group';
-import { Button } from '../../Button';
-import { MainNavMobileMainMenu } from './Main';
-import { MainNavMobileSubMenu } from './SubMenu';
+import { CSSTransition, SwitchTransition } from "react-transition-group";
+import { Button } from "../../Button";
+import { MainNavMobileMainMenu } from "./Main";
+import { MainNavMobileSubMenu } from "./SubMenu";
 
 export type SelectedMenu = {
   title: string;
@@ -26,35 +26,56 @@ export const MainNavMobileMenu = () => {
 
   return (
     <div className="flex lg:hidden justify-center items-center">
-      <Button variant="transparent" onClick={() => setIsOpen((prev) => !prev)} className="text-cms-fg-subtle !p-[6.5px]" data-testid="menu-button">
+      <Button
+        variant="transparent"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="text-cms-fg-subtle !p-[6.5px]"
+        data-testid="menu-button"
+      >
         {!isOpen && <BarsThree />}
         {isOpen && <XMark />}
       </Button>
       <div
         className={clsx(
-          'flex items-center justify-center fixed w-full h-[calc(100vh-52px)]',
-          'top-[52px] transition-[left] bg-cms-bg-subtle z-50',
-          !isOpen && '-left-full',
-          isOpen && 'left-0',
+          "flex items-center justify-center fixed w-full h-[calc(100vh-52px)]",
+          "top-[52px] transition-[left] bg-cms-bg-subtle z-50",
+          !isOpen && "-left-full",
+          isOpen && "left-0",
         )}
         data-testid="menu-panel"
       >
         <SwitchTransition>
           <CSSTransition
-            key={!selectedMenus.length ? 'main' : selectedMenus[selectedMenus.length - 1].title}
+            key={
+              !selectedMenus.length
+                ? "main"
+                : selectedMenus[selectedMenus.length - 1].title
+            }
             classNames={{
-              enter: 'animate-fadeInLeft animate-fast',
-              exit: 'animate-fadeOutRight animate-fast',
+              enter: "animate-fadeInLeft animate-fast",
+              exit: "animate-fadeOutRight animate-fast",
             }}
             nodeRef={ref}
             timeout={250}
           >
-            <div ref={ref} className="w-full px-docs_1.5 h-3/4 flex flex-col justify-center">
-              {selectedMenus.length === 0 && <MainNavMobileMainMenu setSelectedMenus={setSelectedMenus} onOpenLink={handleOpenLink} />}
+            <div
+              ref={ref}
+              className="w-full px-docs_1.5 h-3/4 flex flex-col justify-center"
+            >
+              {selectedMenus.length === 0 && (
+                <MainNavMobileMainMenu
+                  setSelectedMenus={setSelectedMenus}
+                  onOpenLink={handleOpenLink}
+                />
+              )}
               {selectedMenus.length > 0 && (
                 <>
                   <div
-                    className={clsx('flex items-center gap-docs_0.5', 'text-cms-fg-base my-[14px]', 'cursor-pointer')}
+                    className={clsx(
+                      "flex items-center gap-docs_0.5",
+                      "text-cms-fg-base my-[14px]",
+                      "cursor-pointer",
+                    )}
                     tabIndex={-1}
                     onClick={() =>
                       setSelectedMenus((prev) => {

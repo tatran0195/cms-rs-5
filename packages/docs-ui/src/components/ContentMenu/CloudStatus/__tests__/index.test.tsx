@@ -1,19 +1,19 @@
-import type { CloudStatus } from '@cms/types';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { CloudStatus } from "../../types";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 // mock functions
 const mockGetCloudStatus = vi.fn();
 
-vi.mock('@/utils/get-cloud-status', () => ({
+vi.mock("@/utils/get-cloud-status", () => ({
   getCloudStatus: () => mockGetCloudStatus(),
 }));
 
-import { ContentMenuCloudStatus } from '../index';
+import { ContentMenuCloudStatus } from "../index";
 
 const operationalStatus: CloudStatus = {
-  indicator: 'none',
-  description: 'All Systems Operational',
+  indicator: "none",
+  description: "All Systems Operational",
 };
 
 beforeEach(() => {
@@ -25,87 +25,101 @@ afterEach(() => {
   cleanup();
 });
 
-describe('ContentMenuCloudStatus', () => {
-  test('renders a badge linking to the status page', async () => {
+describe("ContentMenuCloudStatus", () => {
+  test("renders a badge linking to the status page", async () => {
     render(<ContentMenuCloudStatus />);
 
-    const link = await screen.findByTestId('content-menu-cloud-status');
+    const link = await screen.findByTestId("content-menu-cloud-status");
 
-    expect(link).toHaveAttribute('href', 'https://status.cms.com');
-    expect(link).toHaveAttribute('target', '_blank');
-    expect(link).toHaveTextContent('CMS Cloud');
+    expect(link).toHaveAttribute("href", "https://status.cms.com");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveTextContent("CMS Cloud");
   });
 
-  test('shows the status description in a tooltip', async () => {
+  test("shows the status description in a tooltip", async () => {
     render(<ContentMenuCloudStatus />);
 
-    const link = await screen.findByTestId('content-menu-cloud-status');
+    const link = await screen.findByTestId("content-menu-cloud-status");
 
-    expect(link.querySelector('[data-tooltip-content]')).toHaveAttribute('data-tooltip-content', 'All Systems Operational');
+    expect(link.querySelector("[data-tooltip-content]")).toHaveAttribute(
+      "data-tooltip-content",
+      "All Systems Operational",
+    );
   });
 
   test("exposes the actual status description, which the label doesn't show", async () => {
     render(<ContentMenuCloudStatus />);
 
-    const link = await screen.findByTestId('content-menu-cloud-status');
+    const link = await screen.findByTestId("content-menu-cloud-status");
 
-    expect(link.getAttribute('aria-label')).toContain('All Systems Operational');
+    expect(link.getAttribute("aria-label")).toContain(
+      "All Systems Operational",
+    );
     // a native title would stack a second tooltip on top of the react-tooltip
-    expect(link).not.toHaveAttribute('title');
+    expect(link).not.toHaveAttribute("title");
   });
 
   test.each([
-    ['none', 'green'],
-    ['maintenance', 'blue'],
-    ['minor', 'orange'],
-    ['major', 'orange'],
-    ['critical', 'red'],
-  ] as const)("uses the %s indicator's color on the block", async (indicator, expectedColor) => {
+    ["none", "green"],
+    ["maintenance", "blue"],
+    ["minor", "orange"],
+    ["major", "orange"],
+    ["critical", "red"],
+  ] as const)(
+    "uses the %s indicator's color on the block",
+    async (indicator, expectedColor) => {
+      mockGetCloudStatus.mockResolvedValue({
+        indicator,
+        description: "Some status",
+      });
+
+      render(<ContentMenuCloudStatus />);
+
+      const block = await screen.findByTestId(
+        "content-menu-cloud-status-indicator",
+      );
+
+      expect(block.className).toContain(`bg-cms-tag-${expectedColor}-icon`);
+    },
+  );
+
+  test("falls back to a neutral block for an unknown indicator", async () => {
     mockGetCloudStatus.mockResolvedValue({
-      indicator,
-      description: 'Some status',
+      indicator: "something-new",
+      description: "Some status",
     });
 
     render(<ContentMenuCloudStatus />);
 
-    const block = await screen.findByTestId('content-menu-cloud-status-indicator');
+    const block = await screen.findByTestId(
+      "content-menu-cloud-status-indicator",
+    );
 
-    expect(block.className).toContain(`bg-cms-tag-${expectedColor}-icon`);
+    expect(block.className).toContain("bg-cms-tag-neutral-icon");
   });
 
-  test('falls back to a neutral block for an unknown indicator', async () => {
-    mockGetCloudStatus.mockResolvedValue({
-      indicator: 'something-new',
-      description: 'Some status',
-    });
-
+  test("has a transparent background that fills the width, and a hover background", async () => {
     render(<ContentMenuCloudStatus />);
 
-    const block = await screen.findByTestId('content-menu-cloud-status-indicator');
+    const link = await screen.findByTestId("content-menu-cloud-status");
 
-    expect(block.className).toContain('bg-cms-tag-neutral-icon');
-  });
-
-  test('has a transparent background that fills the width, and a hover background', async () => {
-    render(<ContentMenuCloudStatus />);
-
-    const link = await screen.findByTestId('content-menu-cloud-status');
-
-    expect(link.className).toContain('w-full');
-    expect(link.className).toContain('hover:bg-cms-bg-base-hover');
+    expect(link.className).toContain("w-full");
+    expect(link.className).toContain("hover:bg-cms-bg-base-hover");
     // no background class of its own, so it stays transparent until hovered
     expect(link.className).not.toMatch(/(^|\s)bg-/);
   });
 
-  test('renders nothing until the status is loaded', () => {
+  test("renders nothing until the status is loaded", () => {
     const { container } = render(<ContentMenuCloudStatus />);
 
     expect(container).toBeEmptyDOMElement();
   });
 
   test("renders nothing if the status can't be loaded", async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockGetCloudStatus.mockRejectedValue(new Error('network error'));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    mockGetCloudStatus.mockRejectedValue(new Error("network error"));
 
     const { container } = render(<ContentMenuCloudStatus />);
 

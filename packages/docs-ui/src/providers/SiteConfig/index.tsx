@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import type { DocsConfig, FrontMatter, ToCItem } from '@cms/types';
-import type React from 'react';
-import { createContext, useContext, useMemo, useState } from 'react';
-import { GITHUB_ISSUES_LINK } from '../../constants';
-import { globalConfig } from '../../global-config';
-import { useIsBrowser } from '../BrowserProvider';
+import type { DocsConfig, FrontMatter, ToCItem } from "../../types";
+import type React from "react";
+import { createContext, useContext, useMemo, useState } from "react";
+import { GITHUB_ISSUES_LINK } from "../../constants";
+import { globalConfig } from "../../global-config";
+import { useIsBrowser } from "../BrowserProvider";
 
 export enum ProductView {
-  BLOOM = 'bloom',
+  BLOOM = "bloom",
 }
 
 const productViews = Object.values(ProductView);
@@ -31,16 +31,19 @@ export type SiteConfigProviderProps = {
   children?: React.ReactNode;
 };
 
-export const SiteConfigProvider = ({ config: initConfig, children }: SiteConfigProviderProps) => {
+export const SiteConfigProvider = ({
+  config: initConfig,
+  children,
+}: SiteConfigProviderProps) => {
   const [config, setConfig] = useState<DocsConfig>({
-    baseUrl: '',
+    baseUrl: "",
     sidebars: [],
     project: {
-      title: '',
-      key: '',
+      title: "",
+      key: "",
     },
     reportIssueLink: GITHUB_ISSUES_LINK,
-    logo: '',
+    logo: "",
     features: {
       aiAssistant: true,
     },
@@ -61,7 +64,7 @@ export const SiteConfigProvider = ({ config: initConfig, children }: SiteConfigP
     }
     const searchParams = new URLSearchParams(location.search);
 
-    const view = searchParams.get('view');
+    const view = searchParams.get("view");
 
     if (!productViews.includes(view as ProductView)) {
       return;
@@ -92,7 +95,7 @@ export const useSiteConfig = (): SiteConfigContextType => {
   const context = useContext(SiteConfigContext);
 
   if (!context) {
-    throw new Error('useSiteConfig must be used inside a SiteConfigProvider');
+    throw new Error("useSiteConfig must be used inside a SiteConfigProvider");
   }
 
   return context;

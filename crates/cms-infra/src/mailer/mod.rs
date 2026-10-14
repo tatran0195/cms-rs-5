@@ -25,7 +25,7 @@ pub mod templates;
 pub mod transport;
 pub mod types;
 
-pub use service::{process_email_job, process_email_job_with_renderer, EmailService};
+pub use service::{EmailService, process_email_job, process_email_job_with_renderer};
 
 pub use crate::i18n;
 
@@ -35,11 +35,11 @@ mod embedded {
 
 pub use email::Email;
 pub use error::RenderError;
-pub use i18n::{accept_language_tags, Catalog, Locale};
-pub use render::{embedded_catalog_builder, EmailRenderer};
+pub use i18n::{Catalog, Locale, accept_language_tags};
+pub use render::{EmailRenderer, embedded_catalog_builder};
 pub use templates::TemplateEngine;
 pub use transport::{
-    create_mailer, create_mailer_with_noop_fallback, Mailer, MockMailer, NoopMailer, SentEmail,
-    SmtpMailer, UnconfiguredMailer,
+    Mailer, MockMailer, NoopMailer, SentEmail, SmtpMailer, UnconfiguredMailer, create_mailer,
+    create_mailer_with_noop_fallback,
 };
 pub use types::*;

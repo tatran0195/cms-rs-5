@@ -3,8 +3,6 @@
 use std::collections::HashMap;
 
 use cms_db::PgPool;
-use cms_projects::ProjectQueries;
-use crate::queries::{BranchQueries, PageQueries};
 use cms_entity::{
     branch::{
         BranchResponse, BranchWithProjectResponse, CreateBranchRequest, ListBranchesQuery,
@@ -13,6 +11,9 @@ use cms_entity::{
     common::PaginatedResponse,
 };
 use cms_error::AppError;
+use cms_projects::ProjectQueries;
+
+use crate::queries::{BranchQueries, PageQueries};
 
 /// Business service for Branch operations.
 #[derive(Debug)]

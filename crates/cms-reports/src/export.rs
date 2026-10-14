@@ -6,13 +6,10 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use chrono::Utc;
-use cms_db::{
-    export::{
-        ExportArtifactQueries, ExportJobQueries, ExportScheduleQueries, ExportSnapshotQueries,
-    },
-};
 use cms_content::{BranchQueries, LanguageQueries, PageQueries};
-use cms_projects::ProjectQueries;
+use cms_db::export::{
+    ExportArtifactQueries, ExportJobQueries, ExportScheduleQueries, ExportSnapshotQueries,
+};
 use cms_entity::{
     common::PaginatedResponse,
     export::{
@@ -22,6 +19,7 @@ use cms_entity::{
 };
 use cms_error::AppError;
 use cms_infra::storage::Storage;
+use cms_projects::ProjectQueries;
 use sqlx::PgPool;
 
 /// Export service
@@ -683,15 +681,13 @@ pub async fn generate_sqlite_export(
         .await?
         .ok_or_else(|| AppError::NotFound(format!("Project not found: {}", project_id)))?;
 
-    let branches =
-        BranchQueries::get_by_project(pool, project_id, None, Some(100), Some(0))
-            .await
-            .unwrap_or_default();
+    let branches = BranchQueries::get_by_project(pool, project_id, None, Some(100), Some(0))
+        .await
+        .unwrap_or_default();
 
-    let languages =
-        LanguageQueries::get_by_project(pool, project_id, Some(100), Some(0))
-            .await
-            .unwrap_or_default();
+    let languages = LanguageQueries::get_by_project(pool, project_id, Some(100), Some(0))
+        .await
+        .unwrap_or_default();
 
     let raw_assets =
         cms_assets::AssetQueries::get_by_project(pool, project_id, Some(10_000), Some(0))

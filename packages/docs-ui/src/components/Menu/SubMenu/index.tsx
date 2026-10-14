@@ -1,32 +1,37 @@
-'use client';
+"use client";
 
-import { TriangleRightMini } from '@cms/icons';
-import type { MenuItemSubMenu } from '@cms/types';
-import clsx from 'clsx';
-import Link from 'next/link';
-import { useState } from 'react';
-import { Menu, type MenuProps } from '..';
+import { TriangleRightMini } from "@cms/icons";
+import type { MenuItemSubMenu } from "../../types";
+import clsx from "clsx";
+import Link from "next/link";
+import { useState } from "react";
+import { Menu, type MenuProps } from "..";
 
-type MenuSubMenuProps = Pick<MenuProps, 'itemsOnClick'> & {
+type MenuSubMenuProps = Pick<MenuProps, "itemsOnClick"> & {
   item: MenuItemSubMenu;
 };
 
 export const MenuSubMenu = ({ item, itemsOnClick }: MenuSubMenuProps) => {
   const [open, setOpen] = useState(false);
 
-  const Component = item.link ? Link : 'span';
+  const Component = item.link ? Link : "span";
 
   return (
-    <div className="px-docs_0.25 relative" onMouseOver={() => setOpen(true)} onMouseLeave={() => setOpen(false)} data-testid="sub-menu-wrapper">
+    <div
+      className="px-docs_0.25 relative"
+      onMouseOver={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      data-testid="sub-menu-wrapper"
+    >
       <Component
         className={clsx(
-          'flex py-docs_0.25 px-docs_0.5',
-          'gap-docs_0.5 rounded-docs_xs',
-          'hover:bg-cms-bg-component-hover',
-          'text-cms-fg-base justify-between',
+          "flex py-docs_0.25 px-docs_0.5",
+          "gap-docs_0.5 rounded-docs_xs",
+          "hover:bg-cms-bg-component-hover",
+          "text-cms-fg-base justify-between",
         )}
         onClick={() => itemsOnClick?.(item)}
-        href={item.link || '#'}
+        href={item.link || "#"}
       >
         <span className="text-compact-small">{item.title}</span>
         <span className="text-cms-fg-subtle mt-[2.5px] block">

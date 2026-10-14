@@ -1494,10 +1494,7 @@ impl PageQueries {
 
     /// Reorder pages (update positions atomically)
     pub async fn reorder(pool: &PgPool, page_ids: &[String]) -> Result<Vec<Page>, AppError> {
-        let mut transaction = pool
-            .begin()
-            .await
-            .map_err(AppError::Database)?;
+        let mut transaction = pool.begin().await.map_err(AppError::Database)?;
 
         for (index, page_id) in page_ids.iter().enumerate() {
             let position = index as i32;
@@ -1511,10 +1508,7 @@ impl PageQueries {
                 .map_err(AppError::Database)?;
         }
 
-        transaction
-            .commit()
-            .await
-            .map_err(AppError::Database)?;
+        transaction.commit().await.map_err(AppError::Database)?;
 
         // Return the reordered pages
         let pages = sqlx::query_as::<_, PageRow>(

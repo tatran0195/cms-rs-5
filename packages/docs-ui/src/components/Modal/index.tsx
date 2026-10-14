@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import type { Ref } from '@cms/types';
-import clsx from 'clsx';
-import type React from 'react';
-import { useCallback, useEffect, useRef } from 'react';
-import type { ButtonProps } from '@/components/Button';
-import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut';
-import { useModal } from '@/providers/Modal';
-import { ModalFooter } from './Footer';
-import { ModalHeader } from './Header';
+import type { Ref } from "../../types";
+import clsx from "clsx";
+import type React from "react";
+import { useCallback, useEffect, useRef } from "react";
+import type { ButtonProps } from "@/components/Button";
+import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
+import { useModal } from "@/providers/Modal";
+import { ModalFooter } from "./Footer";
+import { ModalHeader } from "./Header";
 
 export type ModalProps = {
   className?: string;
@@ -21,7 +21,7 @@ export type ModalProps = {
   footerContent?: React.ReactNode;
   passedRef?: Ref<HTMLDialogElement>;
   headerClassName?: string;
-} & Omit<React.ComponentProps<'dialog'>, 'ref' | 'title' | 'key'>;
+} & Omit<React.ComponentProps<"dialog">, "ref" | "title" | "key">;
 
 export const Modal = ({
   className,
@@ -43,9 +43,9 @@ export const Modal = ({
     (node: HTMLDialogElement) => {
       // Ref's from useRef needs to have the node assigned to `current`
       ref.current = node;
-      if (typeof passedRef === 'function') {
+      if (typeof passedRef === "function") {
         passedRef(node);
-      } else if (passedRef && 'current' in passedRef) {
+      } else if (passedRef && "current" in passedRef) {
         passedRef.current = node;
       }
     },
@@ -55,7 +55,7 @@ export const Modal = ({
   useKeyboardShortcut({
     metakey: false,
     checkEditing: false,
-    shortcutKeys: ['escape'],
+    shortcutKeys: ["escape"],
     action: () => {
       if (open) {
         ref.current?.close();
@@ -78,9 +78,9 @@ export const Modal = ({
 
   useEffect(() => {
     if (open) {
-      document.body.setAttribute('data-modal', 'opened');
+      document.body.setAttribute("data-modal", "opened");
     } else {
-      document.body.removeAttribute('data-modal');
+      document.body.removeAttribute("data-modal");
     }
   }, [open]);
 
@@ -88,9 +88,9 @@ export const Modal = ({
     <dialog
       {...props}
       className={clsx(
-        'fixed top-0 left-0 flex h-screen w-screen items-center justify-center',
-        'bg-cms-bg-overlay z-[499]',
-        'hidden open:flex border-0 px-docs_0.5 lg:p-0',
+        "fixed top-0 left-0 flex h-screen w-screen items-center justify-center",
+        "bg-cms-bg-overlay z-[499]",
+        "hidden open:flex border-0 px-docs_0.5 lg:p-0",
         className,
       )}
       onClick={handleClick}
@@ -100,16 +100,22 @@ export const Modal = ({
     >
       <div
         className={clsx(
-          'bg-cms-bg-base rounded-docs_lg',
-          'shadow-elevation-modal dark:shadow-elevation-modal-dark',
-          'max-w-full sm:max-w-modal-sm md:max-w-modal-md lg:max-w-modal-lg',
-          'h-auto w-full',
+          "bg-cms-bg-base rounded-docs_lg",
+          "shadow-elevation-modal dark:shadow-elevation-modal-dark",
+          "max-w-full sm:max-w-modal-sm md:max-w-modal-md lg:max-w-modal-lg",
+          "h-auto w-full",
           modalContainerClassName,
         )}
         data-testid="modal-container"
       >
         {title && <ModalHeader title={title} />}
-        <div className={clsx('overflow-auto py-docs_1.5 px-docs_2 rounded-docs_lg', contentClassName)} data-testid="modal-content">
+        <div
+          className={clsx(
+            "overflow-auto py-docs_1.5 px-docs_2 rounded-docs_lg",
+            contentClassName,
+          )}
+          data-testid="modal-content"
+        >
           {children}
         </div>
         {actions && actions?.length > 0 && <ModalFooter actions={actions} />}

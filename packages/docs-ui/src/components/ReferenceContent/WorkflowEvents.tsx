@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import type { DocWorkflowEvent } from '@cms/types';
-import { Badge } from '@/components/Badge';
-import { CodeBlock } from '@/components/CodeBlock';
-import { CopyGeneratedSnippetButton } from '@/components/CopyGeneratedSnippetButton';
-import { MarkdownContent } from '@/components/MarkdownContent';
-import { Table } from '@/components/Table';
-import { Tooltip } from '@/components/Tooltip';
-import { Mdx } from './shared';
+import type { DocWorkflowEvent } from "../../types";
+import { Badge } from "@/components/Badge";
+import { CodeBlock } from "@/components/CodeBlock";
+import { CopyGeneratedSnippetButton } from "@/components/CopyGeneratedSnippetButton";
+import { MarkdownContent } from "@/components/MarkdownContent";
+import { Table } from "@/components/Table";
+import { Tooltip } from "@/components/Tooltip";
+import { Mdx } from "./shared";
 
 export type ReferenceWorkflowEventsProps = {
   events: DocWorkflowEvent[];
@@ -18,7 +18,9 @@ export type ReferenceWorkflowEventsProps = {
  * `<Table>` the `workflowEvents` MDX helper produced (event name, description,
  * payload snippet, and a "copy subscriber" action).
  */
-export const ReferenceWorkflowEvents = ({ events }: ReferenceWorkflowEventsProps) => (
+export const ReferenceWorkflowEvents = ({
+  events,
+}: ReferenceWorkflowEventsProps) => (
   <Table>
     <Table.Header>
       <Table.Row>
@@ -34,7 +36,7 @@ export const ReferenceWorkflowEvents = ({ events }: ReferenceWorkflowEventsProps
           <Table.Cell>
             <Mdx.code>{event.name}</Mdx.code>
             {event.deprecated ? (
-              <Tooltip text={event.deprecatedMessage || 'Deprecated'}>
+              <Tooltip text={event.deprecatedMessage || "Deprecated"}>
                 <Badge variant="orange">Deprecated</Badge>
               </Tooltip>
             ) : null}
@@ -44,15 +46,23 @@ export const ReferenceWorkflowEvents = ({ events }: ReferenceWorkflowEventsProps
               </Tooltip>
             ) : null}
           </Table.Cell>
-          <Table.Cell>{event.description ? <MarkdownContent>{event.description}</MarkdownContent> : null}</Table.Cell>
-          <Table.Cell>{event.payload ? <CodeBlock source={event.payload} lang="ts" blockStyle="inline" /> : null}</Table.Cell>
+          <Table.Cell>
+            {event.description ? (
+              <MarkdownContent>{event.description}</MarkdownContent>
+            ) : null}
+          </Table.Cell>
+          <Table.Cell>
+            {event.payload ? (
+              <CodeBlock source={event.payload} lang="ts" blockStyle="inline" />
+            ) : null}
+          </Table.Cell>
           <Table.Cell>
             <CopyGeneratedSnippetButton
               tooltipText="Copy subscriber for event"
               type="subscriber"
               options={{
                 event: event.name,
-                payload: event.payload || '',
+                payload: event.payload || "",
               }}
             />
           </Table.Cell>

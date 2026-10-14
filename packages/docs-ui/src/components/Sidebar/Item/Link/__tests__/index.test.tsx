@@ -1,7 +1,7 @@
-import type { Sidebar } from '@cms/types';
-import { render, waitFor } from '@testing-library/react';
-import React from 'react';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import type { Sidebar } from "../../types";
+import { render, waitFor } from "@testing-library/react";
+import React from "react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 // mock functions
 const mockScrollIntoView = vi.fn();
@@ -26,24 +26,30 @@ const defaultUseMobileReturn = {
 const mockUseSidebar = vi.fn(() => defaultUseSidebarReturn);
 const mockUseMobile = vi.fn(() => defaultUseMobileReturn);
 
-vi.mock('@/providers/Sidebar', () => ({
+vi.mock("@/providers/Sidebar", () => ({
   useSidebar: () => mockUseSidebar(),
 }));
 
-vi.mock('@/providers/Mobile', () => ({
+vi.mock("@/providers/Mobile", () => ({
   useMobile: () => mockUseMobile(),
 }));
 
 // mock components
-vi.mock('@/components/Badge', () => ({
-  Badge: ({ variant, children }: { variant?: string; children: React.ReactNode }) => (
+vi.mock("@/components/Badge", () => ({
+  Badge: ({
+    variant,
+    children,
+  }: {
+    variant?: string;
+    children: React.ReactNode;
+  }) => (
     <div data-testid="badge" data-variant={variant}>
       {children}
     </div>
   ),
 }));
 
-vi.mock('next/link', () => ({
+vi.mock("next/link", () => ({
   default: ({
     href,
     children,
@@ -57,17 +63,27 @@ vi.mock('next/link', () => ({
     target?: string;
     rel?: string;
   }) => (
-    <a href={href} className={className} target={target} rel={rel} data-testid="sidebar-link">
+    <a
+      href={href}
+      className={className}
+      target={target}
+      rel={rel}
+      data-testid="sidebar-link"
+    >
       {children}
     </a>
   ),
 }));
 
-vi.mock('@/components/Sidebar/Item', () => ({
-  SidebarItem: ({ item }: { item: Sidebar.SidebarItem }) => <div data-testid="sidebar-item">{'title' in item ? item.title : item.type}</div>,
+vi.mock("@/components/Sidebar/Item", () => ({
+  SidebarItem: ({ item }: { item: Sidebar.SidebarItem }) => (
+    <div data-testid="sidebar-item">
+      {"title" in item ? item.title : item.type}
+    </div>
+  ),
 }));
 
-vi.mock('@/utils/check-sidebar-item-visibility', () => ({
+vi.mock("@/utils/check-sidebar-item-visibility", () => ({
   checkSidebarItemVisibility: vi.fn(() => false),
 }));
 
@@ -81,62 +97,62 @@ beforeEach(() => {
   mockUseMobile.mockReturnValue(defaultUseMobileReturn);
 });
 
-import { SidebarItemLink } from '../../Link';
+import { SidebarItemLink } from "../../Link";
 
-describe('rendering', () => {
-  test('renders link title', () => {
+describe("rendering", () => {
+  test("renders link title", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const title = container.querySelector("[data-testid='sidebar-item-title']");
     expect(title).toBeInTheDocument();
-    expect(title).toHaveTextContent('Test Link');
+    expect(title).toHaveTextContent("Test Link");
   });
 
-  test('renders link with the item path as href', () => {
+  test("renders link with the item path as href", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveAttribute('href', '/test');
+    expect(link).toHaveAttribute("href", "/test");
   });
 
-  test('renders external link with target and rel', () => {
+  test("renders external link with target and rel", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'external',
-      path: 'https://example.com',
-      title: 'External Link',
+      type: "external",
+      path: "https://example.com",
+      title: "External Link",
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveAttribute('target', '_blank');
-    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  test('renders badge when provided', () => {
+  test("renders badge when provided", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
-      badge: { text: 'New', variant: 'blue' },
+      type: "link",
+      path: "/test",
+      title: "Test Link",
+      badge: { text: "New", variant: "blue" },
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const badge = container.querySelector("[data-testid='badge']");
     expect(badge).toBeInTheDocument();
-    expect(badge).toHaveTextContent('New');
+    expect(badge).toHaveTextContent("New");
   });
 
-  test('renders additional elements when provided', () => {
+  test("renders additional elements when provided", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
       additionalElms: <span data-testid="additional">Additional</span>,
     };
     const { container } = render(<SidebarItemLink item={item} />);
@@ -144,36 +160,36 @@ describe('rendering', () => {
     expect(additional).toBeInTheDocument();
   });
 
-  test('renders children when provided', () => {
+  test("renders children when provided", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
       children: [
         {
-          type: 'link',
-          path: '/child1',
-          title: 'Child 1',
+          type: "link",
+          path: "/child1",
+          title: "Child 1",
         },
       ],
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const childItem = container.querySelector("[data-testid='sidebar-item']");
     expect(childItem).toBeInTheDocument();
-    expect(childItem).toHaveTextContent('Child 1');
+    expect(childItem).toHaveTextContent("Child 1");
   });
 
-  test('does not render children when hideChildren is true', () => {
+  test("does not render children when hideChildren is true", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
       hideChildren: true,
       children: [
         {
-          type: 'link',
-          path: '/child1',
-          title: 'Child 1',
+          type: "link",
+          path: "/child1",
+          title: "Child 1",
         },
       ],
     };
@@ -182,101 +198,105 @@ describe('rendering', () => {
     expect(childItem).not.toBeInTheDocument();
   });
 
-  test('applies active styles when active', () => {
+  test("applies active styles when active", () => {
     mockIsItemActive.mockReturnValue(true);
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveClass('bg-cms-bg-base');
-    expect(link).toHaveClass('shadow-elevation-card-rest dark:shadow-elevation-card-rest-dark');
-    expect(link).toHaveClass('text-cms-fg-base');
+    expect(link).toHaveClass("bg-cms-bg-base");
+    expect(link).toHaveClass(
+      "shadow-elevation-card-rest dark:shadow-elevation-card-rest-dark",
+    );
+    expect(link).toHaveClass("text-cms-fg-base");
   });
 
-  test('applies inactive styles when not active and nested is false', () => {
+  test("applies inactive styles when not active and nested is false", () => {
     mockIsItemActive.mockReturnValue(false);
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveClass('text-cms-fg-subtle');
+    expect(link).toHaveClass("text-cms-fg-subtle");
   });
 
-  test('applies nested styles when not active and nested is true', () => {
+  test("applies nested styles when not active and nested is true", () => {
     mockIsItemActive.mockReturnValue(false);
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: 'test',
-      title: 'Test Link',
+      type: "link",
+      path: "test",
+      title: "Test Link",
     };
     const { container } = render(<SidebarItemLink item={item} nested={true} />);
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveClass('text-cms-fg-muted');
+    expect(link).toHaveClass("text-cms-fg-muted");
     const title = container.querySelector("[data-testid='sidebar-item-title']");
-    expect(title).toHaveClass('pl-docs_1.5');
+    expect(title).toHaveClass("pl-docs_1.5");
   });
 
-  test('applies break-words for multi-word titles', () => {
+  test("applies break-words for multi-word titles", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link Title',
+      type: "link",
+      path: "/test",
+      title: "Test Link Title",
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveClass('break-words');
+    expect(link).toHaveClass("break-words");
   });
 
-  test('applies truncate for single-word titles', () => {
+  test("applies truncate for single-word titles", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Link',
+      type: "link",
+      path: "/test",
+      title: "Link",
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const title = container.querySelector("[data-testid='sidebar-item-title']");
     expect(title).toBeInTheDocument();
-    expect(title).toHaveClass('truncate');
+    expect(title).toHaveClass("truncate");
   });
 
-  test('applies custom className', () => {
+  test("applies custom className", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
-    const { container } = render(<SidebarItemLink item={item} className="custom-class" />);
+    const { container } = render(
+      <SidebarItemLink item={item} className="custom-class" />,
+    );
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveClass('custom-class');
+    expect(link).toHaveClass("custom-class");
   });
 
-  test('passes linkProps to Link component', () => {
+  test("passes linkProps to Link component", () => {
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
-      linkProps: { rel: 'noopener noreferrer' },
+      type: "link",
+      path: "/test",
+      title: "Test Link",
+      linkProps: { rel: "noopener noreferrer" },
     };
     const { container } = render(<SidebarItemLink item={item} />);
     const link = container.querySelector("[data-testid='sidebar-link']");
-    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 });
 
-describe('interactions', () => {
-  test('closes mobile sidebar when active and mobile', async () => {
+describe("interactions", () => {
+  test("closes mobile sidebar when active and mobile", async () => {
     mockIsItemActive.mockReturnValue(true);
     mockUseMobile.mockReturnValue({ isMobile: true });
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
     render(<SidebarItemLink item={item} />);
     await waitFor(() => {
@@ -284,46 +304,48 @@ describe('interactions', () => {
     });
   });
 
-  test('does not close mobile sidebar when not active', () => {
+  test("does not close mobile sidebar when not active", () => {
     mockIsItemActive.mockReturnValue(false);
     mockUseMobile.mockReturnValue({ isMobile: true });
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
     render(<SidebarItemLink item={item} />);
     expect(mockSetMobileSidebarOpen).not.toHaveBeenCalled();
   });
 });
 
-describe('scroll behavior', () => {
-  test('scrolls into view when active and parent category is open', () => {
+describe("scroll behavior", () => {
+  test("scrolls into view when active and parent category is open", () => {
     mockIsItemActive.mockReturnValue(true);
     const sidebarRef = React.createRef<HTMLDivElement>();
-    sidebarRef.current = document.createElement('div');
+    sidebarRef.current = document.createElement("div");
     mockUseSidebar.mockReturnValue({
       ...defaultUseSidebarReturn,
       sidebarRef,
     });
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
-    const { container } = render(<SidebarItemLink item={item} isParentCategoryOpen={true} />);
-    const listItem = container.querySelector('li');
+    const { container } = render(
+      <SidebarItemLink item={item} isParentCategoryOpen={true} />,
+    );
+    const listItem = container.querySelector("li");
     expect(listItem).toBeInTheDocument();
     // scrollIntoView should be called via useEffect
     expect(mockScrollIntoView).toHaveBeenCalledWith({
-      block: 'center',
+      block: "center",
     });
   });
 
   test("doesn't scroll into view when disableActiveTransition is true", () => {
     mockIsItemActive.mockReturnValue(true);
     const sidebarRef = React.createRef<HTMLDivElement>();
-    sidebarRef.current = document.createElement('div');
+    sidebarRef.current = document.createElement("div");
     mockUseSidebar.mockReturnValue({
       ...defaultUseSidebarReturn,
       disableActiveTransition: true,
@@ -331,9 +353,9 @@ describe('scroll behavior', () => {
       sidebarTopHeight: 0,
     });
     const item: Sidebar.SidebarItemLink = {
-      type: 'link',
-      path: '/test',
-      title: 'Test Link',
+      type: "link",
+      path: "/test",
+      title: "Test Link",
     };
     render(<SidebarItemLink item={item} isParentCategoryOpen={true} />);
     expect(mockScrollIntoView).not.toHaveBeenCalled();

@@ -7,13 +7,13 @@ use std::sync::Arc;
 
 use cms_content::{BranchQueries, PageQueries};
 use cms_db::{PgPool, mcp::McpAuditEventQueries};
-use cms_projects::ProjectQueries;
 use cms_entity::{
     common::PaginatedResponse,
     mcp::{McpAuditEventResponse, McpResourceItem, operation_types},
     project::Project,
 };
 use cms_error::AppError;
+use cms_projects::ProjectQueries;
 
 /// Shared execution context for MCP operations (database pool + authorization engine)
 #[derive(Clone)]

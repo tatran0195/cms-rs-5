@@ -22,7 +22,7 @@ pub mod types;
 
 pub use in_memory::MemoryJobQueue;
 pub use postgres::PostgresJobQueue;
-pub use reaper::{process_reaper_job, QueueService};
+pub use reaper::{QueueService, process_reaper_job};
 pub use traits::JobQueue;
 pub use types::*;
 

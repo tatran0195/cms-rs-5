@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { CheckMini, EllipseMiniSolid } from '@cms/icons';
-import type { Ref } from '@cms/types';
-import clsx from 'clsx';
-import type React from 'react';
-import { useCallback, useEffect, useRef } from 'react';
-import type { OptionType } from '@/hooks/use-select';
+import { CheckMini, EllipseMiniSolid } from "@cms/icons";
+import type { Ref } from "../../types";
+import clsx from "clsx";
+import type React from "react";
+import { useCallback, useEffect, useRef } from "react";
+import type { OptionType } from "@/hooks/use-select";
 
 export type SelectDropdownProps = {
   options: OptionType[];
@@ -43,9 +43,9 @@ export const SelectDropdown = ({
     (node: HTMLDivElement) => {
       // Ref's from useRef needs to have the node assigned to `current`
       ref.current = node;
-      if (typeof passedRef === 'function') {
+      if (typeof passedRef === "function") {
         passedRef(node);
-      } else if (passedRef && 'current' in passedRef) {
+      } else if (passedRef && "current" in passedRef) {
         passedRef.current = node;
       }
     },
@@ -65,7 +65,11 @@ export const SelectDropdown = ({
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
-      if (open && !ref.current?.contains(e.target as Element) && !parentRef?.current?.contains(e.target as Element)) {
+      if (
+        open &&
+        !ref.current?.contains(e.target as Element) &&
+        !parentRef?.current?.contains(e.target as Element)
+      ) {
         setOpen(false);
       }
     },
@@ -73,21 +77,27 @@ export const SelectDropdown = ({
   );
 
   useEffect(() => {
-    document.body.addEventListener('click', handleOutsideClick);
+    document.body.addEventListener("click", handleOutsideClick);
 
     return () => {
-      document.body.removeEventListener('click', handleOutsideClick);
+      document.body.removeEventListener("click", handleOutsideClick);
     };
   }, [handleOutsideClick]);
 
   const getSelectOption = (option: OptionType, index: number) => {
     const originalIsSelected = isValueSelected(option.value);
-    const isSelected = isAllSelected ? option.isAllOption || false : originalIsSelected;
+    const isSelected = isAllSelected
+      ? option.isAllOption || false
+      : originalIsSelected;
 
     return (
       <li
         key={index}
-        className={clsx('px-docs_0.25', index <= 0 && 'rounded-t-docs_DEFAULT', index === options.length - 1 && 'rounded-b-docs_DEFAULT')}
+        className={clsx(
+          "px-docs_0.25",
+          index <= 0 && "rounded-t-docs_DEFAULT",
+          index === options.length - 1 && "rounded-b-docs_DEFAULT",
+        )}
         onClick={() => {
           if (option.isAllOption) {
             handleSelectAll();
@@ -98,11 +108,11 @@ export const SelectDropdown = ({
       >
         <div
           className={clsx(
-            'px-docs_0.5 py-docs_0.25 flex-1 min-w-max rounded-docs_xs',
-            'hover:bg-cms-bg-component-hover cursor-pointer',
-            'flex gap-docs_0.5 text-cms-fg-base items-center',
-            !isSelected && 'text-compact-small',
-            isSelected && 'text-compact-small-plus',
+            "px-docs_0.5 py-docs_0.25 flex-1 min-w-max rounded-docs_xs",
+            "hover:bg-cms-bg-component-hover cursor-pointer",
+            "flex gap-docs_0.5 text-cms-fg-base items-center",
+            !isSelected && "text-compact-small",
+            isSelected && "text-compact-small-plus",
           )}
           data-testid="select-dropdown-option"
         >
@@ -127,7 +137,13 @@ export const SelectDropdown = ({
   };
 
   const getDivider = () => (
-    <svg width="176" height="8" viewBox="0 0 176 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="176"
+      height="8"
+      viewBox="0 0 176 8"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <rect width="168" height="8" transform="translate(4)" fill="#FAFAFA" />
       <rect y="4" width="176" height="1" fill="white" />
       <rect y="3" width="176" height="1" fill="#E4E4E7" />
@@ -137,10 +153,10 @@ export const SelectDropdown = ({
   return (
     <div
       className={clsx(
-        'absolute left-0 md:left-docs_1',
-        'z-10',
-        'h-0 translate-y-0 overflow-hidden transition-transform',
-        open && 'h-auto translate-y-docs_0.5 !overflow-visible',
+        "absolute left-0 md:left-docs_1",
+        "z-10",
+        "h-0 translate-y-0 overflow-hidden transition-transform",
+        open && "h-auto translate-y-docs_0.5 !overflow-visible",
         className,
       )}
       ref={setRefs}
@@ -148,18 +164,18 @@ export const SelectDropdown = ({
     >
       <ul
         className={clsx(
-          'mb-0 py-docs_0.25 overflow-auto rounded-docs_DEFAULT',
-          'bg-cms-bg-component text-cms-fg-base',
-          'shadow-elevation-flyout dark:shadow-elevation-flyout-dark list-none',
-          'flex flex-col',
+          "mb-0 py-docs_0.25 overflow-auto rounded-docs_DEFAULT",
+          "bg-cms-bg-component text-cms-fg-base",
+          "shadow-elevation-flyout dark:shadow-elevation-flyout-dark list-none",
+          "flex flex-col",
         )}
       >
         {addAll && (
           <>
             {getSelectOption(
               {
-                value: 'all',
-                label: 'All Areas',
+                value: "all",
+                label: "All Areas",
                 isAllOption: true,
               },
               -1,
