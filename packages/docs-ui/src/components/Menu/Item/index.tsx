@@ -2,7 +2,7 @@
 
 import type { MenuItemLink, MenuItem as MenuItemType } from "@/types";
 import clsx from "clsx";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 
 export type MenuItemProps = {
   item: MenuItemLink;

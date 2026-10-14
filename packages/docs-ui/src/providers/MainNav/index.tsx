@@ -5,7 +5,7 @@ import type {
   NavigationItem,
   NavigationItemDropdown,
 } from "../../types";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/hooks/use-docs-router";
 import type React from "react";
 import { createContext, useContext, useMemo } from "react";
 import { useSidebar } from "../Sidebar";

@@ -1,7 +1,7 @@
 'use state';
 
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { useSiteConfig } from '../../../providers/SiteConfig';
 import { Tooltip } from '../../Tooltip';
 

@@ -3,7 +3,7 @@
 import { TriangleRightMini } from "@cms/icons";
 import type { Sidebar } from "@/types";
 import clsx from "clsx";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import React, { useMemo } from "react";
 import type { BreadcrumbList } from "schema-dts";
 import { useSidebar } from "@/providers/Sidebar";

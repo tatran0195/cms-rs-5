@@ -3,7 +3,7 @@
 import { ChatBubbleLeftRight, ThumbDown, ThumbUp } from '@cms/icons';
 import { RadioGroup } from '@cms/ui';
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 // @ts-expect-error can't install the types package because it doesn't support React v19

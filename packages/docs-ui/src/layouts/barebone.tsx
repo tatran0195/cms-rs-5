@@ -1,4 +1,3 @@
-import { GoogleAnalytics } from '@next/third-parties/google';
 import clsx from 'clsx';
 import type React from 'react';
 
@@ -9,9 +8,13 @@ export type BareboneLayoutProps = {
 };
 
 export const BareboneLayout = ({ htmlClassName, children, gaId }: BareboneLayoutProps) => (
-  <html lang="en" className={clsx('h-full w-full', htmlClassName)}>
-    <head />
+  <div className={clsx('h-full w-full', htmlClassName)}>
     {children}
-    {gaId && <GoogleAnalytics gaId={gaId} />}
-  </html>
+    {gaId && (
+      <script
+        async
+        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+      />
+    )}
+  </div>
 );

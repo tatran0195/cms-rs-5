@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { GITHUB_ISSUES_LINK } from '../../constants';
 import { Button } from '../Button';
 import { ErrorPageIcon } from './Icon';

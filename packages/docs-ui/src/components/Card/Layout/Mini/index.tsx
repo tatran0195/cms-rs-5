@@ -2,8 +2,7 @@
 
 import { ArrowUpRightOnBox, TriangleRightMini, XMark } from '@cms/icons';
 import clsx from 'clsx';
-import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { BorderedIcon } from '@/components/BorderedIcon';
 import { Button } from '@/components/Button';
 import type { CardProps } from '@/components/Card';
@@ -44,7 +43,7 @@ export const CardLayoutMini = ({
       <div className={clsx('rounded-docs_DEFAULT flex gap-docs_0.75 py-docs_0.25', 'pl-docs_0.25 pr-docs_0.75 items-center')}>
         {icon && <BorderedIcon wrapperClassName={clsx('p-[4.5px] bg-cms-bg-component-hover')} IconComponent={icon} />}
         {image && (
-          <Image
+          <img
             src={image}
             className={clsx('shadow-elevation-card-rest dark:shadow-elevation-card-rest-dark', 'rounded-docs_xs', iconClassName)}
             width={imageDimensions.width}

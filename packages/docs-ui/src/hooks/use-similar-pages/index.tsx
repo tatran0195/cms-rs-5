@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '../use-docs-router';
 import { useEffect, useState } from 'react';
 import type { HitType } from '../../components';
 import { useSearch } from '../../providers/Search';

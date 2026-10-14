@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '../use-docs-router';
 import { useMemo } from 'react';
 import { useIsBrowser } from '../../providers/BrowserProvider';
 import { useSiteConfig } from '../../providers/SiteConfig';

@@ -3,7 +3,7 @@
 import { TriangleRightMini } from "@cms/icons";
 import type { MenuItemSubMenu } from "@/types";
 import clsx from "clsx";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useState } from "react";
 import { Menu, type MenuProps } from "..";
 

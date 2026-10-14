@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@/hooks/use-docs-router';
 import { useEffect, useState } from 'react';
 import type { TechArticle } from 'schema-dts';
 import { useIsBrowser } from '../../providers/BrowserProvider';

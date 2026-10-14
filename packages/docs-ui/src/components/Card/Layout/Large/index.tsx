@@ -1,6 +1,6 @@
 import { ArrowUpRightOnBox, TriangleRightMini } from '@cms/icons';
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import type { CardProps } from '@/components/Card';
 import { useIsExternalLink } from '@/hooks/use-is-external-link';
 

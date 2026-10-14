@@ -1,6 +1,6 @@
 import { TriangleLeftMini, TriangleRightMini } from '@cms/icons';
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 
 type PaginationCardProps = {
   type: 'previous' | 'next';

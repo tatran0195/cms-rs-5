@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '../use-docs-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { isElmWindow, useIsBrowser, useScrollController } from '../..';
 import { useMutationObserver } from '../use-mutation-observer';
@@ -118,13 +118,30 @@ export const useActiveOnScroll = ({ rootElm, enable = true, useDefaultIfNoActive
     let closestNegativeDistance = Number.NEGATIVE_INFINITY;
     const halfway = isElmWindow(scrollableElement) ? scrollableElement.innerHeight / 2 : scrollableElement ? scrollableElement.scrollHeight / 2 : 0;
 
-    if (scrollableElement?.scrollTop === 0) {
+    const isWin = isElmWindow(scrollableElement);
+    const currentScrollTop = isWin
+      ? scrollableElement.scrollY
+      : scrollableElement
+        ? scrollableElement.scrollTop
+        : 0;
+    const currentClientHeight = isWin
+      ? scrollableElement.innerHeight
+      : scrollableElement
+        ? scrollableElement.clientHeight
+        : 0;
+    const currentScrollHeight = isWin
+      ? document.documentElement.scrollHeight
+      : scrollableElement
+        ? scrollableElement.scrollHeight
+        : 0;
+
+    if (currentScrollTop === 0) {
       // set the first heading as active if the scrollable element is at the top
       setActiveItemId(items.length && useDefaultIfNoActive ? items[0].heading.id : '');
 
       return;
     }
-    if (scrollableElement?.scrollTop + scrollableElement?.clientHeight >= scrollableElement?.scrollHeight) {
+    if (currentScrollTop + currentClientHeight >= currentScrollHeight) {
       // set the last heading as active if the scrollable element is at the bottom
       let lastHeading = items[items.length - 1];
       while (lastHeading?.children?.length) {

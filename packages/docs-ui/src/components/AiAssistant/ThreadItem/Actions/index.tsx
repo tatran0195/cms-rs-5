@@ -1,7 +1,7 @@
 import { CheckCircle, Link as LinkIcon, SquareTwoStack, ThumbDown, ThumbUp } from '@cms/icons';
 import { type Reaction, useChat } from '@kapaai/react-sdk';
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { useState } from 'react';
 import { Button, type ButtonProps } from '@/components/Button';
 import { useCopy } from '../../../../hooks/use-copy';

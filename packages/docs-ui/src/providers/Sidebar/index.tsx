@@ -1,7 +1,7 @@
 "use client";
 
 import type { Sidebar } from "../../types";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/hooks/use-docs-router";
 import type React from "react";
 import {
   createContext,

@@ -2,7 +2,7 @@
 
 import { TriangleRightMini } from '@cms/icons';
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import type React from 'react';
 import { useMainNav } from '../../../../providers/MainNav';
 import type { SelectedMenu } from '..';

@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@/hooks/use-docs-router';
 import posthog from 'posthog-js';
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';

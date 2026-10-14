@@ -2,7 +2,7 @@
 
 import { ArrowDownLeftMini, ArrowsPointingOutMini, FlagMini, Link, TriangleRightMini } from '@cms/icons';
 import clsx from 'clsx';
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@/hooks/use-docs-router';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CopyButton } from '@/components/CopyButton';

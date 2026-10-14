@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import type React from 'react';
 import { Link, type LinkProps } from '../Link';
 
-export type LinkButtonProps = LinkProps & {
+export type LinkButtonProps = Omit<LinkProps, 'variant'> & {
   variant?: 'base' | 'interactive' | 'subtle' | 'muted';
   className?: string;
 };

@@ -1,6 +1,5 @@
 import type { IconProps } from '@cms/icons/dist/types';
 import clsx from 'clsx';
-import Image from 'next/image';
 import type React from 'react';
 
 export type BorderedIconProps = {
@@ -35,7 +34,7 @@ export const BorderedIcon = ({
   >
     <span className={clsx('rounded-docs_xs', wrapperClassName)}>
       {!IconComponent && (
-        <Image src={icon || ''} className={clsx(iconClassName, 'bordered-icon rounded-docs_xs')} width={iconWidth} height={iconHeight} alt="" />
+        <img src={icon || ''} className={clsx(iconClassName, 'bordered-icon rounded-docs_xs')} width={iconWidth} height={iconHeight} alt="" />
       )}
       {IconComponent && <IconComponent className={clsx('text-cms-fg-subtle rounded-docs_xs', iconClassName, 'bordered-icon', iconColorClassName)} />}
     </span>

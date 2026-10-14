@@ -2,8 +2,8 @@
 
 import { BroomSparkle, MarkdownSolid } from '@cms/icons';
 import { useChat } from '@kapaai/react-sdk';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link } from '@/components/Link';
+import { usePathname } from '@/hooks/use-docs-router';
 import { useMemo } from 'react';
 import { useAiAssistant } from '@/providers/AiAssistant';
 import { useSiteConfig } from '@/providers/SiteConfig';

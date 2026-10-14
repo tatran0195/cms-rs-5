@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 
 export type PrerequisiteItemPosition = 'top' | 'middle' | 'bottom' | 'alone';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '../use-docs-router';
 import { useEffect, useState } from 'react';
 import { getScrolledTop, isElmWindow } from '../../utils';
 import { useScrollController } from '../use-scroll-utils';

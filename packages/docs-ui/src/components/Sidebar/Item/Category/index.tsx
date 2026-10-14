@@ -5,7 +5,7 @@
 import { TriangleDownMini, TriangleUpMini } from "@cms/icons";
 import type { Sidebar } from "@/types";
 import clsx from "clsx";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/Badge";

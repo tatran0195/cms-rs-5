@@ -1,7 +1,8 @@
 'use client';
 
-import { useAnalytics, useIsBrowser } from '@cms/docs-ui';
-import { usePathname, useRouter } from 'next/navigation';
+import { useAnalytics } from '../Analytics';
+import { useIsBrowser } from '../BrowserProvider';
+import { usePathname, useRouter } from '@/hooks/use-docs-router';
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { LearningPathFinishType } from '@/components/LearningPath/Finish';

@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { useMemo } from 'react';
 import { Button } from '@/components/Button';
 import { SearchModalOpener } from '@/components/Search/ModalOpener';

@@ -2,7 +2,7 @@
 
 import type { ToCItem, ToCItemUi } from "@/types";
 import clsx from "clsx";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useEffect } from "react";
 import {
   type ActiveOnScrollItem,

@@ -12,6 +12,8 @@ export type LinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   variant?: 'default' | 'content';
   replace?: boolean;
   scroll?: boolean;
+  prefetch?: boolean;
+  passHref?: boolean;
 };
 
 const HASH_REGEX = /#.*$/;
@@ -25,6 +27,8 @@ export const Link = ({
   withIcon = false,
   variant = 'default',
   replace,
+  prefetch,
+  passHref,
   ...rest
 }: LinkProps) => {
   let targetUrl = to || href || '';

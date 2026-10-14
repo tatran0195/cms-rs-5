@@ -1,5 +1,5 @@
 import type { IconProps } from '@cms/icons/dist/types';
-import type { LinkProps } from 'next/link';
+import type { LinkProps } from '@/components/Link';
 import type React from 'react';
 import type { BadgeProps } from '@/components/Badge';
 import { CardBloomLayout } from './Layout/Bloom';

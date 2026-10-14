@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import type { CardProps } from '../../../..';
 
 export const CardFillerLayout = ({ text, href, className }: CardProps) => (
