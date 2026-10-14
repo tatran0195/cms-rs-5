@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import type React from 'react';
-import { lazy, Suspense } from 'react';
-import { Loading } from '@/components/Loading';
+import TypeListItems from './Items';
 
 export type CommonProps = {
   expandUrl?: string;
@@ -32,15 +31,11 @@ type ParameterTypesType = {
 } & CommonProps &
   React.HTMLAttributes<HTMLDivElement>;
 
-const TypeListItems = lazy(async () => import('./Items'));
-
 export const TypeList = ({ types, className, sectionTitle, expandUrl, openedLevel, ...props }: ParameterTypesType) => (
   <div
     className={clsx('bg-cms-bg-subtle rounded my-docs_1', 'shadow-elevation-card-rest dark:shadow-elevation-card-rest-dark', className)}
     {...props}
   >
-    <Suspense fallback={<Loading />}>
-      <TypeListItems types={types} expandUrl={expandUrl} sectionTitle={sectionTitle} openedLevel={openedLevel} />
-    </Suspense>
+    <TypeListItems types={types} expandUrl={expandUrl} sectionTitle={sectionTitle} openedLevel={openedLevel} />
   </div>
 );

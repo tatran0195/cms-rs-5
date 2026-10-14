@@ -23,13 +23,6 @@ vi.mock('@/providers/SiteConfig', () => ({
   useSiteConfig: () => mockUseSiteConfig(),
 }));
 
-vi.mock('next/link', () => ({
-  default: (props: { href: string; target?: string; className?: string; children: React.ReactNode }) => (
-    <a href={props.href} target={props.target} className={props.className}>
-      {props.children}
-    </a>
-  ),
-}));
 
 vi.mock('@/components/Tooltip', () => ({
   Tooltip: ({ html, children }: { html: string; children: React.ReactNode }) => (

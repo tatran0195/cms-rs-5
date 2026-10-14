@@ -49,26 +49,32 @@ vi.mock("@/components/Badge", () => ({
   ),
 }));
 
-vi.mock("next/link", () => ({
-  default: ({
+
+vi.mock("@/components/Link", () => ({
+  Link: ({
     href,
+    to,
     children,
     className,
     target,
     rel,
+    ...props
   }: {
-    href: string;
-    children: React.ReactNode;
+    href?: string;
+    to?: string;
+    children?: React.ReactNode;
     className?: string;
     target?: string;
     rel?: string;
+    [key: string]: unknown;
   }) => (
     <a
-      href={href}
+      href={to || href}
       className={className}
       target={target}
       rel={rel}
       data-testid="sidebar-link"
+      {...props}
     >
       {children}
     </a>

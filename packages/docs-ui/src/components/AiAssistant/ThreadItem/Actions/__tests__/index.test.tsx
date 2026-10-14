@@ -39,9 +39,6 @@ vi.mock('@/providers/SiteConfig', () => ({
 vi.mock('@/components/Button', () => ({
   Button: (props: ButtonProps) => <button {...props} />,
 }));
-vi.mock('next/link', () => ({
-  default: ({ children, ...props }: React.ComponentProps<'a'>) => <a {...props}>{children}</a>,
-}));
 vi.mock('@/hooks/use-copy', () => ({
   useCopy: () => useCopyMock(),
 }));

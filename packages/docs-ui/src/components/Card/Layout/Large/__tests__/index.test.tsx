@@ -3,41 +3,6 @@ import type React from 'react';
 import { describe, expect, test, vi } from 'vitest';
 import { CardLargeLayout } from '../index';
 
-// mock components
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    className,
-    target,
-    rel,
-    onClick,
-    'aria-label': ariaLabel,
-  }: {
-    href: string;
-    children: React.ReactNode;
-    className?: string;
-    target?: string;
-    rel?: string;
-    onClick?: () => void;
-    'aria-label'?: string;
-  }) => (
-    <a
-      href={href}
-      className={className}
-      target={target}
-      rel={rel}
-      onClick={(e) => {
-        // can't perform actual navigation in tests
-        e.preventDefault();
-        onClick?.();
-      }}
-      aria-label={ariaLabel}
-    >
-      {children}
-    </a>
-  ),
-}));
 
 describe('rendering', () => {
   test('renders card large layout with title', () => {

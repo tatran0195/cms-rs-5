@@ -27,7 +27,8 @@ export const NoteLayout = ({ type, title, children, forceMultiline = false }: No
         stringChildren.push(...childInfo.stringChildren);
       } else if (React.isValidElement(child) && typeof child.props === 'object' && child.props && 'children' in child.props && child.props.children) {
         const typeStr = child.type.toString();
-        if (typeStr.includes('InlineCode') && typeof child.props.children === 'string') {
+        const typeName = (typeof child.type === 'function' ? child.type.name : '') || typeStr;
+        if (typeName.includes('InlineCode') && typeof child.props.children === 'string') {
           stringChildren.push(`\`${child.props.children}\``);
           return;
         }

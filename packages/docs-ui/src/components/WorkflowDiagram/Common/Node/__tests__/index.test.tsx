@@ -78,17 +78,20 @@ vi.mock("@/components/CodeBlock", () => ({
   ),
 }));
 
-vi.mock("next/link", () => ({
-  default: ({
+
+vi.mock("@/components/Link", () => ({
+  Link: ({
     href,
+    to,
     children,
     className,
   }: {
-    href: string;
-    children: React.ReactNode;
+    href?: string;
+    to?: string;
+    children?: React.ReactNode;
     className?: string;
   }) => (
-    <a href={href} className={className} data-testid="step-link">
+    <a href={to || href} className={className} data-testid="step-link">
       {children}
     </a>
   ),

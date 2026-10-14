@@ -1,38 +1,6 @@
 import { fireEvent, render } from '@testing-library/react';
-import type React from 'react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-// mock components
-vi.mock('next/link', () => ({
-  default: ({
-    href,
-    className,
-    children,
-    onClick,
-    target,
-    rel,
-  }: {
-    href: string;
-    className?: string;
-    children: React.ReactNode;
-    onClick?: () => void;
-    target?: string;
-    rel?: string;
-  }) => (
-    <a
-      href={href}
-      className={className}
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.();
-      }}
-      target={target}
-      rel={rel}
-    >
-      {children}
-    </a>
-  ),
-}));
 
 // mock data
 const mockItem = {

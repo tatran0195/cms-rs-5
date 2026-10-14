@@ -2,22 +2,25 @@ import { render } from '@testing-library/react';
 import type React from 'react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+
 // mock components
-vi.mock('next/link', () => ({
-  default: ({
+vi.mock('@/components/Link', () => ({
+  Link: ({
     href,
+    to,
     className,
     children,
     target,
     rel,
   }: {
-    href: string;
+    href?: string;
+    to?: string;
     className?: string;
-    children: React.ReactNode;
+    children?: React.ReactNode;
     target?: string;
     rel?: string;
   }) => (
-    <a href={href} className={className} target={target} rel={rel} data-testid="prerequisite-link">
+    <a href={to || href} className={className} target={target} rel={rel} data-testid="prerequisite-link">
       {children}
     </a>
   ),

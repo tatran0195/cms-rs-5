@@ -26,7 +26,7 @@ vi.mock('@/providers/SiteConfig', () => ({
 vi.mock('@kapaai/react-sdk', () => ({
   useChat: () => AiAssistantMocks.mockUseChat(),
 }));
-vi.mock('next/navigation', () => ({
+vi.mock('@/hooks/use-docs-router', () => ({
   usePathname: () => mockUsePathname(),
 }));
 vi.mock('@/components/ContentMenu/Section', () => ({

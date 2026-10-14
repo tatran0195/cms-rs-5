@@ -31,11 +31,24 @@ const mockItemWithoutLink = {
 // mock functions
 const mockItemsOnClick = vi.fn();
 
+
 // mock components
-vi.mock('next/link', () => ({
-  default: ({ href, className, children, onClick }: { href: string; className?: string; children: React.ReactNode; onClick?: () => void }) => (
+vi.mock('@/components/Link', () => ({
+  Link: ({
+    href,
+    to,
+    className,
+    children,
+    onClick,
+  }: {
+    href?: string;
+    to?: string;
+    className?: string;
+    children?: React.ReactNode;
+    onClick?: () => void;
+  }) => (
     <a
-      href={href}
+      href={to || href}
       className={className}
       onClick={(e) => {
         e.preventDefault();

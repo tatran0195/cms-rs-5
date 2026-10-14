@@ -1,5 +1,4 @@
 import { fireEvent, render } from '@testing-library/react';
-import type React from 'react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 // mock data
@@ -36,21 +35,6 @@ vi.mock('@/providers/MainNav', () => ({
   useMainNav: () => mockUseMainNav(),
 }));
 
-vi.mock('next/link', () => ({
-  default: ({ href, className, children, onClick }: { href: string; className?: string; children: React.ReactNode; onClick?: () => void }) => (
-    <a
-      href={href}
-      className={className}
-      onClick={(e) => {
-        // can't perform actual navigation in tests
-        e.preventDefault();
-        onClick?.();
-      }}
-    >
-      {children}
-    </a>
-  ),
-}));
 
 import { MainNavMobileMainMenu } from '../../Main';
 

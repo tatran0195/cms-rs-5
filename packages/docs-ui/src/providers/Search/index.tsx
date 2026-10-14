@@ -75,10 +75,8 @@ export const SearchProvider = ({
   const searchClient: SearchClient = useMemo(() => algoliasearch(algolia.appId, algolia.apiKey), [algolia.appId, algolia.apiKey]);
 
   useEffect(() => {
-    if (initialDefaultIndex !== selectedIndex) {
-      setSelectedIndex(initialDefaultIndex);
-    }
-  }, [initialDefaultIndex, selectedIndex]);
+    setSelectedIndex(initialDefaultIndex);
+  }, [initialDefaultIndex]);
 
   const componentWrapperRef = useRef(null);
 

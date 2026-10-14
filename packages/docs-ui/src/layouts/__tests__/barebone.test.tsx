@@ -1,32 +1,40 @@
 import { render } from '@testing-library/react';
-import { describe, expect, test, vi } from 'vitest';
-
-const mockGoogleAnalytics = vi.fn((_props?: { gaId: string }) => <script data-testid="ga-script" />);
-
-vi.mock('@next/third-parties/google', () => ({
-  GoogleAnalytics: (props: { gaId: string }) => mockGoogleAnalytics(props),
-}));
-
+import { afterEach, describe, expect, test } from 'vitest';
 import { BareboneLayout } from '../barebone';
 
 describe('BareboneLayout', () => {
-  test('does not render GoogleAnalytics when gaId is not provided', () => {
-    const { queryByTestId } = render(
+  afterEach(() => {
+    document.querySelectorAll('script').forEach((s) => {
+      s.remove();
+    });
+  });
+  test('renders children in a container div', () => {
+    const { getByText } = render(
       <BareboneLayout>
         <div>content</div>
       </BareboneLayout>,
     );
-    expect(queryByTestId('ga-script')).not.toBeInTheDocument();
-    expect(mockGoogleAnalytics).not.toHaveBeenCalled();
+    expect(getByText('content')).toBeInTheDocument();
   });
 
-  test('renders GoogleAnalytics with the provided gaId', () => {
-    const { queryByTestId } = render(
+  test('renders Google Analytics script when gaId is provided', () => {
+    render(
       <BareboneLayout gaId="G-TESTID">
         <div>content</div>
       </BareboneLayout>,
     );
-    expect(queryByTestId('ga-script')).toBeInTheDocument();
-    expect(mockGoogleAnalytics).toHaveBeenCalledWith(expect.objectContaining({ gaId: 'G-TESTID' }));
+    const script = document.querySelector('script');
+    expect(script).toBeInTheDocument();
+    expect(script).toHaveAttribute('src', 'https://www.googletagmanager.com/gtag/js?id=G-TESTID');
+  });
+
+  test('does not render script when gaId is not provided', () => {
+    render(
+      <BareboneLayout>
+        <div>content</div>
+      </BareboneLayout>,
+    );
+    const script = document.querySelector('script');
+    expect(script).not.toBeInTheDocument();
   });
 });

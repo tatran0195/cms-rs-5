@@ -28,7 +28,7 @@ vi.mock('@/providers/Analytics/providers/reo-dev', () => ({
   useReoDevAnalytics: (options: unknown) => mockUseReoDevAnalytics(options),
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock('@/hooks/use-docs-router', () => ({
   usePathname: () => mockUsePathname(),
 }));
 

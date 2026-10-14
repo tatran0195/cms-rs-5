@@ -2,10 +2,6 @@ import { render } from '@testing-library/react';
 import type React from 'react';
 import { describe, expect, test, vi } from 'vitest';
 
-// mock next/link
-vi.mock('next/link', () => ({
-  default: ({ children, ...props }: React.ComponentProps<'a'>) => <a {...props}>{children}</a>,
-}));
 
 import { HeadlineTags } from '../index';
 

@@ -15,7 +15,7 @@ const defaultUseSiteConfigReturn = {
 const mockPathname = "/test-path";
 const mockUsePathname = vi.fn(() => mockPathname);
 
-vi.mock("next/navigation", () => ({
+vi.mock("@/hooks/use-docs-router", () => ({
   usePathname: () => mockUsePathname(),
 }));
 

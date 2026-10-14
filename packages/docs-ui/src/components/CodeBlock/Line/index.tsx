@@ -1,13 +1,9 @@
 import clsx from 'clsx';
-import dynamic from 'next/dynamic';
 import type { RenderProps, Token } from 'prism-react-renderer';
 import React, { useMemo } from 'react';
+import { MarkdownContent } from '@/components/MarkdownContent';
 import { Tooltip } from '@/components/Tooltip';
 import type { CodeBlockStyle, Highlight } from '../../CodeBlock';
-
-const MarkdownContent = dynamic(async () => import('@/components/MarkdownContent').then((mod) => mod.MarkdownContent), {
-  ssr: false,
-});
 
 type HighlightedTokens = {
   start: number;

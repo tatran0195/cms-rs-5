@@ -32,7 +32,7 @@ vi.mock('@/providers/BrowserProvider', () => ({
   useIsBrowser: () => mockUseIsBrowser(),
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock('@/hooks/use-docs-router', () => ({
   usePathname: () => mockUsePathname(),
 }));
 

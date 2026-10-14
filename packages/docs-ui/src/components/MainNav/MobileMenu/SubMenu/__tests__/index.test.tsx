@@ -1,6 +1,5 @@
 import type { MenuItem } from "@/types";
 import { fireEvent, render } from "@testing-library/react";
-import type React from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 // mock data
@@ -30,35 +29,6 @@ const mockMenu: MenuItem[] = [
 const mockSetSelectedMenus = vi.fn();
 const mockOnOpenLink = vi.fn();
 
-// mock components
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    className,
-    children,
-    onClick,
-    ...props
-  }: {
-    href: string;
-    className?: string;
-    children: React.ReactNode;
-    onClick?: () => void;
-    [key: string]: unknown;
-  }) => (
-    <a
-      href={href}
-      className={className}
-      onClick={(e) => {
-        // can't perform actual navigation in tests
-        e.preventDefault();
-        onClick?.();
-      }}
-      {...props}
-    >
-      {children}
-    </a>
-  ),
-}));
 
 import { MainNavMobileSubMenu } from "../../SubMenu";
 
