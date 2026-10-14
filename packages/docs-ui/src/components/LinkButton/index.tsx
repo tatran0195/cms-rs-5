@@ -1,12 +1,11 @@
 import clsx from 'clsx';
-import type { LinkProps as NextLinkProps } from 'next/link';
-import Link from 'next/link';
 import type React from 'react';
+import { Link, type LinkProps } from '../Link';
 
-type LinkButtonProps = NextLinkProps & {
+export type LinkButtonProps = LinkProps & {
   variant?: 'base' | 'interactive' | 'subtle' | 'muted';
   className?: string;
-} & React.AllHTMLAttributes<HTMLAnchorElement>;
+};
 
 export const LinkButton = ({ variant = 'base', className, ...linkProps }: LinkButtonProps) => (
   <Link

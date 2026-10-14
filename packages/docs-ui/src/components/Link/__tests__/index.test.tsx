@@ -1,15 +1,5 @@
 import { render } from '@testing-library/react';
-import type React from 'react';
-import { describe, expect, test, vi } from 'vitest';
-
-vi.mock('next/link', () => ({
-  default: ({ children, href, className, ...props }: { children: React.ReactNode; href: string; className?: string; [key: string]: unknown }) => (
-    <a href={href} className={className} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
+import { describe, expect, test } from 'vitest';
 import { Link } from '../../Link';
 
 describe('rendering', () => {
@@ -19,6 +9,23 @@ describe('rendering', () => {
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/test');
     expect(link).toHaveTextContent('Test Link');
+  });
+
+  test('renders link with to prop', () => {
+    const { container } = render(<Link to="/test-to">Test To</Link>);
+    const link = container.querySelector('a');
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/test-to');
+    expect(link).toHaveTextContent('Test To');
+  });
+
+  test('renders external link with target and rel', () => {
+    const { container } = render(<Link href="https://example.com">External</Link>);
+    const link = container.querySelector('a');
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', 'https://example.com');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
   test('renders with default variant', () => {

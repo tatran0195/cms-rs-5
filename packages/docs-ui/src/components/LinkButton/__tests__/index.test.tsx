@@ -1,11 +1,5 @@
 import { render } from '@testing-library/react';
-import type React from 'react';
-import { describe, expect, test, vi } from 'vitest';
-
-vi.mock('next/link', () => ({
-  default: (props: { children: React.ReactNode; href: string; className?: string; [key: string]: unknown }) => <a {...props} />,
-}));
-
+import { describe, expect, test } from 'vitest';
 import { LinkButton } from '../../LinkButton';
 
 describe('rendering', () => {
