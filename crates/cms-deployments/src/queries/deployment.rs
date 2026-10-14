@@ -270,13 +270,6 @@ impl DeploymentQueries {
                     WHERE translation.project_id = deployment.project_id
                       AND language.enabled = TRUE
                 ), '[]'::JSONB),
-                'openapi', (
-                    SELECT document.content
-                    FROM "OpenApiDocument" AS document
-                    WHERE document.project_id = deployment.project_id
-                    ORDER BY document.updated_at DESC, document.created_at DESC
-                    LIMIT 1
-                ),
                 'pages', COALESCE((
                     SELECT jsonb_agg(to_jsonb(page) ORDER BY page.language_id, page.path)
                     FROM "Page" AS page
@@ -800,7 +793,7 @@ impl DeploymentQueries {
         .await?;
 
         sqlx::query(
-            r#"INSERT INTO "CmsJob" (
+            r#"INSERT INTO "cms_job" (
                    id, job_type, payload, status, retry_count, created_at, available_at
                ) VALUES ($1, 'publish', $2, 'pending', 0, $3, $3)"#,
         )
@@ -975,4 +968,3 @@ impl DeploymentQueries {
         Ok(rows.into_iter().map(Into::into).collect())
     }
 }
-

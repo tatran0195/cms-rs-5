@@ -111,7 +111,6 @@ cms-rs-4/
 │   ├── cms-workspaces/           # Vertical Slice: Workspace configuration, workspace-level member lifecycle, router
 │   ├── cms-admin/                # Vertical Slice: Platform-level administrative parity router and operations (including platform telemetry events)
 │   ├── cms-public/               # Vertical Slice: Unauthenticated reader-facing JSON API, SEO, RSS, sitemaps, changelog
-│   ├── cms-api-specs/            # Vertical Slice: Stored OpenAPI document CRUD (user-uploaded API specs)
 │   ├── cms-analytics/            # Vertical Slice: Workspace analytics, view tracking, stats API
 │   │
 │   ├── cms-outbox/               # Subsystem 1: Transactional Outbox with jittered backoff, worker, DLQ

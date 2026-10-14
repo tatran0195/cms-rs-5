@@ -16,7 +16,6 @@ pub mod authz;
 pub mod export;
 pub mod mcp;
 pub mod notification;
-pub mod openapi;
 pub mod platform_event;
 pub mod pool;
 pub mod search_index;

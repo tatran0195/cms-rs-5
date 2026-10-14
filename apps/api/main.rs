@@ -131,6 +131,14 @@ async fn main() -> Result<(), AppError> {
     )
     .await?;
 
+    // Synchronize default recurring jobs into cms_scheduled_jobs and start distributed runner
+    cms_scheduler::Scheduler::sync_registry(&state.pool, None).await?;
+    let scheduler_handle = cms_scheduler::Scheduler::spawn(
+        state.pool.clone(),
+        Arc::clone(&state.job_queue),
+        None,
+    );
+
     // Build the full router with all middleware
     let api_router = api_router(Arc::clone(&state));
     let sites_router = sites_router(Arc::clone(&state));
@@ -171,11 +179,12 @@ async fn main() -> Result<(), AppError> {
     .await
     .map_err(|e| AppError::Internal(e.into()))?;
 
-    info!("HTTP server drained; signaling background workers to terminate...");
+    info!("HTTP server drained; signaling background workers and scheduler to terminate...");
     let _ = worker_shutdown_tx.send(true);
+    let _ = scheduler_handle.stop().await;
     for handle in worker_handles {
         let _ = handle.await;
     }
-    info!("All background workers terminated cleanly.");
+    info!("All background workers and scheduler terminated cleanly.");
     Ok(())
 }

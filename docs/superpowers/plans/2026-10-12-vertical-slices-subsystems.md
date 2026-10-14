@@ -211,7 +211,7 @@ Verify invitation token generation, outbox event creation, acceptance, and role 
 
 ---
 
-### Task 6: Subsystem 5: Scheduling (`cms-scheduler` & `CmsJob.scheduled_at`)
+### Task 6: Subsystem 5: Scheduling (`cms-scheduler` & `cms_job.scheduled_at`)
 
 **Files:**
 - Create: `migrations/0023_scheduled_jobs.sql`
@@ -229,7 +229,7 @@ Verify invitation token generation, outbox event creation, acceptance, and role 
 - Produces: `Scheduler::spawn`, `CronJobSpec`, `enqueue_at`
 
 - [ ] **Step 1: Write `migrations/0023_scheduled_jobs.sql`**
-Add `scheduled_at` column to `CmsJob` with partial index. Create `cms_scheduled_jobs` table.
+Add `scheduled_at` column to `cms_job` with partial index. Create `cms_scheduled_jobs` table.
 
 - [ ] **Step 2: Update `crates/cms-queue/src/postgres.rs`**
 Update job dequeue query to enforce `(scheduled_at IS NULL OR scheduled_at <= now())`. Add `enqueue_at` method.

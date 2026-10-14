@@ -219,18 +219,6 @@ fn export_all_typescript_bindings() {
     cms_entity::comment::CommentUserResponse::export_all(&cfg).unwrap();
     cms_entity::comment::ProjectCommentResponse::export_all(&cfg).unwrap();
 
-    // OpenAPI
-    cms_entity::openapi::OpenApiDocumentResponse::export_all(&cfg).unwrap();
-    cms_entity::openapi::CreateOpenApiDocumentRequest::export_all(&cfg).unwrap();
-    cms_entity::openapi::UpdateOpenApiDocumentRequest::export_all(&cfg).unwrap();
-    cms_entity::openapi::ParseOpenApiDocumentRequest::export_all(&cfg).unwrap();
-    cms_entity::openapi::OpenApiParsingResult::export_all(&cfg).unwrap();
-    cms_entity::openapi::OpenApiPathInfo::export_all(&cfg).unwrap();
-    cms_entity::openapi::OpenApiDocumentWithPaths::export_all(&cfg).unwrap();
-    cms_entity::openapi::ProjectOpenApiSourceResponse::export_all(&cfg).unwrap();
-    cms_entity::openapi::ProjectOpenApiConfigurationResponse::export_all(&cfg).unwrap();
-    cms_entity::openapi::ProjectOpenApiValidationResponse::export_all(&cfg).unwrap();
-
     // Export
     cms_entity::export::ExportStatus::export_all(&cfg).unwrap();
     cms_entity::export::ExportFormat::export_all(&cfg).unwrap();

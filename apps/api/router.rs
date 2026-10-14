@@ -47,7 +47,6 @@ fn build_domain_subrouter(state: &Arc<AppState>) -> Router {
         .nest("/comments", cms_content::comment_router(Arc::clone(state)))
         .nest("/search", cms_search::router(Arc::clone(state)))
         .nest("/export", cms_reports::export_router(Arc::clone(state)))
-        .nest("/openapi", cms_api_specs::router(Arc::clone(state)))
         .nest("/notifications", cms_notifications::router(Arc::clone(state)))
         .nest("/assets", cms_assets::router(Arc::clone(state)))
         .nest("/analytics", cms_analytics::router(Arc::clone(state)))

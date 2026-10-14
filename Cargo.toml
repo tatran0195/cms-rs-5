@@ -41,7 +41,6 @@ cms-deployments = { path = "crates/cms-deployments" }
 cms-git = { path = "crates/cms-git" }
 cms-integrations = { path = "crates/cms-integrations" }
 cms-themes = { path = "crates/cms-themes" }
-cms-api-specs = { path = "crates/cms-api-specs" }
 cms-workspaces = { path = "crates/cms-workspaces" }
 cms-admin = { path = "crates/cms-admin" }
 cms-public = { path = "crates/cms-public" }

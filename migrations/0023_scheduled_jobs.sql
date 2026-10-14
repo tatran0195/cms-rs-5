@@ -1,11 +1,11 @@
--- Migration 0023: Scheduled jobs and CmsJob scheduled_at
--- Extends CmsJob with scheduled_at for deferred execution and creates cms_scheduled_jobs table
+-- Migration 0023: Scheduled jobs and cms_job scheduled_at
+-- Extends cms_job with scheduled_at for deferred execution and creates cms_scheduled_jobs table
 
-ALTER TABLE IF EXISTS "CmsJob"
+ALTER TABLE IF EXISTS "cms_job"
     ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS idx_cms_job_scheduled_available
-    ON "CmsJob" (status, available_at, scheduled_at)
+    ON "cms_job" (status, available_at, scheduled_at)
     WHERE status IN ('pending', 'retrying');
 
 CREATE TABLE IF NOT EXISTS cms_scheduled_jobs (

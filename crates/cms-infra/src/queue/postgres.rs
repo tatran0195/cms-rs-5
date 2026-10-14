@@ -89,7 +89,7 @@ impl PostgresJobQueue {
 
         let max_retries = self.max_retries.max(1).min(i32::MAX as usize) as i32;
         sqlx::query(
-            r#"UPDATE "CmsJob"
+            r#"UPDATE "cms_job"
                SET status = CASE WHEN retry_count + 1 >= $1 THEN 'failed' ELSE 'retrying' END,
                    retry_count = retry_count + 1,
                    error_message = 'Worker lease expired; job will be retried',
@@ -122,7 +122,7 @@ impl PostgresJobQueue {
         };
         let job_type = Self::job_type_text(&job.job_type)?;
         sqlx::query(
-            r#"INSERT INTO "CmsJob" (id, job_type, payload, status, retry_count,
+            r#"INSERT INTO "cms_job" (id, job_type, payload, status, retry_count,
                                       error_message, created_at, started_at, completed_at,
                                       available_at, scheduled_at)
                VALUES ($1, $2, $3, 'pending', 0, NULL, $4, NULL, NULL, $5, $6)"#,
@@ -165,7 +165,7 @@ impl PostgresJobQueue {
         };
         let job_type = Self::job_type_text(&job.job_type)?;
         sqlx::query(
-            r#"INSERT INTO "CmsJob" (id, job_type, payload, status, retry_count,
+            r#"INSERT INTO "cms_job" (id, job_type, payload, status, retry_count,
                                       error_message, created_at, started_at, completed_at,
                                       available_at, scheduled_at)
                VALUES ($1, $2, $3, 'pending', 0, NULL, $4, NULL, NULL, $5, $6)"#,
@@ -186,7 +186,7 @@ impl PostgresJobQueue {
         let row = sqlx::query_as::<_, JobRow>(
             r#"SELECT id, job_type, payload, status, retry_count, error_message,
                       created_at, started_at, completed_at, scheduled_at
-               FROM "CmsJob" WHERE id = $1"#,
+               FROM "cms_job" WHERE id = $1"#,
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -227,7 +227,7 @@ impl JobQueue for PostgresJobQueue {
             let row = sqlx::query_as::<_, JobRow>(
                 r#"SELECT id, job_type, payload, status, retry_count, error_message,
                           created_at, started_at, completed_at, scheduled_at
-                   FROM "CmsJob"
+                   FROM "cms_job"
                    WHERE status IN ('pending', 'retrying')
                      AND available_at <= NOW()
                      AND (scheduled_at IS NULL OR scheduled_at <= NOW())
@@ -241,7 +241,7 @@ impl JobQueue for PostgresJobQueue {
 
             if let Some(row) = row {
                 sqlx::query(
-                    r#"UPDATE "CmsJob"
+                    r#"UPDATE "cms_job"
                        SET status = 'processing', started_at = NOW(), locked_by = $2,
                            locked_at = NOW()
                        WHERE id = $1"#,
@@ -265,7 +265,7 @@ impl JobQueue for PostgresJobQueue {
 
     async fn ack(&self, job_id: &JobId) -> Result<(), AppError> {
         let result = sqlx::query(
-            r#"UPDATE "CmsJob"
+            r#"UPDATE "cms_job"
                SET status = 'completed', completed_at = NOW(), locked_by = NULL, locked_at = NULL
                WHERE id = $1 AND status = 'processing'"#,
         )
@@ -284,7 +284,7 @@ impl JobQueue for PostgresJobQueue {
 
     async fn nack(&self, job_id: &JobId, error_message: &str) -> Result<(), AppError> {
         let retry_count: Option<i32> = sqlx::query_scalar(
-            r#"SELECT retry_count FROM "CmsJob" WHERE id = $1 AND status = 'processing'"#,
+            r#"SELECT retry_count FROM "cms_job" WHERE id = $1 AND status = 'processing'"#,
         )
         .bind(&job_id.0)
         .fetch_optional(&self.pool)
@@ -296,7 +296,7 @@ impl JobQueue for PostgresJobQueue {
 
         if retry_count as usize >= self.max_retries.max(1) {
             sqlx::query(
-                r#"UPDATE "CmsJob"
+                r#"UPDATE "cms_job"
                    SET status = 'failed', retry_count = $2, error_message = $3,
                        completed_at = NOW(), locked_by = NULL, locked_at = NULL
                    WHERE id = $1"#,
@@ -310,7 +310,7 @@ impl JobQueue for PostgresJobQueue {
         } else {
             let backoff_seconds = 2_i64.pow(retry_count.clamp(1, 8) as u32).min(300);
             sqlx::query(
-                r#"UPDATE "CmsJob"
+                r#"UPDATE "cms_job"
                    SET status = 'retrying', retry_count = $2, error_message = $3,
                        available_at = NOW() + make_interval(secs => $4::double precision),
                        locked_by = NULL, locked_at = NULL
@@ -340,7 +340,7 @@ impl JobQueue for PostgresJobQueue {
     ) -> Result<Vec<JobEnvelope>, AppError> {
         let mut query = QueryBuilder::<Postgres>::new(
             r#"SELECT id, job_type, payload, status, retry_count, error_message,
-                      created_at, started_at, completed_at, scheduled_at FROM "CmsJob" WHERE TRUE"#,
+                      created_at, started_at, completed_at, scheduled_at FROM "cms_job" WHERE TRUE"#,
         );
         if let Some(status) = status {
             query
@@ -368,7 +368,7 @@ impl JobQueue for PostgresJobQueue {
 
     async fn retry_job(&self, job_id: JobId) -> Result<(), AppError> {
         let result = sqlx::query(
-            r#"UPDATE "CmsJob"
+            r#"UPDATE "cms_job"
                SET status = 'pending', retry_count = 0, error_message = NULL,
                    created_at = NOW(), available_at = NOW(), started_at = NULL,
                    completed_at = NULL, locked_by = NULL, locked_at = NULL
@@ -388,7 +388,7 @@ impl JobQueue for PostgresJobQueue {
     }
 
     async fn delete_job(&self, job_id: JobId) -> Result<bool, AppError> {
-        let result = sqlx::query(r#"DELETE FROM "CmsJob" WHERE id = $1"#)
+        let result = sqlx::query(r#"DELETE FROM "cms_job" WHERE id = $1"#)
             .bind(&job_id.0)
             .execute(&self.pool)
             .await
@@ -451,7 +451,7 @@ mod tests {
         assert_eq!(loaded.retry_count, 1);
 
         // Force available_at to NOW() so we can consume again immediately
-        let _ = sqlx::query(r#"UPDATE "CmsJob" SET available_at = NOW() WHERE id = $1"#)
+        let _ = sqlx::query(r#"UPDATE "cms_job" SET available_at = NOW() WHERE id = $1"#)
             .bind(&job_id.0)
             .execute(&pool)
             .await;
