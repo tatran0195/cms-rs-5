@@ -3,13 +3,12 @@
 //! Domain service for Git repository connections and synchronization.
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
-use cms_content::{BranchQueries, PageQueries};
-use cms_db::PgPool;
 use crate::queries::{
     GitConflictQueries, GitConnectionQueries, GitFileStateQueries, GitPreviewQueries,
     GitPullRequestQueries, GitSyncOperationQueries,
 };
-use cms_projects::ProjectQueries;
+use cms_content::{BranchQueries, PageQueries};
+use cms_db::PgPool;
 use cms_entity::{
     common::PaginatedResponse,
     git::{
@@ -19,6 +18,7 @@ use cms_entity::{
     },
 };
 use cms_error::AppError;
+use cms_projects::ProjectQueries;
 
 /// Git integration service.
 #[derive(Debug)]
@@ -56,13 +56,16 @@ impl GitService {
         Ok(connection.into())
     }
 
-    /// Get Git connection for a project.
+    /// Get Git connection by ID or project ID.
     pub async fn get_connection(
         pool: &PgPool,
         _user_id: &str,
-        project_id: &str,
+        id_or_project_id: &str,
     ) -> Result<Option<GitConnectionResponse>, AppError> {
-        let connection = GitConnectionQueries::get_by_project(pool, project_id).await?;
+        if let Some(connection) = GitConnectionQueries::get_by_id(pool, id_or_project_id).await? {
+            return Ok(Some(connection.into()));
+        }
+        let connection = GitConnectionQueries::get_by_project(pool, id_or_project_id).await?;
         Ok(connection.map(Into::into))
     }
 
@@ -112,9 +115,10 @@ impl GitService {
         GitConnectionQueries::delete(pool, connection_id).await
     }
 
-    /// Trigger a sync operation.
+    /// Trigger a sync operation and enqueue background git sync job.
     pub async fn trigger_sync(
         pool: &PgPool,
+        job_queue: &dyn cms_infra::queue::JobQueue,
         _user_id: &str,
         connection_id: &str,
         operation_type: GitSyncOperationType,
@@ -130,6 +134,23 @@ impl GitService {
             GitSyncOperationStatus::Pending,
         )
         .await?;
+
+        let job = cms_infra::queue::JobEnvelope::new(
+            cms_infra::queue::JobType::Git,
+            serde_json::json!({
+                "operation_id": operation.id,
+            }),
+        );
+
+        if let Err(err) = job_queue.enqueue(job).await {
+            let _ = GitSyncOperationQueries::update_error(
+                pool,
+                &operation.id,
+                &format!("Could not enqueue git sync job: {err}"),
+            )
+            .await;
+            return Err(err);
+        }
 
         Ok(operation.into())
     }
@@ -284,13 +305,19 @@ impl GitService {
         GitPreviewQueries::get_by_pull_request(pool, pull_request_id).await
     }
 
-    /// Get sync status for a connection.
+    /// Get sync status for a connection or project.
     pub async fn get_sync_status(
         pool: &PgPool,
         _user_id: &str,
-        project_id: &str,
+        id_or_project_id: &str,
     ) -> Result<serde_json::Value, AppError> {
-        let connection = GitConnectionQueries::get_by_project(pool, project_id).await?;
+        let connection =
+            if let Some(conn) = GitConnectionQueries::get_by_id(pool, id_or_project_id).await? {
+                Some(conn)
+            } else {
+                GitConnectionQueries::get_by_project(pool, id_or_project_id).await?
+            };
+
         if let Some(conn) = connection {
             let operations =
                 GitSyncOperationQueries::get_by_connection(pool, &conn.id, Some(1), None).await?;

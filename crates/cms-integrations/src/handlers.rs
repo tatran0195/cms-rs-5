@@ -6,30 +6,34 @@ use std::sync::Arc;
 
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, State},
 };
-use cms_auth::AuthUser;
+use cms_auth::{AuthUser, ProjectViewer, authorize_project_id};
+use cms_authz::{Relation, gate::ParentLink};
 use cms_entity::{
     common::Id,
     integration::{
-        CreateProjectIntegrationRequest, ListIntegrationsQuery, ProjectIntegrationResponse,
+        CreateProjectIntegrationRequest, ProjectIntegrationResponse,
         UpdateProjectIntegrationRequest,
     },
 };
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
+use uuid::Uuid;
 
-use crate::IntegrationService;
+use crate::{IntegrationService, queries::ProjectIntegrationQueries};
 
 /// List integrations for a project.
 pub async fn list_integrations_handler(
+    viewer: ProjectViewer,
     State(state): State<Arc<AppState>>,
-    auth: AuthUser,
-    Query(query): Query<ListIntegrationsQuery>,
 ) -> Result<Json<Vec<ProjectIntegrationResponse>>, AppError> {
-    let project_id = query.project_id.as_deref().unwrap_or("");
-    let integrations =
-        IntegrationService::list_integrations(state.db(), &auth.user_id, project_id).await?;
+    let integrations = IntegrationService::list_integrations(
+        state.db(),
+        &viewer.auth.user_id,
+        &viewer.project_id.to_string(),
+    )
+    .await?;
 
     Ok(Json(integrations))
 }
@@ -40,8 +44,15 @@ pub async fn create_integration_handler(
     auth: AuthUser,
     Json(request): Json<CreateProjectIntegrationRequest>,
 ) -> Result<Json<ProjectIntegrationResponse>, AppError> {
+    let project_uuid =
+        authorize_project_id(&state, &auth, &request.project_id, Relation::Editor).await?;
+
     let integration =
-        IntegrationService::create_integration(state.db(), &auth.user_id, request).await?;
+        IntegrationService::create_integration(state.db(), &auth.user_id, CreateProjectIntegrationRequest {
+            project_id: project_uuid.to_string(),
+            ..request
+        })
+        .await?;
 
     Ok(Json(integration))
 }
@@ -52,10 +63,23 @@ pub async fn get_integration_handler(
     auth: AuthUser,
     Path(integration_id): Path<Id>,
 ) -> Result<Json<ProjectIntegrationResponse>, AppError> {
-    let integration =
-        IntegrationService::get_integration(state.db(), &auth.user_id, &integration_id).await?;
+    let integ_uuid = Uuid::parse_str(&integration_id)
+        .map_err(|_| AppError::NotFound("Integration not found".to_string()))?;
 
-    Ok(Json(integration))
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Integration(integ_uuid),
+        Relation::Viewer,
+    )
+    .await?;
+
+    let integration = ProjectIntegrationQueries::get_by_id(state.db(), &integration_id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Integration not found".to_string()))?;
+
+    Ok(Json(integration.into()))
 }
 
 /// Update an integration.
@@ -65,6 +89,18 @@ pub async fn update_integration_handler(
     Path(integration_id): Path<Id>,
     Json(request): Json<UpdateProjectIntegrationRequest>,
 ) -> Result<Json<ProjectIntegrationResponse>, AppError> {
+    let integ_uuid = Uuid::parse_str(&integration_id)
+        .map_err(|_| AppError::NotFound("Integration not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Integration(integ_uuid),
+        Relation::Editor,
+    )
+    .await?;
+
     let integration =
         IntegrationService::update_integration(state.db(), &auth.user_id, &integration_id, request)
             .await?;
@@ -78,6 +114,18 @@ pub async fn delete_integration_handler(
     auth: AuthUser,
     Path(integration_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
+    let integ_uuid = Uuid::parse_str(&integration_id)
+        .map_err(|_| AppError::NotFound("Integration not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Integration(integ_uuid),
+        Relation::Editor,
+    )
+    .await?;
+
     IntegrationService::delete_integration(state.db(), &auth.user_id, &integration_id).await?;
 
     Ok(Json(
@@ -91,6 +139,18 @@ pub async fn enable_integration_handler(
     auth: AuthUser,
     Path(integration_id): Path<Id>,
 ) -> Result<Json<ProjectIntegrationResponse>, AppError> {
+    let integ_uuid = Uuid::parse_str(&integration_id)
+        .map_err(|_| AppError::NotFound("Integration not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Integration(integ_uuid),
+        Relation::Editor,
+    )
+    .await?;
+
     let integration =
         IntegrationService::enable_integration(state.db(), &auth.user_id, &integration_id).await?;
 
@@ -103,6 +163,18 @@ pub async fn disable_integration_handler(
     auth: AuthUser,
     Path(integration_id): Path<Id>,
 ) -> Result<Json<ProjectIntegrationResponse>, AppError> {
+    let integ_uuid = Uuid::parse_str(&integration_id)
+        .map_err(|_| AppError::NotFound("Integration not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Integration(integ_uuid),
+        Relation::Editor,
+    )
+    .await?;
+
     let integration =
         IntegrationService::disable_integration(state.db(), &auth.user_id, &integration_id).await?;
 
@@ -115,6 +187,18 @@ pub async fn test_integration_handler(
     auth: AuthUser,
     Path(integration_id): Path<Id>,
 ) -> Result<Json<serde_json::Value>, AppError> {
+    let integ_uuid = Uuid::parse_str(&integration_id)
+        .map_err(|_| AppError::NotFound("Integration not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Integration(integ_uuid),
+        Relation::Editor,
+    )
+    .await?;
+
     let result =
         IntegrationService::test_integration(state.db(), &auth.user_id, &integration_id).await?;
 

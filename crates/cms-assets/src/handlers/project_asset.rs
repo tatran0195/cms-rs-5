@@ -4,10 +4,9 @@ use std::{sync::Arc, time::Duration};
 
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::State,
 };
-use cms_auth::AuthUser;
-use cms_projects::ProjectQueries;
+use cms_auth::{ProjectEditor, ProjectViewer};
 use cms_entity::common::ApiResponse;
 use cms_error::AppError;
 use cms_infra::storage::UploadTarget;
@@ -23,26 +22,27 @@ use crate::{
 
 /// List assets for a project.
 pub async fn list_project_assets_handler(
+    viewer: ProjectViewer,
     State(state): State<Arc<AppState>>,
-    auth: AuthUser,
-    Path(project_id): Path<String>,
 ) -> Result<Json<ApiResponse<Vec<AssetResponse>>>, AppError> {
-    let result = AssetService::list_assets(state.db(), &auth.user_id, &project_id, 1, 50).await?;
+    let result = AssetService::list_assets(
+        state.db(),
+        &viewer.auth.user_id,
+        &viewer.project_id.to_string(),
+        1,
+        50,
+    )
+    .await?;
 
     Ok(Json(ApiResponse::new(result.data)))
 }
 
 /// Compute a storage key and return an upload target.
 pub async fn presign_project_asset_handler(
+    editor: ProjectEditor,
     State(state): State<Arc<AppState>>,
-    _auth: AuthUser,
-    Path(project_id): Path<String>,
     Json(body): Json<PresignAssetRequest>,
 ) -> Result<Json<ApiResponse<PresignAssetResponse>>, AppError> {
-    let _project = ProjectQueries::get_by_id(state.db(), &project_id)
-        .await?
-        .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
     let file_name = body
         .filename
         .filter(|s| !s.is_empty())
@@ -50,7 +50,7 @@ pub async fn presign_project_asset_handler(
 
     let storage_key = format!(
         "assets/{}/{}/{}",
-        project_id,
+        editor.project_id,
         chrono::Utc::now().timestamp(),
         file_name
     );
@@ -75,9 +75,8 @@ pub async fn presign_project_asset_handler(
 
 /// Record a previously-uploaded asset in PostgreSQL and return SPA representation.
 pub async fn confirm_project_asset_handler(
+    editor: ProjectEditor,
     State(state): State<Arc<AppState>>,
-    auth: AuthUser,
-    Path(project_id): Path<String>,
     Json(body): Json<ConfirmAssetRequest>,
 ) -> Result<Json<ApiResponse<ConfirmAssetResponse>>, AppError> {
     let key = body.key;
@@ -90,14 +89,10 @@ pub async fn confirm_project_asset_handler(
     let _file_size = body.size.unwrap_or(0);
     let file_name = key.rsplit('/').next().unwrap_or("asset").to_string();
 
-    let _project = ProjectQueries::get_by_id(state.db(), &project_id)
-        .await?
-        .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
     let asset = AssetService::create_asset(
         state.db(),
-        &auth.user_id,
-        &project_id,
+        &editor.auth.user_id,
+        &editor.project_id.to_string(),
         None,
         &file_name,
         &content_type,

@@ -4,9 +4,9 @@
 //! Accepts `pool: &PgPool` directly; no dependency on `BizContext`.
 
 use cms_db::PgPool;
-use cms_projects::ProjectQueries;
 use cms_entity::theme::{CreateThemeRequest, ThemeCssVariables, ThemeResponse, UpdateThemeRequest};
 use cms_error::AppError;
+use cms_projects::ProjectQueries;
 
 use crate::queries::ThemeQueries;
 
@@ -64,7 +64,7 @@ impl ThemeService {
 
         let themes = ThemeQueries::get_by_project(pool, project_id).await?;
 
-        Ok(themes.into_iter().map(|t| t.into()).collect())
+        Ok(themes.into_iter().map(Into::into).collect())
     }
 
     /// Update a theme

@@ -457,7 +457,7 @@ impl GitFileStateQueries {
             INSERT INTO "GitFileState" (id, project_id, path, git_path, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *
-            "#
+            "#,
         )
         .bind(&id)
         .bind(project_id)

@@ -5,10 +5,10 @@ use std::sync::Arc;
 use bytes::Bytes;
 use chrono::Utc;
 use cms_content::PageQueries;
-use cms_projects::ProjectQueries;
 use cms_entity::common::PaginatedResponse;
 use cms_error::AppError;
 use cms_infra::storage::Storage;
+use cms_projects::ProjectQueries;
 use sqlx::PgPool;
 
 use crate::{

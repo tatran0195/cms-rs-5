@@ -6,29 +6,34 @@ use std::sync::Arc;
 
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, State},
 };
-use cms_auth::AuthUser;
+use cms_auth::{AuthUser, ProjectEditor, ProjectViewer, authorize_project_id};
+use cms_authz::{Relation, gate::ParentLink};
 use cms_entity::{
     common::{ApiResponse, Id},
     theme::{
-        CreateThemeRequest, DeleteThemeResponse, ListThemesQuery, ThemeCssVariables, ThemeResponse,
+        CreateThemeRequest, DeleteThemeResponse, ThemeCssVariables, ThemeResponse,
         UpdateThemeRequest,
     },
 };
 use cms_error::AppError;
 use cms_server_core::app_state::AppState;
+use uuid::Uuid;
 
-use crate::ThemeService;
+use crate::{ThemeService, queries::ThemeQueries};
 
 /// List themes for a project.
 pub async fn list_themes_handler(
+    viewer: ProjectViewer,
     State(state): State<Arc<AppState>>,
-    auth: AuthUser,
-    Query(query): Query<ListThemesQuery>,
 ) -> Result<Json<Vec<ThemeResponse>>, AppError> {
-    let project_id = query.project_id.as_deref().unwrap_or("");
-    let themes = ThemeService::list_themes(state.db(), &auth.user_id, project_id).await?;
+    let themes = ThemeService::list_themes(
+        state.db(),
+        &viewer.auth.user_id,
+        &viewer.project_id.to_string(),
+    )
+    .await?;
 
     Ok(Json(themes))
 }
@@ -39,8 +44,16 @@ pub async fn create_theme_handler(
     auth: AuthUser,
     Json(request): Json<CreateThemeRequest>,
 ) -> Result<Json<ThemeResponse>, AppError> {
-    let project_id = request.project_id.clone();
-    let theme = ThemeService::create_theme(state.db(), &auth.user_id, &project_id, request).await?;
+    let project_uuid =
+        authorize_project_id(&state, &auth, &request.project_id, Relation::Editor).await?;
+
+    let theme = ThemeService::create_theme(
+        state.db(),
+        &auth.user_id,
+        &project_uuid.to_string(),
+        request,
+    )
+    .await?;
 
     Ok(Json(theme))
 }
@@ -51,9 +64,23 @@ pub async fn get_theme_handler(
     auth: AuthUser,
     Path(theme_id): Path<Id>,
 ) -> Result<Json<ThemeResponse>, AppError> {
-    let theme = ThemeService::get_theme(state.db(), &auth.user_id, &theme_id).await?;
+    let theme_uuid = Uuid::parse_str(&theme_id)
+        .map_err(|_| AppError::NotFound("Theme not found".to_string()))?;
 
-    Ok(Json(theme))
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Theme(theme_uuid),
+        Relation::Viewer,
+    )
+    .await?;
+
+    let theme = ThemeQueries::get_by_id(state.db(), &theme_id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Theme not found".to_string()))?;
+
+    Ok(Json(theme.into()))
 }
 
 /// Update an existing theme.
@@ -63,9 +90,21 @@ pub async fn update_theme_handler(
     Path(theme_id): Path<Id>,
     Json(request): Json<UpdateThemeRequest>,
 ) -> Result<Json<ThemeResponse>, AppError> {
-    let theme = ThemeService::update_theme(state.db(), &auth.user_id, &theme_id, request).await?;
+    let theme_uuid = Uuid::parse_str(&theme_id)
+        .map_err(|_| AppError::NotFound("Theme not found".to_string()))?;
 
-    Ok(Json(theme))
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Theme(theme_uuid),
+        Relation::Editor,
+    )
+    .await?;
+
+    let updated = ThemeService::update_theme(state.db(), &auth.user_id, &theme_id, request).await?;
+
+    Ok(Json(updated))
 }
 
 /// Delete a theme.
@@ -74,6 +113,18 @@ pub async fn delete_theme_handler(
     auth: AuthUser,
     Path(theme_id): Path<Id>,
 ) -> Result<Json<ApiResponse<DeleteThemeResponse>>, AppError> {
+    let theme_uuid = Uuid::parse_str(&theme_id)
+        .map_err(|_| AppError::NotFound("Theme not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Theme(theme_uuid),
+        Relation::Editor,
+    )
+    .await?;
+
     ThemeService::delete_theme(state.db(), &auth.user_id, &theme_id).await?;
 
     Ok(Json(ApiResponse::new(DeleteThemeResponse {
@@ -88,6 +139,18 @@ pub async fn get_theme_css_handler(
     auth: AuthUser,
     Path(theme_id): Path<Id>,
 ) -> Result<Json<ThemeCssVariables>, AppError> {
+    let theme_uuid = Uuid::parse_str(&theme_id)
+        .map_err(|_| AppError::NotFound("Theme not found".to_string()))?;
+
+    cms_authz::gate::require_parent_access(
+        state.db(),
+        state.authz_backend(),
+        &auth.authz_context(),
+        ParentLink::Theme(theme_uuid),
+        Relation::Viewer,
+    )
+    .await?;
+
     let css_vars = ThemeService::get_theme_css(state.db(), &auth.user_id, &theme_id).await?;
 
     Ok(Json(css_vars))
@@ -95,9 +158,8 @@ pub async fn get_theme_css_handler(
 
 /// Set project theme.
 pub async fn set_project_theme_handler(
+    editor: ProjectEditor,
     State(state): State<Arc<AppState>>,
-    auth: AuthUser,
-    Path(project_id): Path<Id>,
     Json(request): Json<serde_json::Value>,
 ) -> Result<Json<ThemeResponse>, AppError> {
     let theme_id: String = serde_json::from_value(
@@ -108,8 +170,13 @@ pub async fn set_project_theme_handler(
     )
     .map_err(|_| AppError::BadRequest("Invalid theme_id".to_string()))?;
 
-    let theme =
-        ThemeService::set_project_theme(state.db(), &auth.user_id, &project_id, &theme_id).await?;
+    let theme = ThemeService::set_project_theme(
+        state.db(),
+        &editor.auth.user_id,
+        &editor.project_id.to_string(),
+        &theme_id,
+    )
+    .await?;
 
     Ok(Json(theme))
 }

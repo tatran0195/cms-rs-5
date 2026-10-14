@@ -14,6 +14,7 @@ cms-auth = { path = "../cms-auth" }
 cms-authz = { path = "../cms-authz" }
 cms-projects = { workspace = true }
 cms-content = { workspace = true }
+cms-infra = { workspace = true }
 
 axum = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

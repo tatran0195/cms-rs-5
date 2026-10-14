@@ -2,10 +2,9 @@
 
 use cms_content::PageQueries;
 use cms_db::{
-    analytics::{AnalyticsEventQueries, AnalyticsQueries},
     PgPool,
+    analytics::{AnalyticsEventQueries, AnalyticsQueries},
 };
-use cms_projects::ProjectQueries;
 use cms_entity::{
     analytics::{
         AnalyticsDashboardResponse, AnalyticsEventResponse, AnalyticsQueryRequest,
@@ -14,6 +13,7 @@ use cms_entity::{
     common::PaginatedResponse,
 };
 use cms_error::AppError;
+use cms_projects::ProjectQueries;
 
 /// Analytics service decoupled from BizContext.
 #[derive(Debug, Clone, Copy)]
@@ -191,4 +191,3 @@ pub async fn process_analytics_job(
 
     Ok(())
 }
-

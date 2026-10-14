@@ -29,8 +29,9 @@ pub mod sequence;
 pub use sequence::next_sequence;
 pub mod authz_queries;
 pub use authz_queries::{
-    resolve_api_key_project, resolve_branch_project, resolve_deployment_project,
-    resolve_page_project,
+    resolve_api_key_project, resolve_asset_project, resolve_branch_project,
+    resolve_deployment_project, resolve_git_connection_project,
+    resolve_integration_project, resolve_page_project, resolve_theme_project,
 };
 use cms_error::AppError;
 pub use setup::SetupQueries;

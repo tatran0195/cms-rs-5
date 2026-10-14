@@ -20,6 +20,10 @@ pub enum ParentLink {
     Branch(Uuid),
     Deployment(Uuid),
     ApiKey(Uuid),
+    Theme(Uuid),
+    GitConnection(Uuid),
+    Integration(Uuid),
+    Asset(Uuid),
 }
 
 /// Resolve a child resource to its parent project ID in a single indexed query.
@@ -32,6 +36,10 @@ pub async fn resolve_parent_project(
         ParentLink::Branch(id) => cms_db::resolve_branch_project(pool, id).await,
         ParentLink::Deployment(id) => cms_db::resolve_deployment_project(pool, id).await,
         ParentLink::ApiKey(id) => cms_db::resolve_api_key_project(pool, id).await,
+        ParentLink::Theme(id) => cms_db::resolve_theme_project(pool, id).await,
+        ParentLink::GitConnection(id) => cms_db::resolve_git_connection_project(pool, id).await,
+        ParentLink::Integration(id) => cms_db::resolve_integration_project(pool, id).await,
+        ParentLink::Asset(id) => cms_db::resolve_asset_project(pool, id).await,
     }
 }
 
@@ -86,7 +94,14 @@ pub async fn require_parent_access(
         .await?
         .ok_or_else(|| AppError::NotFound("Resource not found".to_string()))?;
 
-    require_project_access(authz, ctx, project_id, relation).await?;
+    require_project_access(authz, ctx, project_id, relation)
+        .await
+        .map_err(|err| match err {
+            AppError::NotFound(_) | AppError::Forbidden => {
+                AppError::NotFound("Resource not found".to_string())
+            }
+            other => other,
+        })?;
 
     Ok(project_id)
 }

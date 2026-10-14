@@ -8,4 +8,4 @@ pub mod router;
 pub mod services;
 
 pub use router::router;
-pub use services::{process_analytics_job, AnalyticsService};
+pub use services::{AnalyticsService, process_analytics_job};

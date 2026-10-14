@@ -147,12 +147,11 @@ impl ThemeQueries {
     ) -> Result<Theme, AppError> {
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new("UPDATE \"Theme\" SET ");
 
-        let mut has_updates = false;
-        if let Some(name) = name {
+        let mut has_updates = name.is_some_and(|name| {
             query_builder.push("name = ");
             query_builder.push_bind(name);
-            has_updates = true;
-        }
+            true
+        });
         if let Some(config) = config {
             if has_updates {
                 query_builder.push(", ");
