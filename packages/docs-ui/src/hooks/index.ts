@@ -19,3 +19,4 @@ export * from './use-search-navigation';
 export * from './use-select';
 export * from './use-similar-pages';
 export * from './use-tabs';
+export * from './use-docs-router';
