@@ -1,5 +1,6 @@
 import { toast } from "@cms/ui";
 import { useNavigate } from "@tanstack/react-router";
+import { useWorkspaceStore } from "../../workspace";
 import { useAuth } from "../hooks/use-auth";
 import type { AuthProviderId, LoginCredentials } from "../types";
 import { AuthLayout } from "./auth-layout";
@@ -27,9 +28,13 @@ export function LoginPage() {
 			const displayName =
 				res.user.fullName || res.user.full_name || res.user.email;
 			toast.success(`Welcome back, ${displayName}!`);
+
+			const activeWs = useWorkspaceStore.getState().getActiveWorkspace();
+			const destination = activeWs ? "/" : "/setup-organization";
+
 			setTimeout(() => {
-				navigate({ to: "/" });
-			}, 800);
+				navigate({ to: destination });
+			}, 600);
 		}
 	};
 
@@ -40,9 +45,13 @@ export function LoginPage() {
 		const res = await verifyMfa(code, method);
 		if (res?.token && res?.user) {
 			toast.success("Two-factor authentication verified successfully!");
+
+			const activeWs = useWorkspaceStore.getState().getActiveWorkspace();
+			const destination = activeWs ? "/" : "/setup-organization";
+
 			setTimeout(() => {
-				navigate({ to: "/" });
-			}, 800);
+				navigate({ to: destination });
+			}, 600);
 		}
 	};
 
@@ -50,9 +59,13 @@ export function LoginPage() {
 		const res = await ssoLogin(provider);
 		if (res?.token && res?.user) {
 			toast.success(`Connected via ${provider.toUpperCase()}`);
+
+			const activeWs = useWorkspaceStore.getState().getActiveWorkspace();
+			const destination = activeWs ? "/" : "/setup-organization";
+
 			setTimeout(() => {
-				navigate({ to: "/" });
-			}, 800);
+				navigate({ to: destination });
+			}, 600);
 		}
 	};
 
