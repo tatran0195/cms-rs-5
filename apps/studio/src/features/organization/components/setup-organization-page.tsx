@@ -68,7 +68,10 @@ export function SetupOrganizationPage() {
 					</div>
 
 					{/* Title & Subtitle */}
-					<Heading level="h1" className="text-lg font-semibold text-ui-fg-base text-center">
+					<Heading
+						level="h1"
+						className="text-lg font-semibold text-ui-fg-base text-center"
+					>
 						Setup your organization
 					</Heading>
 					<Text size="small" className="text-ui-fg-subtle text-center mt-1">
@@ -83,7 +86,10 @@ export function SetupOrganizationPage() {
 									<Text className="text-xs font-medium text-ui-fg-base">
 										Setup your organization
 									</Text>
-									<Text size="small" className="text-ui-fg-muted text-xs mt-0.5">
+									<Text
+										size="small"
+										className="text-ui-fg-muted text-xs mt-0.5"
+									>
 										Specify the name of your organization
 									</Text>
 								</div>

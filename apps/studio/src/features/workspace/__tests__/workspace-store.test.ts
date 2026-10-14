@@ -39,6 +39,8 @@ describe("WorkspaceStore", () => {
 
 		const active = useWorkspaceStore.getState().getActiveWorkspace();
 		expect(active?.id).toBe("ws-personal");
-		expect(useWorkspaceStore.getState().lastVisitedWorkspaceId).toBe("ws-personal");
+		expect(useWorkspaceStore.getState().lastVisitedWorkspaceId).toBe(
+			"ws-personal",
+		);
 	});
 });

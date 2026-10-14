@@ -86,7 +86,9 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 				const { workspaces, lastVisitedWorkspaceId } = get();
 				if (!workspaces.length) return null;
 				if (lastVisitedWorkspaceId) {
-					const matched = workspaces.find((w) => w.id === lastVisitedWorkspaceId);
+					const matched = workspaces.find(
+						(w) => w.id === lastVisitedWorkspaceId,
+					);
 					if (matched) return matched;
 				}
 				return workspaces[0];

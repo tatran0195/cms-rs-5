@@ -60,7 +60,9 @@ const docsMeta: Pick<DocsConfig, "version"> = globalConfig;
 // 6. @cms/docs-ui
 import { Badge as DocsBadge, Kbd as DocsKbd, Note } from "@cms/docs-ui";
 
-export const Route = createFileRoute("/test")({ component: StudioTestDashboard });
+export const Route = createFileRoute("/test")({
+	component: StudioTestDashboard,
+});
 
 // Mock data typed with @cms/types NavigationItem
 const testNavigation: NavigationItem[] = [

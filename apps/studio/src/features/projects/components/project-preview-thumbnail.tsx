@@ -2,7 +2,9 @@ interface ProjectPreviewThumbnailProps {
 	type: "dtc" | "b2b" | "docs";
 }
 
-export function ProjectPreviewThumbnail({ type }: ProjectPreviewThumbnailProps) {
+export function ProjectPreviewThumbnail({
+	type,
+}: ProjectPreviewThumbnailProps) {
 	if (type === "dtc") {
 		return (
 			<div className="w-full h-full min-h-[148px] bg-[#FAF8F5] p-3 rounded-lg flex flex-col justify-between border border-ui-border-base select-none shadow-xs">

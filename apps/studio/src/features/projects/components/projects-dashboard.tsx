@@ -1,6 +1,5 @@
-import { CirclePlus, MagnifyingGlass } from "@cms/icons";
+import { MagnifyingGlass } from "@cms/icons";
 import { Button, Heading, Text } from "@cms/ui";
-import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useWorkspaceStore } from "../../workspace";
 import { ProjectCard } from "./project-card";
@@ -8,7 +7,6 @@ import { Sidebar } from "./sidebar";
 import { TopBar } from "./topbar";
 
 export function ProjectsDashboard() {
-	const navigate = useNavigate();
 	const { getActiveWorkspace, getActiveProjects } = useWorkspaceStore();
 	const activeWorkspace = getActiveWorkspace();
 	const projects = getActiveProjects();
@@ -30,10 +28,7 @@ export function ProjectsDashboard() {
 	return (
 		<div className="flex h-screen bg-ui-bg-subtle overflow-hidden">
 			{/* Left Sidebar */}
-			<Sidebar
-				searchQuery={globalSearch}
-				onSearchChange={setGlobalSearch}
-			/>
+			<Sidebar searchQuery={globalSearch} onSearchChange={setGlobalSearch} />
 
 			{/* Main Workspace Column */}
 			<div className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -43,7 +38,10 @@ export function ProjectsDashboard() {
 					<div className="max-w-5xl mx-auto space-y-6">
 						{/* Header Row */}
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-							<Heading level="h1" className="text-xl font-semibold text-ui-fg-base">
+							<Heading
+								level="h1"
+								className="text-xl font-semibold text-ui-fg-base"
+							>
 								All projects
 							</Heading>
 
@@ -78,11 +76,15 @@ export function ProjectsDashboard() {
 							</div>
 						) : (
 							<div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-12 text-center flex flex-col items-center justify-center shadow-xs">
-								<Heading level="h2" className="text-sm font-semibold text-ui-fg-base">
+								<Heading
+									level="h2"
+									className="text-sm font-semibold text-ui-fg-base"
+								>
 									No projects found
 								</Heading>
 								<Text size="small" className="text-ui-fg-muted mt-1 max-w-sm">
-									{activeWorkspace?.name} doesn't have any projects yet. Create your first project to get started.
+									{activeWorkspace?.name} doesn't have any projects yet. Create
+									your first project to get started.
 								</Text>
 								<Button
 									variant="secondary"

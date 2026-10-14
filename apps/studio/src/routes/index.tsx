@@ -10,19 +10,28 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
 	const navigate = useNavigate();
-	const { user } = useAuth();
+	const { user, isLoading } = useAuth();
 	const { workspaces, getActiveWorkspace } = useWorkspaceStore();
 
 	const activeWorkspace = getActiveWorkspace();
 
 	useEffect(() => {
+		if (isLoading) return;
+		if (!user) {
+			navigate({ to: "/login" });
+			return;
+		}
 		// If no workspace exists, redirect to setup organization
 		if (!workspaces.length || !activeWorkspace) {
 			navigate({ to: "/setup-organization" });
 		}
-	}, [workspaces, activeWorkspace, navigate]);
+	}, [user, isLoading, workspaces, activeWorkspace, navigate]);
 
-	if (!workspaces.length || !activeWorkspace) {
+	if (isLoading) {
+		return null;
+	}
+
+	if (!user || !workspaces.length || !activeWorkspace) {
 		return null;
 	}
 

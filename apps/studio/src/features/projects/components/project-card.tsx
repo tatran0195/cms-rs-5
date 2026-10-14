@@ -28,7 +28,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
 				{/* Right Project Details */}
 				<div className="md:col-span-7 flex flex-col justify-between space-y-4">
 					<div>
-						<Heading level="h2" className="text-base font-semibold text-ui-fg-base">
+						<Heading
+							level="h2"
+							className="text-base font-semibold text-ui-fg-base"
+						>
 							{project.name}
 						</Heading>
 
@@ -36,7 +39,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
 						<div className="mt-3 space-y-1.5">
 							{endpoints.map((ep) => (
 								<div key={ep.label} className="flex items-center gap-2 text-xs">
-									<span className="text-ui-fg-muted min-w-[75px]">{ep.label}</span>
+									<span className="text-ui-fg-muted min-w-[75px]">
+										{ep.label}
+									</span>
 									<span className="inline-flex items-center gap-1.5 font-medium text-ui-fg-subtle">
 										<span className="h-2 w-2 rounded-full bg-emerald-500" />
 										Live
